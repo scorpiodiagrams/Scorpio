@@ -1,0 +1,55 @@
+!!Scorpio
+##Annotated
+caption: The Cell Wall (Revision)
+:A: Lipid\nBilayer
+*:B: :Height5:Width6:[ ]
+:C: (Channel\nProtein)
+*:D: :Height6:" "
+:E: Hydrophillic\nHeads
+*:F: " "
+*:G: " "
+*:H: " "
+*:I: " "
+*:J: " "
+*:K: " "
+:L: Hydrophobic\nTails
+*:M: " "
+*:N: " "
+*:O: " "
+:A: at: 141,156
+:B: at: 178,76
+:C: at: 259,164
+:D: at: 306,76
+:E: at: 407,16
+:F: at: 391,57
+:G: at: 387,107
+:H: at: 406,59
+:I: at: 415,108
+:J: at: 432,60
+:K: at: 436,107
+:L: at: 503,140
+cloze: What sort\nof tails are these?
+:M: at: 468,78
+:N: at: 499,82
+:O: at: 532,78
+background: CellWall.png
+:A:B:
+card:
+##Lipid Bilayer
+Two layers of phospholipids, with hydrophillic phosphate groups oriented to the outside (water facing) and hydrophobic fatty acid tails inside.
+#Wiki(Lipid bilayer)
+:C:D:
+card:
+##Channel Protein
+Channel proteins often have active transport, consuming ATP to pump specific molecules in or out of the cell.
+#Wiki(Membrane transport protein)
+:E:F:G:H:I:J:K:
+card:
+##Hydrophillic Heads
+aka polar head.  Water attracting phosphate group.
+#Wiki(Phospholipid)
+:L:M:N:O:
+card:
+##Hydrophobic Tails
+aka nonpolar tail.  Water repelling fatty acid tail.
+#Wiki(Phospholipid)

@@ -1,0 +1,63 @@
+!!Scorpio
+##Annotated
+caption: Annotated JáTéK for Maxwell's equations
+:A: ("Div F")
+*:B: :Height3:["             "]
+:C: ("Curl F")
+*:D: :Height3:["               "]
+:E: ("Electromagnetic\nField (F)")
+*:F: :Height2.6:["    "]
+:G: ("")
+*:H: :Height2.6:["    "]
+:I: ("")
+*:J: :Height2.6:["    "]
+:K: ("I almost\nforgot this one)
+*:L: :Height3:["    "]
+:M: ("Electromagnetic\nCharge density")
+*:N: :Height2.6:["    "]
+:A: at: 204,34
+:B: at: 318,62
+:C: at: 179,98
+:D: at: 271,110
+:E: at: 298,188
+:F: at: 335,62
+:G: at: 328,126
+:H: at: 292,110
+:I: at: 317,78
+:J: at: 378,96
+:K: at: 539,174
+:L: at: 436,110
+:M: at: 573,41
+:N: at: 400,62
+background: MaxwellEquations.png
+bond: K L ~~""~~>
+bend: 30
+:A:B:
+card:
+###Div F ( $$\nabla$$.F )
+Div F measures how much the field F is spreading out at each point. Div gives a scalar value at each point.
+
+Div is a spatial derivative.  It does not depend on time.
+#Button(differential_operators,Div Grad and Curl)
+:C:D:
+card:
+####Curl F ( $$\nabla\times$$F )
+Curl F measures how 'rotational' the field F is at each point. 
+The Curl is a vector pointing perpendicular to the rotation.
+> In a field rotating about an axis, Curl is non-zero not only on the axis, but also off-axis, diminishing with distance.
+
+Curl is a spatial derivative.  It does not depend on time.
+#Button(differential_operators,Div Grad and Curl)
+:E:F:G:H:I:J:
+card:
+###Electromagnetic Field F
+F is a vector field, the electromagnetic field. It has both real and imaginary parts. The real part is the electric field and the imaginary part is the magnetic part.
+
+F specifies a possibly time varying 3D vector of complex numbers for every position in 3D space.
+:K:L:
+card:
+##Forgotten?
+:M:N:
+card:
+<h2>Rho</h2>The charge density.  A complex scalar value for each point in space.  The imaginary part being 'magnetic charge' and the real part being 'electric charge'.  The magnetic charge is always zero because 'there are no magnetic monopoles'.
+:end:
