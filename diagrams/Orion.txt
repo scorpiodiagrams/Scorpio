@@ -25,7 +25,7 @@ caption: The constellation of Orion
 :J: at: 296,75
 :K: at: 455,196
 :L: at: 424,42
-background: #113
+background: #431
 bond: * *
 bend: 0
 bond: A B
