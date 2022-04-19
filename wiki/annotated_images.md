@@ -1,10 +1,8 @@
 !!Markdown
-#ScorpioHead(18 April 2022, Annotated Images)
-## Annotated Images
 
-This page is being fetched from a GitHub repository.  
+# Annotated Images
 
-It has some examples of annotated images.
+This page has some examples of annotated images.
 
 
 ##Femur

@@ -1,10 +1,7 @@
 !!Markdown
-#ScorpioHead(18 April 2022, Star Maps)
-## Star Maps
+# Star Maps
 
-This page is being fetched from a GitHub repository.  
-
-It has some examples of star maps
+This page has some examples of star maps
 
 
 ##Orion
