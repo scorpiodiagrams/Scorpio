@@ -28,7 +28,6 @@ caption: The Cell Wall (Revision)
 :J: at: 432,60
 :K: at: 436,107
 :L: at: 503,140
-cloze: What sort\nof tails are these?
 :M: at: 468,78
 :N: at: 499,82
 :O: at: 532,78

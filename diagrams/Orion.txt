@@ -1,0 +1,71 @@
+!!Scorpio
+##StarMap
+caption: The constellation of Orion
+*:A: ("🌟")
+*:B: ("🌟")
+*:C: ("🌟")
+*:D: ("🌟")
+*:E: ("🌟")
+*:F: ("🌟")
+*:G: ("🌟")
+*:H: ("🌟")
+*:I: ("🌟")
+*:J: ("🌟")
+*:K: ("🌟")
+*:L: ("🌟")
+:A: at: 217,112
+:B: at: 325,126
+:C: at: 244,250
+:D: at: 271,234
+:E: at: 298,220
+:F: at: 474,115
+:G: at: 219,360
+:H: at: 335,256
+:I: at: 374,351
+:J: at: 296,75
+:K: at: 455,196
+:L: at: 424,42
+background: #113
+bond: * *
+bend: 0
+bond: A B
+bond: A C
+bond: C D
+bond: D E
+bond: E B
+bond: C G
+bond: E H
+bond: H I
+bond: B J
+bond: A J
+bond: B F
+bond: F K
+bond: F L
+:A:
+card:
+## Betelgeuse
+### Alpha Orionis
+Betelgeuse is the second brightest of the stars in Orion, with a visual magnitude of 0.7. It's 13,000 times more luminous than our sun, and is 520 light years away.
+:B:
+card:
+## Bellatrix
+:C:
+card:
+## Alnitak
+:D:
+card:
+## Alnilam
+:E:
+card:
+## Mintaka
+:J:
+card:
+## Meissa
+:G:
+card:
+## Saiph
+:I:
+card:
+## Rigel
+### Beta Orionis
+Rigel is the star with the highest absolute magnitude in the Southern hemisphere, with a magnitude of -7.1.  It's around 25,000 times more luminous than our sun.  It is about 900 light years away, and its visual magnitude (as seen from Earth) is 0.15.
