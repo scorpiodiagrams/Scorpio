@@ -18,6 +18,8 @@ Push to GitHub and check the files are all there.  Now go to the [GitWrapped pag
 
 You can make a GitHub repo with just the ./diagrams/ ./images/ and ./wiki/ subdirectories and serve Gitwrapped annotated images from it.
 
+Be sure to review and update README.md, rights.md and LICENSE files appropriately.
+
 
 ## Self hosting
 
