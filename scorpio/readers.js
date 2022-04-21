@@ -77,9 +77,10 @@ function init_angle( angle, obj, state){
 }
 
 function init_bond( bond, obj, state){
-  var linkWidth = obj.bondLineStyle.lineWidth;
+  var linkWidth = obj.bondLineStyle.linkWidth;
   var fontSize = 12;
   bond.linkWidth = linkWidth;
+  bond.l1 = 1;
   var atomTo = obj.atoms[bond.points[1]];
   // The whole parsing process needs to become
   // more robust to user error.

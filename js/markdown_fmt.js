@@ -17,7 +17,7 @@ var pageReplacements = {
   'scorpio_link_styles': '#scorpio_link_styles',
   'scorpio_blocks': '#scorpio_blocks',
   'scorpio_connections': '#scorpio_connections',
-  'scorpio_index': '#scorpio_index',
+  'index': '#index',
   'scorpio_diagram_types': '#scorpio_diagram_types',
   'scorpio_diagrams': '#scorpio_diagrams',
   'scorpio_example_diagrams': '#scorpio_example_diagrams',
@@ -29,12 +29,18 @@ var pageReplacements = {
   'diagram_forge': '#diagram_forge',
   'smiles': '#smiles',
   'sankey_lines': '#sankey_lines',
+  'gitwrapping': '#gitwrapping',
+  'snippet': '#snippet',
+  'downloads': '#downloads',
 //  'scorpio_charts': '#scorpio_charts',
 };
 
 function linkReplacement( link ){
-  //console.log( link );
-  return pageReplacements[ link ];
+  if(!Registrar.useUrlChecklist)
+    return link;
+  if( !link.startsWith('#'))
+    return link;
+  return pageReplacements[ link.slice(1) ];
 }
 
 Markdown_Fmt.prototype ={
@@ -64,7 +70,7 @@ Markdown_Fmt.prototype ={
     return Katex_Fmt.htmlInlineOf( "\\small "+formula );
   },
   moreLink(match,link){
-    var newLink = linkReplacement( link.slice(1) );
+    var newLink = linkReplacement( link );
     if( newLink == link )
       return `<a href='${newLink}'>More...</a>`;
 
@@ -74,16 +80,12 @@ Markdown_Fmt.prototype ={
       return `<!--${link}-->`;
   },
   generalLink(match,name,link){
-    var newLink = linkReplacement( link.slice(1) );
+    var newLink = linkReplacement( link );
     if( newLink == link)
       return `<a href='${newLink}'>${name}</a>`;
     if( newLink)
       return `<a target='blank' href='https://en.wikipedia.org/wiki/${newLink}'>${name}</a>`;
     return ` MISSING_LINK ${name} `;
-//    if( newLink )
-//      return `#Wiki(${newLink})`
-//    else
-//      return `<!--${link}-->`;
   },
   nutMaker(match, arg){
     var that = Markdown_Fmt;
@@ -107,7 +109,7 @@ Markdown_Fmt.prototype ={
     state.heroHeading = this.heroHeading;
     state.heading = this.heading;
     state.subsiteHeading = this.subsiteHeading;
-    if( Katex_Fmt )
+    if( typeof Katex_Fmt )
       state.inlineKatex = this.inlineKatex;
     state.moreLink = this.moreLink;
     state.nutMaker = this.nutMaker;
@@ -120,10 +122,10 @@ Markdown_Fmt.prototype ={
       if( line.match( /#\[/)){
         var style = 'style="display:none" ';
         var nutStart = `<div class="nutshell-bubble" ${style}id="nut${this.bubblesMade++}">`;
-        line = line.replace(  /#\[/, nutStart); 
+        line = line.replace(  /#\[/g, nutStart); 
       }
       if( line.match( /#\]/)){
-        line = line.replace(  /#\]/, '</div>'); 
+        line = line.replace(  /#\]/g, '</div>'); 
       }
 
       if( line.match( /#NUT\(.*?\)/)){

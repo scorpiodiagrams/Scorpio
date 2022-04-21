@@ -1608,7 +1608,7 @@ function drawIcon(A,obj,d){
   f.drawLetter("S");
 }
 
-function registerSmilesMethods()
+function registerWorkhorseMethods()
 {
   var reg = registerMethod; // abbreviation.
   reg( "Chem",    0,0, layoutMolecule, drawMolecule);
@@ -1637,4 +1637,4 @@ function registerSmilesMethods()
 
 }
 
-registerSmilesMethods();
+Registrar.inits.push( registerWorkhorseMethods );

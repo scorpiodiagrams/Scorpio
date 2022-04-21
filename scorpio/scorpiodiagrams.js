@@ -4239,7 +4239,7 @@ function doTopLevelInstructions(A,obj){
   A.MainDiv.parentElement.style.margin='0px';
   var p = A.MainDiv.parentElement.parentElement;
   p.style.minHeight = (A.Porthole.height)+'px';
-  p.classList.add('nut_content');
+  p.classList.add('inline_content');
   p.classList.remove('wide_content');
   A.resizeDivs();
 //  debugger;
@@ -4403,7 +4403,6 @@ function initContent( classes ){
     }
   }
   var base = AnnotatorList.length;
-  registerMethods();
   var contentDivs = document.getElementsByClassName( classes );
   for(var i=0;i<contentDivs.length;i++){
     var A = new Annotator();
@@ -4627,9 +4626,10 @@ function registerMethods()
   reg( "Graph",     0,0, layoutMargined, drawGraph);
   reg( "Bugle",     0,0, layoutMargined, drawBugle);
   reg( "Sankey",    0,0, layoutMargined, drawSankey);
-  reg( "Texture",   0,0, layoutMargined, drawTexture);
   reg( "Parliament",0,0, layoutMargined, drawParliament);
   reg( "Path",      0,0,0, drawPath);
   reg( "Tree",      0,0,0, drawTree);
 
 }
+
+Registrar.inits.push( registerMethods );

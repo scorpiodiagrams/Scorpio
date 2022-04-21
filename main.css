@@ -1,7 +1,6 @@
 
 html {
   scroll-behavior: smooth;
-  background: #202060;
 }
 
 h1, h2, h3, h4 {
@@ -108,19 +107,6 @@ button.wide {
  text-align: center;
 }
 
-.banners {
- align:  center;
- width: 40em;
- text-align: center;
-/* background-color: #fbf9ee;*/
- background-color: #dbc9b6;
- border-radius: 7px;
- margin: 0 auto;
- margin-top 1em;
- marging-bottom 1em;
- padding: 0.5em;
-}
-
 .example{
   font-family: monospace;
 }
@@ -145,20 +131,33 @@ span.example{
 }
 
 .nut_content {
- max-width: 35em;
+ width: 34em;
  margin: 0 auto;
  height:  100%;
- padding:  0.6em 1.8em;
+ padding:  0.6em 5.5em;
  background-color : #f3e1ce;
+}
+
+.banners {
+ align:  center;
+ width: 40em;
+ text-align: center;
+/* background-color: #fbf9ee;*/
+ background-color: #dbc9b6;
+ border-radius: 5px;
+ margin: 0 -3.5em;
+ margin-top 1em;
+ marging-bottom 1em;
+ padding: 0.5em;
 }
 
 .wide_content {
 /* max-width: 45em;*/
- margin: 0 auto;
+ margin: 0 -5.5em;
  padding:  0.6em 0em;
 /* background-color : #f3d18e;*/
  background-color: #dbc9b6;
- border-radius: 7px;
+ border-radius: 15px;
  overflow: hidden; 
  width:  45em; /* was 45em */
  transition: all .8s ease;
@@ -262,11 +261,12 @@ span.example{
   white-space: pre-wrap ;
   /*display: block;*/
   /*unicode-bidi: embed;*/
-  font-family:  Courier;
-  background-color: #f8f8f8;
+  font-family: monospace;  
+  background-color: #ffefdf;
+  font-size:  -2;
   padding : 8px;
-  border-radius: 5px; 
-  border-color: #888888;
+  border-radius: 3px; 
+  border-color: #88776660;
   border-style: solid;
   border-width: 1px;
 }

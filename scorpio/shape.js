@@ -229,11 +229,11 @@ function getBondData( bond, d, r ){
    var a;
    a = bond.a1;
    var v0 = Vector2d( a.x, a.y );
-   var r0 = a.size || r || a.r;
+   var r0 = r || a.size || a.r;
    var l1 = a.level;
    a = bond.a2;
    var v1 = Vector2d( a.x, a.y );
-   var r1 = a.size || r || a.r;
+   var r1 = r || a.size || a.r;
    var l2 = a.level;
 
    transformXy( v0, d );
@@ -252,7 +252,7 @@ function drawWideLineTrampoline(A, obj, d){
    taper.extensionLength = firstValid( d.lineStyle.lineExtend, -12);
 
    var r0, r1;
-   var r = obj.linkwidth || d.lineStyle.linkWidth;
+   var r = obj.linkWidth || d.lineStyle.linkWidth;
 
    [taper.v0, taper.v1, r0, r1, l1, l2 ] = getBondData( obj, d, r );
 
@@ -290,7 +290,7 @@ function drawNarrowLineTrampoline(A, obj, d){
    var r0, r1;
    [taper.v0, taper.v1, r0, r1, l1, l2 ] = getBondData( obj, d );
 
-   var r = obj.linkwidth || d.lineStyle.linkWidth;
+   var r = obj.linkWidth || d.lineStyle.linkWidth;
    taper.lineAt =
       { v0: taper.v0, v1: taper.v1, r0: r || r0, r1: r || r1};
 

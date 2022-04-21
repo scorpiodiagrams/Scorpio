@@ -263,8 +263,8 @@ Getters.handleMarkdown = function( obj, line, state ){
     line = line.replace(/^#BlogHead\((.*?),(.*?)\)/gi, state.heading );
   if( state.subsiteHeading )
     line = line.replace(/^#ScorpioHead\((.*?),(.*?)\)/gi, state.subsiteHeading );
-  line = line.replace(/^#NoBack/gi, "</div><div class='banners'>");
-  line = line.replace(/^#BackAgain/gi, "</div><div class='nut_content'>");
+  line = line.replace(/^#NoBack/gi, "<div class='banners'>");
+  line = line.replace(/^#BackAgain/gi, "</div>");
   line = line.replace(/^#Right\((.*)\)$/gi, "<div class='right'>$1</div>");
   line = line.replace(/#Code\((.*?)\)/g, "<span class='example'>$1</span>");
 
@@ -282,7 +282,7 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = escapeEmoji( line );
   state.fragment = line;
 
-  if( Katex_Fmt )
+  if( typeof Katex_Fmt )
     line = line.replace(/^#!!Katex:(.*$)/gim, function( match, capture ){ return Katex_Fmt.htmlOf( capture );});
 
   line = line.replace(/^####(.*$)/gim, '<h4>$1</h4>');

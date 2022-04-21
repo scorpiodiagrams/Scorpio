@@ -80,9 +80,9 @@ Scorpio_Fmt.prototype ={
          `<div id="content_here${this.instance-1}" class="atkContentDiv" data-page="${word}"></div>`;
     }
 
-    str = '</div><div class="wide_content">'+
+    str = '<div class="wide_content">'+
       str +
-      '</div><div class="nut_content">';
+      '</div>';
     return str + "<br clear='all'/>" + this.outro;
   },
 
