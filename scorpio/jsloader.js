@@ -94,6 +94,17 @@ scorpio.setOnLoadCallback = function(callBack){
         scorpio.loadCount++;
       }
     }
+
+    var link
+    link = document.createElement('link');
+    link.rel="stylesheet";
+    link.href="http://www.scorpiodiagrams.com/katex/katex.min.css";
+    document.head.appendChild(link);
+    link = document.createElement('link');
+    link.rel="stylesheet";
+    link.href="http://www.scorpiodiagrams.com/main.css";
+    document.head.appendChild(link);
+
     files = scorpio.loaded;
     for( f in files ){
       var A = {};

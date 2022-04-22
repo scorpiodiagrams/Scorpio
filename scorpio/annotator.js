@@ -1138,12 +1138,11 @@ function doDownloadSnippet( index ){
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="http://www.scorpiodiagrams.com/main.css">    
     <script data-cfasync="false" src="http://www.scorpiodiagrams.com/scorpio/jsloader.js"></script>
     <script type="text/javascript">
 
       // Load the modules you'll be using...
-      scorpio.load('diagrams annotations');
+      scorpio.load('diagrams annotations katex');
 
       // Set a callback to run when scorpio is ready
       scorpio.setOnLoadCallback(makeDiagram);
