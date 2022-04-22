@@ -4,7 +4,7 @@ Scorpio turns textual specifications into diagrams.
 
 Screenshots and examples at [scorpio diagrams](http://scorpiodiagrams.com/)
 
-This repo illustrates how to use GitHub to store marked up images for display as Scorpio diagrams (gitwrapping).  It also *in the next few days* will have the JavaScript code to use for self hosting.
+This repo illustrates how to use GitHub to store marked up images for display as Scorpio diagrams (gitwrapping).  It also has the JavaScript code.
 
 ## Sub directories
 
