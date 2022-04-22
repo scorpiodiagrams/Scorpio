@@ -1,5 +1,6 @@
 var scorpio ={};
 
+scorpio.scriptUrl = 'http://www.scorpiodiagrams.com'
 scorpio.validModules = 
 {
   'mermaid':[
@@ -75,7 +76,7 @@ scorpio.gotAFile = function( file  ){
 
 scorpio.setOnLoadCallback = function(callBack){
   var haveScripts = false;
-  var url = ".";
+  var url = scorpio.scriptUrl;
   scorpio.onLoadCallBack = callBack;
   if( scorpio.toLoad ){
     console.log("I'm loading js files now....");

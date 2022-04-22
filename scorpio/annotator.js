@@ -52,9 +52,9 @@ function tabDownload( index ){
   <h3 style='margin-top:10px;'>Download</h3>
   <p>Download a copy of the diagram.
   </p>
-  <button onclick='downloadImage(${index})'>Download Image</button> - A png of the diagram.<br>
-  <button onclick='downloadImage(${index},1)'>Save as Text</button> - Save the Scorpio spec for later.<br>
-  <button onclick='downloadImage(${index},2)'>Javascript</button> - A version of the spec for programmers.
+  <button onclick='downloadImage(${index})'>Image</button> - Download a .png of the diagram.<br>
+  <button onclick='downloadImage(${index},1)'>Diagram Spec</button> - Download a text version of the diagram.<br>
+  <button onclick='downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.
   `
 }
 
@@ -63,6 +63,8 @@ function downloadImage( index, mode ){
   if( mode == 1)
     doDownloadSource(index);
   else if( mode == 2)
+    doDownloadSnippet(index);
+  else if( mode == 3)
     doDownloadJavascript(index);
   else
     doDownloadImage(index);
@@ -1124,6 +1126,52 @@ function doDownloadSource( index ){
   Loader.downloadDurl( A.SpecName + ".txt" , dataUrl );
   console.log( str );
 }
+
+function doDownloadSnippet( index ){
+  var A = AnnotatorList[index];
+  if( !A.Status.isAppReady ) return;
+  var str = getTextVersion( index );
+  str = str.replace(/\\/g,"\\\\");
+  str =
+`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="http://www.scorpiodiagrams.com/main.css">    
+    <script data-cfasync="false" src="http://www.scorpiodiagrams.com/scorpio/jsloader.js"></script>
+    <script type="text/javascript">
+
+      // Load the modules you'll be using...
+      scorpio.load('diagrams annotations');
+
+      // Set a callback to run when scorpio is ready
+      scorpio.setOnLoadCallback(makeDiagram);
+
+      // Callback that makes the diagram
+      function makeDiagram() {
+        var diagram = new scorpio.diagram();
+        diagram.setDiv( document.getElementById( 'diagram_div' ));
+        diagram.setSpec(
+\`
+${str}
+\`
+          );
+      }
+    </script>
+  </head>
+
+  <body>
+    <!--Div that will hold the diagram-->
+    <div id="diagram_div">Diagram is not loaded (yet)</div>
+    <br clear=all>
+  </body>
+</html>`;
+  var dataUrl = Loader.durlOfText( str );
+  //alert( "Download! "+dataUrl);
+  Loader.downloadDurl( A.SpecName + ".html" , dataUrl );
+  console.log( str );
+}
+
 
 function doDownloadJavascript( index ){
   var A = AnnotatorList[index];
