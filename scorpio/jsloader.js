@@ -71,6 +71,7 @@ scorpio.gotAFile = function( file  ){
     return;
   console.log( `got them all...\r\n`);
   Registrar.doInits();
+  Registrar.imageSrc = scorpio.scriptUrl + "/images/";
   scorpio.onLoadCallBack();
 }
 

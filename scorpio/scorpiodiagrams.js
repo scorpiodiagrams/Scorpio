@@ -647,7 +647,7 @@ function urlOfFilename(file){
       file = Locs.imagesPath + file;
     }
   else
-    file = "./images/" + file;
+    file = Registrar.imageSrc + file;
   return file;
 }
 
