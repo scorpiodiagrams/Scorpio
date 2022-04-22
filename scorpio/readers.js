@@ -115,7 +115,7 @@ function defaultInfoTip( caption ){
   return "<h3>"+caption+"</h3><b>Credits:</b> <em>©2022 CC-BY-SA-4.0</em>";
 }
 
-function metaInfoObject( caption, infoTip, boxed)
+function metaInfoObject( caption, infoTip, boxed, options)
 {
   obj = 
   {"Prog":"Setup",
@@ -125,6 +125,8 @@ function metaInfoObject( caption, infoTip, boxed)
   };
   if( boxed)
     obj.boxed = boxed;
+  if( options )
+    obj.options = options;
   return obj;
 }
 
@@ -817,6 +819,11 @@ function readStandardStyle( obj, str ){
       obj.background = (matches[1]);
       continue;
     }    
+    matches = line.match( /^options:\s*(.*)\s*$/)
+    if( matches ){
+      obj.options = (matches[1]);
+      continue;
+    }    
 
     // work in progress on SMILES format.
     // this will unwrap a SMILES spec.
@@ -884,13 +891,14 @@ function readStandardStyle( obj, str ){
   
   // Add in the caption and credits info.
   // promote three obj fields up to metadat.
-  var obj1 = [ metaInfoObject( obj.caption || 'Example', obj.card, obj.boxed) ];
+  var obj1 = [ metaInfoObject( obj.caption || 'Example', obj.card, obj.boxed, obj.options) ];
   obj.card = null;
 
   // request hotspot colours, using a placeholder.
   for( atom of obj.atoms )
     atom.hotspotColour = 1;
 
+  // adds an object onto the end of the obj.
   if( obj.extra )
     obj1.push( obj.extra );
   obj1.push( obj );

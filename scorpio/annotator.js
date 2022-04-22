@@ -422,11 +422,12 @@ class Annotator{
     p.toolkitIndex = A.index;
     p.onmousemove = onMouseMove;
     p.onmouseout = onMouseOut;
+    p.onwheel = onMouseWheel;
+
     p.onclick = onFocusClicked;
     p.onmouseup = onMouseUp;
     p.onmousedown = onMouseDown;
     p.ondblclick = onFocusDoubleClick;
-    p.onwheel = onMouseWheel;
 
     //A.InfoCardDiv.innerHTML = "Some Text";
 

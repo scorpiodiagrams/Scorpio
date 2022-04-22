@@ -4064,6 +4064,7 @@ function handleNewData(A, data, section){
   // resetPorthole(A); // Not needed
   A.Status.isAppReady = false;
   loadNewLines(A, data, section);
+  // A.inner has text that was already in the div.
   if( A.inner )
     loadNewLines(A, A.inner);
 
@@ -4217,6 +4218,18 @@ function addObjectToDictionary(A, layout){
 
 
 function doTopLevelInstructions(A,obj){
+  if( obj.options ){
+    console.log(`Options: ${obj.options}`);
+    if( obj.options.match( 'nodrag') )
+    {
+      var p = A.FocusCanvas;
+      p.onclick = null;
+      p.onmouseup = null;
+      p.onmousedown = null;
+      p.ondblclick = null;
+    }
+  }
+
   if( !obj.boxed )
     return;
 
