@@ -5,7 +5,7 @@ This is usage info for Scorpio version 0.1
 
 ## Gitwrapping
 
-> Gitwrapping applies javascript transformation to raw text and images held at GitHub.  This is intended for trying out the software for your personal use.  It is not suitable for medium or high volume traffic.  Gitwrapping gives a free and quick way to use Scorpio's diagram markdown with your own diagrams on your own GitHub repo.  If you want to use the software on a more sustained basis, then see 'Self Hosting'.
+> Gitwrapping applies JavaScript transformation to raw text and images held at GitHub.  This is intended for trying out the software for your personal use.  It is not suitable for medium or high volume traffic.  Gitwrapping gives a free and quick way to use Scorpio's diagram markdown with your own diagrams on your own GitHub repo.  If you want to use the software on a more sustained basis, then see 'Self Hosting'.
 
 Currently gitwrapping is only suitable for developers.  It requires being comfortable using git.  
 
@@ -24,7 +24,7 @@ Be sure to review and update README.md, rights.md and LICENSE files appropriatel
 
 ## Self hosting
 
-> Self hosting gives you more control and more bandwidth than gitwrapping.  The webserver will only be serving static content, so low powered hosting is fine.  The diagramss are constructed client side.
+> Self hosting gives you more control and more bandwidth than gitwrapping.  The web server will only be serving static content, so low powered hosting is fine.  The diagrams are constructed client side.
 
 * Put your content in the three directories as described in 'gitwrapping'.  
 
@@ -32,14 +32,14 @@ Be sure to review and update README.md, rights.md and LICENSE files appropriatel
 
 There are a few files that you don't have to have for self hosting such as files in ./docs/ amd the examples gitwrapped.html and snippet.html.
 
-You can if you like now customise the css and javascript to your liking.  The default config has editing disabled.  You can change that by changing the config variable in index.html.  You probably will want to add your own favicon.ico.
+You can if you like now customise the css and JavaScript to your liking.  The default config has editing disabled.  You can change that by changing the config variable in index.html.  You probably will want to add your own favicon.ico.
 
 
 ## Snippet example
 
 > The snippet.html example shows how to use the diagrams from a single html file that you can open in a browser.
 
-This way of using Scorpio requires internet connectivity as the scoprio JavaScript is fetched from the cloud.  Since the required JavasScript files are in this repo, you can also use diagrams locally on your own machine.  See below.
+This way of using Scorpio requires internet connectivity as the Scorpio JavaScript is fetched from the cloud.  Since the required JavasScript files are in this repo, you can also use diagrams locally on your own machine.  See below.
 
 
 ## Use on your own computer

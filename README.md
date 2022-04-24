@@ -18,7 +18,7 @@ See ./docs/Usage.md for more details of how to use.
 
 There is no build step.
 
-The text and diagrams are all renedered client side using JavaScript.  
+The text and diagrams are all rendered client side using JavaScript.  
 
 ## License
 
