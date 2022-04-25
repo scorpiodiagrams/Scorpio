@@ -3,7 +3,11 @@
 
 function getGitContent( repo ){
   repo = DomUtils.getValue( 'url_input'+repo );//'JamesCrook/Scorpio';
+  setRepo( repo );
+}
 
+
+function setRepo( repo ){
   var srcUrl;
   if( repo.match(/^http/)){
     srcUrl = repo;

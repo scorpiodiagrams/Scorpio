@@ -3996,8 +3996,8 @@ function obeyLines(A, lines){
 function loadNewLines(A, specFileData, section){
   console.log( `[${A.index}] parse using loadNewLines...` + (section ? "(subsection)" : "") );
 
-  if( specFileData.startsWith("!!Scorpio")){
-    var str = specFileData.split("!!Scorpio")[1];
+  if( specFileData.match(/(?:!!|~~~)Scorpio/)){
+    var str = specFileData.split(/(?:!!|~~~)Scorpio/)[1];
     str = "ADD:DATA="+Scorpio_Fmt.jsonOf( str );
     obeyLines( A, [ str ]);
     console.log( "...New scorpio loaded" );
