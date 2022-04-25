@@ -1,10 +1,16 @@
 // for configuration related features...
 
 
-function getGitContent(){
-  var repo = DomUtils.getValue( 'url_input' );//'JamesCrook/Scorpio';
+function getGitContent( repo ){
+  repo = DomUtils.getValue( 'url_input'+repo );//'JamesCrook/Scorpio';
 
-  var srcUrl = `https://raw.githubusercontent.com/${repo}/master/` || './';
+  var srcUrl;
+  if( repo.match(/^http/)){
+    srcUrl = repo;
+  } else {
+    srcUrl = `https://raw.githubusercontent.com/${repo}/master/` || './';
+  }
+
 
   Registrar.wikiSrc = srcUrl +  'wiki/',
   Registrar.diagramSrc = srcUrl + 'diagrams/'
@@ -51,11 +57,13 @@ function setFromConfig( page ){
 <div class='example'>
 Currently serving from:<br>
 ${document.location}<br>
-Gitwrap to instead use content from the repo below:<br><br>
-<input id="url_input" type='text' value='JamesCrook/Scorpio'></input><br><br>
+Click on Git wrap to instead use content from one of the<br> following directories at https://github.com/<br><br>
+<button class='gitbutton' onclick="getGitContent('sampler')">Git Wrap</button><input class='gitwrap' id="url_inputsampler" type='text' value='scorpiodiagrams/sampler'></input><br>a small sample of <a target=blank href='https://github.com/scorpiodiagrams/sampler'>annotated images</a><br><br><br>
+<button class='gitbutton' onclick="getGitContent('ui')">Git Wrap</button><input class='gitwrap' id="url_inputui" type='text' value='scorpiodiagrams/ui-annotated'></input><br>some annotated open source <a target=blank href='https://github.com/scorpiodiagrams/ui-annotated'>user interfaces</a><br><br>
+<button class='gitbutton' onclick="getGitContent('other')">Git Wrap</button><input class='gitwrap' id="url_inputother" type='text' value=''></input><br>you type in a github repo identifier for this one<br><br>
 </div>
 
-<button onclick="getGitContent()">Git Wrap</button><br>
+<br>
 `;
   }
 
