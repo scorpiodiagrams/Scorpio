@@ -3,28 +3,27 @@
 This page has some examples of annotated images.
 
 
-##Femur
+## Femur
 
 A femur with some landmarks marked up
 
-!!Scorpio
+~~~Scorpio
 # Femur
-!!Markdown
+~~~
 
-
-##Cell Wall
+## Cell Wall
 
 The Cell Wall.
 
-!!Scorpio
+~~~Scorpio
 # CellWallRevision
-!!Markdown
+~~~
 
-##Some Maths
+## Some Maths
 
-!!Scorpio
+~~~Scorpio
 # AnnotatedLatex
-!!Markdown
+~~~
 
 
 
