@@ -1,4 +1,3 @@
-!!Markdown
 # Star Maps
 
 This page has some examples of star maps

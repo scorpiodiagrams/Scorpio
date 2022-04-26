@@ -1,4 +1,4 @@
-!!Scorpio
+~~~Scorpio
 ##Annotated
 caption: Annotated JáTéK for Maxwell's equations
 :A: ("Div F")

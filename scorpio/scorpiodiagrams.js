@@ -3993,16 +3993,8 @@ function obeyLines(A, lines){
   }
 }
 
-function loadNewLines(A, specFileData, section){
-  console.log( `[${A.index}] parse using loadNewLines...` + (section ? "(subsection)" : "") );
-
-  if( specFileData.match(/(?:!!|~~~)Scorpio/)){
-    var str = specFileData.split(/(?:!!|~~~)Scorpio/)[1];
-    str = "ADD:DATA="+Scorpio_Fmt.jsonOf( str );
-    obeyLines( A, [ str ]);
-    console.log( "...New scorpio loaded" );
-    return;
-  }
+function loadMediaWikiLines(A, specFileData, section){
+  console.log( `[${A.index}] MediaWiki format detected` );
 
   if( section ){
     specFileData = specFileData.split("<pre>START")[section] || "";
@@ -4014,6 +4006,23 @@ function loadNewLines(A, specFileData, section){
   var lines = specFileData.split("<pre>");
   obeyLines(A, lines);
   console.log( "...parsed" );
+}
+
+function loadNewLines(A, specFileData, section){
+  console.log( `[${A.index}] parse using loadNewLines...` + (section ? "(subsection)" : "") );
+
+  if( specFileData.match(/__NOTOC__/))
+    return loadMediaWikiLines( A, specFileData, section);
+  if( specFileData.match(/^ADD:DATA/))
+    return loadMediaWikiLines( A, specFileData, section);
+
+  if( !specFileData.match(/^(?:!!|~~~)Scorpio/))
+    specFileDate = "~~~Scorpio" + specFileData;
+
+  var str = specFileData.split(/(?:!!|~~~)Scorpio/)[1];
+  str = "ADD:DATA="+Scorpio_Fmt.jsonOf( str );
+  obeyLines( A, [ str ]);
+  console.log( "...New scorpio loaded" );
 }
 
 function loadDiagram(A,page, fromwiki,section){

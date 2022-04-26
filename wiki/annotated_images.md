@@ -1,5 +1,3 @@
-!!Markdown
-
 # Annotated Images
 
 This page has some examples of annotated images.

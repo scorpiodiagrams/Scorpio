@@ -29,7 +29,7 @@ Omnia_Fmt.prototype ={
     return module.htmlOf( block );
   },
   htmlOf( text ){
-    var blocks = ("\r\n"+text).split( /^(?:!!|~~~)/gm);
+    var blocks = ("~~~\r\n"+text).split( /^(?:!!|~~~)/gm);
     if( blocks.length == 1){
       return Raw_Fmt.htmlOf(text);
     }
@@ -41,7 +41,7 @@ Omnia_Fmt.prototype ={
     for(i=1;i<blocks.length;i++)
     {
       var pieces = blocks[i].split( /\r?\n/g);
-      var fmt = pieces[0] ;
+      var fmt = pieces[0] || 'Markdown';
       var text = pieces.slice(1).join( "\r\n");
       str += this.htmlOfBlock( fmt, text);
     }
