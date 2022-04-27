@@ -20,6 +20,22 @@ caption: Femur
 :H: at: 543,137
 :I: at: 539,88
 background: Gray252.png
+:A:B:
+card:
+##Head
+Large ball of the ball and socket joint of the hip
+:C:D:
+card:
+##Greater Trochanter
+Muscles that abduct the hip attach here.
+:E:F:
+card:
+##Lesser Trochanter
+Muscles that adduct the hip attach here.
+:G:H:I:
+card:
+##Condyles
+Smooth surfaces that make the top part of the hings at the knee.  
 :info:
 card:
 ##Femur
