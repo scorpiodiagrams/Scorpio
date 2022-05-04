@@ -102,11 +102,17 @@ function init_quad( quad, obj, state ){
 }
 
 
+function nMatcher( match, slashes ){
+  return ((slashes.length %2)==0) ? slashes+'n' : slashes.slice(1)+'<br>';
+}
 
+function dquoteMatcher( match, slashes ){
+  return ((slashes.length %2)==0) ? slashes+'"' : slashes.slice(1)+'"';
+}
 
 function removeEscapes( str ){
-  str = str.replace(/(?<!\\)\\n/g,"<br>" );
-  str = str.replace(/(?<!\\)\\"/g,"\"" );
+  str = str.replace(/(\\+)n/g, nMatcher );
+  str = str.replace(/(\\+)"/g, dquoteMatcher );
   str = str.replace(/\\\\/g,"\\");
   return str;
 }
@@ -918,6 +924,10 @@ function parseLabelString( str ){
   taper.tokens1 = [];
   taper.tokens2 = [];
 
+
+// Safari does not support the look behind operation.
+// So... we avoid using lookahead and llokbehind entirely.
+
 // As well to have a reminder of Javascript regex look ahead
 // operators!
 // What's in the bracket does not appear in the 'matches' result.
@@ -941,19 +951,33 @@ function parseLabelString( str ){
   var tok2 = '::';
   while(tok1 || tok2){
     // peel tokens off the start...
-    if(tok1 && (matches = str.match(/^(:([A-Za-z0-9_\.\-]+)(?=:)|(:|--|==|~~|\.|=>|<=|<=|>=|=<|\(\+\)|\)\+\(|\\\+\/\+\\|\/\+\\\+\/|\[|\]|\||\(|\)|\\|\/|>|<))(.*?)$/)))
+    if(tok1 && (matches = str.match(/^:([A-Za-z0-9_\.\-]+)(:.*?)$/)))
     {
-      str = matches[4];
-      tok1 = matches[2]||matches[3];
+      str = matches[2];
+      tok1 = matches[1];
+      taper.tokens1.push( tok1 );
+    }
+    else if(tok1 && (matches = str.match(/^(:|--|==|~~|\.|=>|<=|<=|>=|=<|\(\+\)|\)\+\(|\\\+\/\+\\|\/\+\\\+\/|\[|\]|\||\(|\)|\\|\/|>|<)(.*?)$/)))
+    {
+      str = matches[2];
+      tok1 = matches[1];
       taper.tokens1.push( tok1 );
     }
     else
       tok1 = null;
     // peel tokens off the end...
-    if(tok2 && (matches = str.match(/^(.*?)((?<=:)([A-Za-z0-9_\.\-]+):|(:|--|==|~~|\.|=>|<=|>=|=<|\(\+\)|\)\+\(|\\\+\/\+\\|\/\+\\\+\/|\[|\]|\||\(|\)|\\|\/|>|<|))$/)))
+
+    
+    if(tok2 && (matches = str.match(/^(.*?:)([A-Za-z0-9_\.\-]+):$/)))
     {
       str = matches[1];
-      tok2 = matches[3]||rotatedCode(matches[4]);
+      tok2 = matches[2];
+      taper.tokens2.push( tok2 );
+    }
+    else if(tok2 && (matches = str.match(/^(.*?)(:|--|==|~~|\.|=>|<=|>=|=<|\(\+\)|\)\+\(|\\\+\/\+\\|\/\+\\\+\/|\[|\]|\||\(|\)|\\|\/|>|<|)$/)))
+    {
+      str = matches[1];
+      tok2 = rotatedCode(matches[2]);
       taper.tokens2.push( tok2 );
     }
     else
