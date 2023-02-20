@@ -25,6 +25,7 @@ scorpio.validModules =
     "/scorpio/config.js",
     "/js/loader.js",
     "/js/dom_utils.js",
+    "/js/jatex_fmt.js",
     "/js/markdown_fmt.js",
     "/js/omnia_fmt.js",
     "/js/raw_fmt.js",
@@ -34,7 +35,7 @@ scorpio.validModules =
   'extra':[
     "/js/hide_fmt.js",
     "/scorpio/nurb.js"],
-  'experiemntal':[
+  'experimental':[
     "/js/mediawiki_fmt.js",  
     "/js/anki_fmt.js",
     "/js/wordlist_fmt.js",

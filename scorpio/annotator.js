@@ -35,7 +35,9 @@ function tabController( index ){
   <span style="width:70px;display:inline-block;">Size:</span>
   <input type="range" min="35" max="250" value="100" class="slider" style="width:200px" id="size${index}" oninput="updateSize(${index},this.value)"><br>
   <span style="width:70px;display:inline-block;">Rotate:</span>
-  <input type="range" min="-36" max="36" value="0" class="slider" style="width:200px" id="rotate${index}" oninput="updateRotate(${index},this.value)">
+  <input type="range" min="-36" max="36" value="0" class="slider" style="width:200px" id="rotate${index}" oninput="updateRotate(${index},this.value)"><br>
+  <span style="width:70px;display:inline-block;">Animate:</span>
+  <input type="range" min="0" max="100" value="0" class="slider" style="width:200px" id="animate${index}" oninput="updateAnimate(${index},this.value)">
 </div>`  
 }
 
@@ -200,6 +202,24 @@ function updateRotate( index, value ){
   var obj = A.RootObject;
   obj.content[1].rotate = value * 5;
   updateSource( index )
+  drawDiagramAgain(A);
+}
+
+function updateAnimate( index, value ){
+  var A = AnnotatorList[ index ];
+  var obj = A.RootObject;
+  obj.content[1].animate = value;
+
+  var nPages = A.pagesLoaded.length -1 ;
+  var newPage = Math.floor(value * nPages/100.001);
+  var frac = (value * nPages/100)-newPage;
+  if( newPage != A.currentPage)
+  {
+    A.currentPage = newPage;
+    handleNewData(A, A.pagesLoaded[newPage], 0);
+    updateSource( index )
+  }
+  A.equanimTime = frac;
   drawDiagramAgain(A);
 }
 
@@ -422,6 +442,7 @@ class Annotator{
     p.toolkitIndex = A.index;
     p.onmousemove = onMouseMove;
     p.onmouseout = onMouseOut;
+    p.onmouseover = onMouseOver;
     p.onwheel = onMouseWheel;
 
     p.onclick = onFocusClicked;
@@ -433,7 +454,6 @@ class Annotator{
 
     A.InfoCardDiv.className="InfoCardDiv DarkDiv";
 
-    A.InfoCardHideTime = 0;
     A.InfoCardUpdateDelay = 0;
     A.InfoCardDivFrozen = false; // frozen = don't hide.
     A.InfoCardPos = Vector2d(0,0);
@@ -574,11 +594,6 @@ class Annotator{
        this.Hotspots.actionsOfColour[ "[0,0,5,255]" ].Tip;
     return txt;
   }
-  detailIsShown(){
-    var A = this;
-    return A.InfoCardDivFrozen || ( A.InfoCardHideTime <= 0);
-  }
-
 
   detailPosFromCursorPos(x, y ){
     var A = this;
@@ -889,6 +904,18 @@ function autoColourOfIndex(a){
 // >>>>>>>>>>>>>>>>>>>> Clicking or moving
 
 /*
+ * This gets rid of the info card when we move back onto the
+ * diagram.  Maybe instead this should be keyed to moving off
+ * the info card?
+ */
+function onMouseOver(e){
+  var index = e.target.toolkitIndex;
+  var A = AnnotatorList[index];
+  A.InfoCardUpdateDelay = 10; 
+}
+
+
+/*
  * When we exit the annotation area,
  * remove the decorations (the extra focus ring and the detail div).
  */
@@ -909,15 +936,13 @@ function onMouseOut(e){
   if( inTheDetail ){
     // Cancel hide timer.
     // They made it into the div before timeout.
-    A.InfoCardHideTime = 10; 
     A.InfoCardUpdateDelay = 0; 
     // State that we are showing something.
     A.Status.Zone = 10000;
   }
   else if( !A.InfoCardDivFrozen){
     A.InfoCardDiv.style.display = "none";
-    A.InfoCardHideTime = 0;
-    A.InfoCardUpdateDelay = 0; 
+    A.InfoCardUpdateDelay = 10; 
     A.Status.Zone = -1;
   }
   A.InfoCardDivFrozen = false;

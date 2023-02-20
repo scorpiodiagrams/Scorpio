@@ -29,7 +29,6 @@ if( !String.prototype.trimEnd ){
   };
 }
 
-
 if( !String.prototype.replaceCharAt ){
   String.prototype.replaceCharAt = function(index,chr) {
       if(index > this.length-1) return this;
@@ -164,14 +163,13 @@ function fToB(f){
 
 // These are constants for drawing stages.
 const kStageArrowShaft=1;
-const kDragging=2;
+const kStageDragging=2;
 const kStageOutlineEarly=3;
 const kStageFillAndTextEarly=4;
 const kStageOutline=5;
 const kStageFillAndText=6;
 const kStageArrowHead=9;
 const kStageHots=10;
-
 
 //---- Paths to various content, all relative to domain.
 function Locs(){
@@ -185,7 +183,6 @@ function Locs(){
 
 var Locs = new Locs();
 var LocalPages = [];
-
 
 function showLittleLogo( show ){
   DomUtils.setVisibility( "little_logo", show );
@@ -290,9 +287,6 @@ var fudgeBarDrop = 12.5;  // drop bars to fit exactly over lines.
 var fudgeStarDrop = 6; // drop stars slightly.
 var fudgeLabelDrop = 4; // line labels lower than lines
 var fudgeLabelMargin = 2; // labels to left
-
-
-
 
 /**
  * Rough and ready date to minutes function...
@@ -2168,7 +2162,7 @@ function drawDraggable2(A, obj, d ){
   if(( d.stage !== kStageFillAndText ) && ( d.stage !== kStageHots ))
     return;
 
-//  if( d.stage === kDragging ){
+//  if( d.stage === kStageDragging ){
 //    // Calculate new offset
 //    if( A.dragObj !== obj )
 //      return;
@@ -3311,9 +3305,7 @@ function mayRequestDisplayableImage(A, obj){
   mayRequestImage(A, obj, obj);
 }
 
-
 function createCell(A, obj, d){
-
   var detail;
   var c;
   if( obj.hasOwnProperty('autolink') )
@@ -3429,7 +3421,6 @@ function registerMethod( forWhat, creating, sizing, layout, draw )
     layoutThing[ forWhat ] = layout;
   if( draw )
     drawThing[ forWhat ] = draw;
-
 }
 
 function registerReadWrite( forWhat, read, write){
@@ -3438,7 +3429,6 @@ function registerReadWrite( forWhat, read, write){
   if( write )
     writeThing[ forWhat ] = write;
 }
-
 
 
 // >>>>>>>>>>>>>>>>>> Data requests
@@ -3548,7 +3538,7 @@ function obeyCode(A,code){
 /**
  * These lines are all about constructing the object.
  */
-function obeyLines(A, lines){
+function obeyMediaWikiLines(A, lines){
   for( var i = 0; i < lines.length; i++ ){
     var item = lines[i];
     var data;
@@ -3792,7 +3782,7 @@ function loadMediaWikiLines(A, specFileData, section){
   }
 
   var lines = specFileData.split("<pre>");
-  obeyLines(A, lines);
+  obeyMediaWikiLines(A, lines);
   console.log( "...parsed" );
 }
 
@@ -3805,12 +3795,22 @@ function loadNewLines(A, specFileData, section){
     return loadMediaWikiLines( A, specFileData, section);
 
   if( !specFileData.match(/^(?:!!|~~~)Scorpio/))
-    specFileDate = "~~~Scorpio" + specFileData;
+    specFileData = "~~~Scorpio" + specFileData;
 
   var str = specFileData.split(/(?:!!|~~~)Scorpio/)[1];
   str = "ADD:DATA="+Scorpio_Fmt.jsonOf( str );
-  obeyLines( A, [ str ]);
+  obeyMediaWikiLines( A, [ str ]);
   console.log( "...New scorpio loaded" );
+}
+
+function oneSpecArrived( A, data, index){
+  console.log( `oneSpecArrived: page ${index}`);
+  A.pagesToGo--;
+  A.pagesLoaded[index]=data;
+  if( A.pagesToGo > 0)
+    return;
+  A.currentPage = 0;
+  handleNewData(A, A.pagesLoaded[0], 0);
 }
 
 function loadDiagram(A,page, fromwiki,section){
@@ -3818,6 +3818,21 @@ function loadDiagram(A,page, fromwiki,section){
   A.page = page;
   A.fromWiki = fromwiki;
   A.setToc(false);
+  if( page.match(" ")){
+    pages = page.split( " ");
+    A.pagesToGo = pages.length;
+    A.pagesLoaded = [];
+    for( var i in pages){
+      var fn = 
+      function(j){ 
+        return function(kA,kPage){
+          oneSpecArrived( kA, kPage, j);
+        }
+      }(i);
+      requestSpec( A,pages[i], fromwiki,section,fn );
+    }
+    return;
+  }
   requestSpec( A,page, fromwiki,section);
 }
 
@@ -3893,58 +3908,21 @@ function handleEditorData(A, data, section){
 }
 
 // Translates wikitext data into html in the page.
-function handlePageData(A,data){
+// No longer actively used.
+function handlePageData(A,str){
   var div = document.getElementById( "page" );
   if( !div )
     return;
-  data = data.replace( /__NOTOC__/g, "" );
-  data = data.replace( /^----*/gm, "<hr>");
-  data = data.replace( /\[http(\S*)\s([^\]]*)\]/g,"<a" +
-    " href='http$1'>$2</a>");
-  data = data.replace( /\[\[File:([^\]]*)\]\]/g, "<img" +
-    " style='width:700px;border:solid black 1px' src='./images/$1'>");
-  data = data.replace( /https:\/\/wit.audacityteam.org\//g, '' );
-  data = data.replace( /\[\[Toolbox\/([^\|\]]*)\|([^\[]*)\]\]/g, "<a" +
-    " href='raw/raw_spec_$1.txt'>$2</a>");
-  data = data.replace( /\[\[Toolbox\/([^\]]*)\]\]/g, "<a" +
-    " href='raw/raw_spec_$1.txt'>$1</a>");
-  data = data.replace( /#.\.txt/g, ".txt" );
-
-  data=data.replace( /{{ATK_Header}}/g,
-    "<div style='margin:0 auto;background:#EEEEFF;padding:10px;border:1px solid" +
-    " #999999;width:90%;align:center;margin-top:30px;margin-bottom:30px'" +
-    ">This is an example interactive" +
-    " diagram created with " +
-    "<a href='https://wikidiagrams.com'>Wikidiagrams" +
-    "</a>.  The aim of the Wikidiagrams" +
-    " project is to provide interactive diagrams for Wikipedia. "+
-    " Before it is ready for that, it will be used for biochemical pathways and" +
-    " other interactive diagrams.</div>");
-
-
-  data = data.replace( /^======(.*)======/gm, "<h2>$1</h2>" );
-  data = data.replace( /^=====(.*)=====/gm, "<h3>$1</h3>" );
-  data = data.replace( /\*\*(.*)\*\*/gm, "<b>$1</b>" );
-  data = data.replace( /~~(.*)~~/gm, "<s>$1</s>" );
-  data = data.replace( /\n'''\n([\s\S]*?)\n'''\n/g, "<pre><xmp>$1</xmp></pre>" );
-  data = data.replace( /(\s)http(\S*)(\.\s)/gm, "$1<a href='http$2'>http$2</a>$3" );
-  data = data.replace( /(\s)http(\S*)(\s)/gm, "$1<a href='http$2'>http$2</a>$3" );
-
-  data = data.replace( /^\*/gm, "<br> • " );
-  data = data.replace( /\n\n([^<])/gm, "<br><br>$1" );
-  data = data.replace( /\{\{#widget:WikiDiagram\|page=([_A-Z0-9a-z\u00C0-\u017F]*).*?\}\}/gm, '        <div id="content_here1" class="atkContentDiv2" data-page="$1">\n' +
-    '        </div>' );
-
+  str = htmlOfMediaWiki( str );
   var name = A.page;
   name = decodeURI( name );
   name = name.replace(/_/g," ");
 //  data = "<h1><a href='demos.htm?page0="+A.page+"'>Toolkit/"+name+"</a></h1><hr>"+data;
-  data = "<h1>"+name+"</h1><hr>"+data;
+  str = "<h1>"+name+"</h1><hr>"+str;
 
-  div.innerHTML = data;
+  div.innerHTML = str;
   addPreview();
 }
-
 
 /**
  * Loads one source file into an item in an array.
@@ -4030,21 +4008,12 @@ function doTopLevelInstructions(A,obj){
   if( !obj.boxed )
     return;
 
-  if( obj.boxed == 'Equation'){
-    A.Porthole.height = 110;
-    A.Porthole.width  = 560;
-    var root = A.RootObject;
-    root.type = "Overlay";
-  }
-  else
-  {
-    A.Porthole.width  = 560;
-    A.Porthole.height = 50;
-    if( !isNaN( obj.boxed ) )
-      A.Porthole.height = +(obj.boxed);
-    A.CaptionDiv.style.display = 'none';
-    //A.CaptionDiv.style.height='0px';
-  }
+  A.Porthole.width  = 560;
+  A.Porthole.height = 50;
+  if( !isNaN( obj.boxed ) )
+    A.Porthole.height = +(obj.boxed);
+  A.CaptionDiv.style.display = 'none';
+  //A.CaptionDiv.style.height='0px';
 
   A.MainDiv.parentElement.style.margin='0px';
   var p = A.MainDiv.parentElement.parentElement;
@@ -4208,7 +4177,7 @@ function initContent( classes ){
   else {
     classes = "atkContentDiv";
     AnnotatorList = [];
-    if( Scorpio_Fmt ){
+    if( typeof Scorpio_Fmt ){
       Scorpio_Fmt.instance = 0;
     }
   }
@@ -4272,7 +4241,6 @@ function addPreview(){
   initContent("atkContentDiv2");
 }
 
-
 function populateEditorElement(A, contentHere){
 
   // Used for debugging messages
@@ -4289,7 +4257,6 @@ function populateEditorElement(A, contentHere){
 
   contentHere.appendChild(A.MainDiv);
 }
-
 
 function onDraggableClicked(A, obj){
   if( !A.Status.click )
@@ -4363,7 +4330,6 @@ function onLockInMove( A, obj, d, e){
   }
   obj.placed = true;
 
-
   var oo = asVector2d( offset );
   transformXy( oo, e);
   var cc = asVector2d( A.Status.click );
@@ -4373,8 +4339,6 @@ function onLockInMove( A, obj, d, e){
 
   antiTransformXy( dd, e);
   setFromVector2d( offset, dd);
-
-
 
 //  A.Status.click.x += d.x - offset.x;
 //  A.Status.click.y += d.y - offset.y;
@@ -4391,7 +4355,6 @@ function finalDraw(A, obj, d){
   drawDiagramAgain(A);
 }
 
-
 function createDraggable(A, obj, d){
   obj.colour = "rgb(205,192,67)";
   obj.borderColour = "rgb(120,97,46)";
@@ -4399,6 +4362,7 @@ function createDraggable(A, obj, d){
   obj.glyph="Spot";
   //obj.onMouseUp = finalDraw;
 }
+
 function createDraggable2(A, obj, d){
   obj.onClick = onDraggableClicked2;
   //obj.onMouseUp = finalDraw;
@@ -4439,7 +4403,6 @@ function registerMethods()
   reg( "Parliament",0,0, layoutMargined, drawParliament);
   reg( "Path",      0,0,0, drawPath);
   reg( "Tree",      0,0,0, drawTree);
-
 }
 
 Registrar.inits.push( registerMethods );

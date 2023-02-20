@@ -599,3 +599,13 @@ function drawTexture( A, obj, d ){
   ctx.putImageData(dstData, x,y);
   //solveMe( A, S, d);
 }
+
+
+function registerNurbMethods()
+{
+  var reg = registerMethod; // abbreviation.
+  reg( "Texture",   0,0, layoutMargined, drawTexture);
+
+}
+
+Registrar.inits.push( registerNurbMethods );

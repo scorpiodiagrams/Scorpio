@@ -17,6 +17,8 @@ function monikerOfIndex( i ){
 }
 
 function existingIndexOfMoniker( state, str ){
+  if( str == "")
+    return -1;
   if( state.atomRenamer[str])
     return state.atomRenamer[str];
   return -1;  
@@ -38,7 +40,8 @@ function indexOfMoniker( state, str ){
 }
 
 function requestNewNamedAtom( state, str ){
-  state.atomRenamer[str] = state.atomCounter;
+  if( str != "")
+    state.atomRenamer[str] = state.atomCounter;
   return state.atomCounter++;
 }
 
@@ -535,7 +538,21 @@ function setItems( name, matches, state ){
       for( elt of state.latestList){
         elt[name] = matches[1] || " ";
       }
-      return true;
+    return true;
+  }
+  return false;
+}
+
+function setArrayItems( name, matches, atomIx, state ){
+  if( matches ){
+    if( state && state.latestList)
+      for( elt of state.latestList){
+        elt[name] = elt[name] || [];
+        elt[name].push( matches[3] || " ");
+        elt[name+"Atom"]= elt[name+"Atom"] || [];
+        elt[name+"Atom"].push( atomIx );
+      }
+    return true;
   }
   return false;
 }
@@ -546,7 +563,18 @@ function setNums( name, matches, state ){
       for( elt of state.latestList){
         elt[name] = +(matches[1]);
       }
-      return true;
+    return true;
+  }
+  return false;
+}
+
+function setCoords( name, matches, state ){
+  if( matches ){
+    if( state && state.latestList)
+      for( elt of state.latestList){
+        elt[name] = {x:+(matches[1]),y:+(matches[2])};
+      }
+    return true;
   }
   return false;
 }
@@ -557,12 +585,12 @@ function setBools( name, matches, state ){
       for( elt of state.latestList){
         elt[name] = true;
       }
-      return true;
+    return true;
   }
   return false;
 }
 
-
+var settingNames = "bounding_boxes frac_color sym_color twisty_color".split(" ");
 
 function readStandardStyle( obj, str ){
   obj.atoms = [];
@@ -659,6 +687,14 @@ function readStandardStyle( obj, str ){
     if( line.startsWith("##"))
       continue;
     var matches; 
+
+    // peel off all the global settings.
+    matches = line.match( /^([a-z_A-Z]*):\s*(.*)$/ );
+    if( matches && ( settingNames.indexOf(matches[1])>=0)){
+      obj[ matches[1] ] = matches[2];
+      continue;
+    }
+
     matches = line.match( /^card:/);
     if( matches ){
       if( state.atoms.length<1)
@@ -678,6 +714,7 @@ function readStandardStyle( obj, str ){
       continue; 
     }
 
+    // :AA: at: x,y lines
     // for an 'at' line, the atom must exist already.
     matches = line.match( /^:([A-Z][A-Z]?):\s+at:\s*([0-9\.\-]*),([0-9\.\-]*)/u );
     if( matches){
@@ -686,12 +723,17 @@ function readStandardStyle( obj, str ){
       if( atom ){
         atom.x = +matches[2];
         atom.y = +matches[3];
+        atom.at = {};
+        atom.at.x = atom.x;
+        atom.at.y = atom.y;
         atom.placed = true;
         state.atoms=[atom];
         state.latestList = state.atoms;
       }
       continue;
     }
+
+    // **:A: text The atom name is given.
     matches = line.match( /^(\**):([A-Z][A-Z]?):\s+(.*?)\s*$/u );
     if( matches){
       // we use the 'does it exist? version' ,
@@ -702,17 +744,16 @@ function readStandardStyle( obj, str ){
       if( !atom )
       {
         requestNewNamedAtom( state, matches[2]);
-        state.atoms = [ addMMAtom( P, obj, matches) ];
-        state.latestList = state.atoms;
-        continue; // the for loop.
+        atom = addMMAtom( P, obj, matches);
       }
-      // this is silently ignoring a request to 
+      // else silently ignores a request to 
       // update an atom using creation format.
       state.atoms=[atom];
       state.latestList = state.atoms;
       continue;
     }
 
+    // *** text - almost everything else is an atom
     // don't want things that look like a keyword
     matches = line.match( /^[a-z]*:/u );
     if( !matches && line ){
@@ -767,6 +808,9 @@ function readStandardStyle( obj, str ){
     matches = line.match( /^level:\s*([0-9\.\-]+)\s*$/)
     if( setNums( 'level', matches, state ))
       continue;
+    matches = line.match( /^to:\s*([0-9\.\-]+),([0-9\.\-]+)\s*$/)
+    if( setCoords( 'to', matches, state ))
+      continue;
     matches = line.match( /^label:\s*(.*)\s*$/)
     if( setItems( 'value', matches, state ))
       continue;
@@ -781,6 +825,28 @@ function readStandardStyle( obj, str ){
     matches = line.match( /^image:\s*(.*?)\s*$/ );
     if( setItems( 'src', matches, state ))
       continue;
+
+    matches = line.match( /^jatex:\s*(.*?)\s*$/ );
+    if( setItems( 'jatex', matches, state ))
+      continue;
+
+    matches = line.match( /^jref:(([A-Z][A-Z]?):)?\s*(.*?)\s*$/ );
+    if( matches ){
+      var name = matches[2] || "";
+      var ix = -1;//existingIndexOfMoniker(state, name);
+      // Tree items must not exist already...
+      // So if we matched this line, it's new.
+      if( ix < 0 )
+      {
+        ix=requestNewNamedAtom( state, name);
+        atom = makeAtom( state, matches[3] );
+        atom.id = "Aatom"+(obj.atoms.length);
+        atom.isJref = true;
+        obj.atoms.push( atom )
+      }
+      setArrayItems( 'jref', matches, ix, state )
+      continue;
+    }
 
     matches = line.match( /^hmul:\s*([0-9\.\-]+)\s*$/)
     if( setNums( 'hmul', matches, state ))
@@ -882,7 +948,6 @@ function readStandardStyle( obj, str ){
 
     // ignore the nobond.
     continue;
-
   }
 
   setEditorTitle( obj.caption ||'Untitled');
@@ -894,7 +959,8 @@ function readStandardStyle( obj, str ){
     obj.boxed=obj.boxed.replace(/ with cards/,'');
   }
   anglesFromAtoms( obj );
-  
+  processJatex( obj )
+
   // Add in the caption and credits info.
   // promote three obj fields up to metadat.
   var obj1 = [ metaInfoObject( obj.caption || 'Example', obj.card, obj.boxed, obj.options) ];

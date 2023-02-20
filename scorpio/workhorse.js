@@ -48,7 +48,9 @@ function drawBackground( A,obj,d){
 
 function drawMindMap( A, obj, d ){
   if( (d.stage !== kStageFillAndText ) && 
-      (d.stage !== kStageHots ) )
+      (d.stage !== kStageHots ) &&
+      (d.stage !== kStageDragging)
+      )
     return;
 
   var i;
@@ -58,6 +60,7 @@ function drawMindMap( A, obj, d ){
   // justDraw => no hotspot drawing.
   var justDraw = (d.stage === kStageFillAndText );
   var draw = (d.stage === kStageFillAndText );
+  var justMove = (d.stage === kStageDragging)
 
   // done this way for ease of breakpoint setting...
   if( d.stage === kStageHots){
@@ -130,11 +133,21 @@ function drawMindMap( A, obj, d ){
 
   for( i = 0; i < obj.atoms.length; i++ ){
     var atom = obj.atoms[i];
+    atom.parent = obj;
+    if( atom.isJref )
+      continue;
 
-    // code to implement dragging of atoms...
-    var dd = newPos( A, atom, d );
-    onLockInMove(A,atom,dd, d);
-
+    if( justMove){
+      // code to implement dragging of atoms...
+      var dd = newPos( A, atom, d );
+      onLockInMove(A,atom,dd, d);
+      var t = A.equanimTime;
+      if( isDefined(t) && atom.to )
+      {
+        atom.x = atom.at.x + t*(atom.to.x-atom.at.x);
+        atom.y = atom.at.y + t*(atom.to.y-atom.at.y);
+      }
+    }
     // We make a special case out of the
     // atoms in molecules.  This forces size
     // and colour.  We will remove this later.
@@ -145,6 +158,8 @@ function drawMindMap( A, obj, d ){
       ;
     else if( atom.subdiagram )
       drawSubDiagram( A, atom, d);
+    else if( atom.jatex )
+      drawJatex( A, atom, d);
     else
       drawMindMapLabel(A, atom, d);
   }
@@ -210,6 +225,42 @@ function anglesFromAtoms( obj ){
     }
   }
 }
+
+function getHotspots( atom, tokens){
+  for( var jrefIx in (atom.jref || []) ){
+    var jref   = atom.jref[ jrefIx ];
+    var atomIx = atom.jrefAtom[ jrefIx ];
+    var start = atom.jatex.indexOf( jref );
+    // each jref corresponds to an atom.
+    while( start >= 0 ){
+      var end = start+jref.length-1;
+      for( var i=0;i<tokens.length;i+=4){
+        if( (tokens[i+1]>=start ) && (tokens[i+2]<=end)){
+          // use atomIx to indicate the hotspot color.
+          tokens[i+3]=atomIx;
+        }
+      }
+      start = atom.jatex.indexOf( jref, start+1 );
+    }
+  }
+}
+
+function processJatex( obj ){
+  for( var atomIx in obj.atoms ){
+    var atom = obj.atoms[atomIx];
+    if( !atom.jatex )
+      continue;
+    var tokens = Jatex.tokenise( atom.jatex, atomIx );
+    getHotspots( atom, tokens );
+
+    var ast = {};
+    ast.token = "{";
+    ast.subtree = [];
+    Jatex.astOfTokens( ast, tokens, 0, tokens.length );
+    atom.ast = ast;
+  }
+}
+
 
 // >>>>>>>>>>>>>>>>>>> Draw Functions >>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -438,6 +489,26 @@ function drawSubDiagram( A, obj, d){
   drawMindMapLabel(A,obj,d);
 }
 
+function drawJatex( A, obj, d){
+  if( obj.hide && (d.stage != kStageHots))
+    return;
+
+  if( !Jatex )
+    return;
+  Jatex.parse( A, obj, d );
+}
+
+function drawBox( A, obj, d){
+  var ctx = getCtx( A, obj, d );
+
+  var dv = obj.v1.sub( obj.v0);
+  ctx.strokeStyle = "#22f";
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();  
+  ctx.rect( obj.v0.x, obj.v0.y, dv.x, dv.y);
+  ctx.stroke();
+
+}
 
 function drawMindMapLabel(A, obj, d){
 
@@ -894,46 +965,58 @@ function drawTaper(A, obj, d){
       obj.rgbCurrentText = "#d0d0d0";
     }
   }
-
-  var s = new Shape();
-  s.addPoints( va, vb, vc, vd);
-
-  var wartList = new Shape();
-  if( obj.taperIs == 'label' )  {
-    // clockwise, from top right.
-    wartList.addEdges( 
-      obj.endShape1 || "(", 
-      (obj.inStem && "InStem") || "straight", 
-      obj.endShape2 || "(", 
-      (obj.outStem && "OutStem") || "straight" 
-    );
-    s = s.addWarts( wartList );
-    s = s.reduce();
-    if( d.dddStyle.bevel )
-      s = s.bevelCorners( d.dddStyle.bevel );
-  }
-  else {
-    bbend = (bend || 0);
-    setInOutBend( "bend", `C 25 ${bbend} 75 ${bbend} 100 0` );
-    setInOutBend( "antibend", `C 25 ${-bbend} 75 ${-bbend} 100 0` );
-
-    var end1 = getEndShape( obj.lineEndShape1 );
-    var end2 = getEndShape( obj.lineEndShape2 );
-
-    // clockwise, from top right.
-    wartList.addEdges( 
-      end1, 
-      "bend", 
-      end2, 
-      "antibend" 
-    );
-    s = s.addWarts( wartList );
-    s = s.reduce();
-  }
-  s.draw( ctx, style );
-
+  style.bevel = d.dddStyle.bevel;
+  style.bend  = bend;
+  if( obj.taperIs == 'label' )  
+    drawStraightLabel( ctx, obj, style, va, vb, vc, vd );
+  else 
+    drawCurvedLabel( ctx, obj, style, va, vb, vc, vd );
 }
 
+function drawStraightLabel( ctx, obj, style, va, vb, vc, vd )
+{
+  var s = new Shape();
+  s.addPoints( va, vb, vc, vd );
+  var wartList = new Shape();
+
+  // clockwise, from top right.
+  wartList.addEdges( 
+    obj.endShape1 || "(", 
+    (obj.inStem && "InStem") || "straight", 
+    obj.endShape2 || "(", 
+    (obj.outStem && "OutStem") || "straight" 
+  );
+  s = s.addWarts( wartList );
+  s = s.reduce();
+  if( style && style.bevel )
+    s = s.bevelCorners( style.bevel );
+  s.draw( ctx, style );
+}
+
+function drawCurvedLabel( ctx, obj, style, va, vb, vc, vd )
+{
+  var s = new Shape();
+  s.addPoints( va, vb, vc, vd );
+  var wartList = new Shape();
+
+  bbend = (style.bend || 0);
+  setInOutBend( "bend", `C 25 ${bbend} 75 ${bbend} 100 0` );
+  setInOutBend( "antibend", `C 25 ${-bbend} 75 ${-bbend} 100 0` );
+
+  var end1 = getEndShape( obj.lineEndShape1 );
+  var end2 = getEndShape( obj.lineEndShape2 );
+
+  // clockwise, from top right.
+  wartList.addEdges( 
+    end1, 
+    "bend", 
+    end2, 
+    "antibend" 
+  );
+  s = s.addWarts( wartList );
+  s = s.reduce();
+  s.draw( ctx, style );
+}
 
 function drawQuad( A, obj, d){
   if( d.stage == kStageHots ) 
@@ -1474,7 +1557,7 @@ function drawRuler(A, obj, d){
 
   var {x,y,xw,yh} = getBox( obj );
 
-  if( stage===kDragging){
+  if( stage===kStageDragging){
     updateDraggers( A, obj, d );
 
     if( A.dragObj !== obj )

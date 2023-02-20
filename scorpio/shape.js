@@ -515,6 +515,9 @@ Shape.prototype={
       return v.x<v.y;
    },
    draw(ctx,style){
+
+      style = style || TileStyles.green;
+
       this.drawInner( ctx, style );
       if( !style.pathWithEnds)
          ctx.closePath();
@@ -534,7 +537,6 @@ Shape.prototype={
 //         this.drawBendy(ctx,style);
 //         return;
 //      }
-      style = style || TileStyles.green;
       var i;
       var p,q,r;
       var pOld;

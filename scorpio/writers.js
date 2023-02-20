@@ -9,8 +9,18 @@ function writeMindMap( A, obj, d){
     str += "caption: "+A.Caption.text+"\r\n";
     setEditorTitle( A.Caption.text );
   }
+
+  for( name of settingNames){
+    if( obj[ name ]!==undefined)
+    {
+      str += name + ": "+obj[name]+"\r\n";
+    }
+  }
+
   for( var i in atoms){
     var atom = atoms[i];
+    if( atom.isJref )
+      continue;
     var val = atom.oldValue || atom.value;
     str += "**********:".slice(-1 - atom.level) + 
     monikerOfIndex(i) +": "+val+"\r\n";
@@ -23,6 +33,8 @@ function writeMindMap( A, obj, d){
   }
   for( var i in atoms){
     var atom = atoms[i];
+    if( atom.isJref )
+      continue;
     str += ":" + 
     monikerOfIndex(i) +": at: "+
     Math.floor(atom.x)+","+Math.floor(atom.y)+"\r\n";
@@ -34,9 +46,17 @@ function writeMindMap( A, obj, d){
     }
     if( atom.subdiagram )
       str+= "subdiagram: "+atom.subdiagram+"\r\n";
+    if( atom.jatex )
+      str+= "jatex: "+atom.jatex+"\r\n";
+    for( j in atom.jref || []){
+      var jref = atom.jref[j];
+      var atomIx = atom.jrefAtom[j] ;
+      str += "jref:"+monikerOfIndex(atomIx)+": "+jref+"\r\n";
+    }
     if( atom.hide){
       str+= "hide:\r\n";
     }
+
   }
 
   if( obj.extra ){

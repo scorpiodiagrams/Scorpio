@@ -11,8 +11,10 @@ function Vector2d(x,y) {
 Vector2d.prototype = {
    itemNames: ["x","y"],
    makeIterator: function(){ return new Iterator( this );},
-   mul(v) {
-      if( v instanceof Vector2d )
+   mul(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
+      else if( v instanceof Vector2d )
          return new Vector2d(
             this.x * v.x,
             this.y * v.y
@@ -22,8 +24,10 @@ Vector2d.prototype = {
          this.y * v
       );
    },
-   div(v) {
-      if( v instanceof Vector2d )
+   div(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
+      else if( v instanceof Vector2d )
          return new Vector2d(
             this.x / v.x,
             this.y / v.y
@@ -33,8 +37,10 @@ Vector2d.prototype = {
          this.y / v
       );
    },
-   min(v) {
-      if( v instanceof Vector2d )
+   min(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
+      else if( v instanceof Vector2d )
          return new Vector2d(
             Math.min(this.x, v.x),
             Math.min(this.y, v.y)
@@ -44,8 +50,10 @@ Vector2d.prototype = {
          Math.min(this.y, v)
       );
    },
-   max(v) {
-      if( v instanceof Vector2d )
+   max(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
+      else if( v instanceof Vector2d )
          return new Vector2d(
             Math.max(this.x, v.x),
             Math.max(this.y, v.y)
@@ -55,13 +63,17 @@ Vector2d.prototype = {
          Math.max(this.y, v)
       );
    },
-   add(v) {
+   add(v, y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       return new Vector2d(
          this.x + v.x,
          this.y + v.y
       );
    },
-   sub(v) {
+   sub(v, y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       return new Vector2d(
          this.x - v.x,
          this.y - v.y
@@ -103,31 +115,43 @@ Vector2d.prototype = {
          this.y
       );
    },
-   isAtLeast(v) {
+   isAtLeast(v, y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       return 
          (this.x>=v.x) &&
          (this.y>=v.y);
    },
-   isGreaterThan(v) {
+   isGreaterThan(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       return 
          (this.x>v.x) &&
          (this.y>v.y);
    },
-   isNoMoreThan(v) {
+   isNoMoreThan(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       return 
          (this.x<=v.x) &&
          (this.y<=v.y);
    },
-   isLessThan(v) {
+   isLessThan(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       return 
          (this.x<v.x) &&
          (this.y<v.y);
    },
-   assignFrom(v) {
+   assignFrom(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       this.x=v.x;
       this.y=v.y
    },
-   dot(v) {
+   dot(v,y) {
+      if( y!==undefined)
+         v = Vector2d( v, y);
       var b = this.x * v.x +
          this.y * v.y; 
       return b;

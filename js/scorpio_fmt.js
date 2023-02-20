@@ -74,10 +74,10 @@ Scorpio_Fmt.prototype ={
     // set to !Cached for a pre-cached 'file'.
     if( wordcount >0 ){
 
-      chunk = words[0];
-      word = chunk.split( '\n')[0];
+      word = words[0].trim();
+      var list = words.join( "").split("\n").join(" ").trim();
       str +=
-         `<div id="content_here${this.instance-1}" class="atkContentDiv" data-page="${word}"></div>`;
+         `<div id="content_here${this.instance-1}" class="atkContentDiv" data-page="${list}"></div>`;
     }
 
     str = '<div class="wide_content">'+

@@ -69,6 +69,9 @@ Markdown_Fmt.prototype ={
   inlineKatex(match,formula){
     return Katex_Fmt.htmlInlineOf( "\\small "+formula );
   },
+  inlineJatex(match,formula){
+    return Jatex_Fmt.htmlInlineOf( formula );
+  },
   moreLink(match,link){
     var newLink = linkReplacement( link );
     if( newLink == link )
@@ -109,6 +112,8 @@ Markdown_Fmt.prototype ={
     state.heroHeading = this.heroHeading;
     state.heading = this.heading;
     state.subsiteHeading = this.subsiteHeading;
+    if( typeof Jatex_Fmt )
+      state.inlineJatex = this.inlineJatex;
     if( typeof Katex_Fmt )
       state.inlineKatex = this.inlineKatex;
     state.moreLink = this.moreLink;

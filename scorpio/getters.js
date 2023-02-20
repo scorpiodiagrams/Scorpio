@@ -271,6 +271,8 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = line.replace(/^#Example\(/gi, "<div class='example'>");
   line = line.replace(/\)End#/gi, "</div>");
 
+//  if( state.inlineJatex )
+//    line = line.replace( /\$\$(.*?)\$\$/gi, state.inlineJatex );
   if( state.inlineKatex )
     line = line.replace( /\$\$(.*?)\$\$/gi, state.inlineKatex );
 
@@ -297,3 +299,45 @@ Getters.handleMarkdown = function( obj, line, state ){
 
 }
 
+
+// this is no longer actively used.
+function htmlOfMediaWiki( str )
+{
+  str = str.replace( /__NOTOC__/g, "" );
+  str = str.replace( /^----*/gm, "<hr>");
+  str = str.replace( /\[http(\S*)\s([^\]]*)\]/g,"<a" +
+    " href='http$1'>$2</a>");
+  str = str.replace( /\[\[File:([^\]]*)\]\]/g, "<img" +
+    " style='width:700px;border:solid black 1px' src='./images/$1'>");
+  str = str.replace( /https:\/\/wit.audacityteam.org\//g, '' );
+  str = str.replace( /\[\[Toolbox\/([^\|\]]*)\|([^\[]*)\]\]/g, "<a" +
+    " href='raw/raw_spec_$1.txt'>$2</a>");
+  str = str.replace( /\[\[Toolbox\/([^\]]*)\]\]/g, "<a" +
+    " href='raw/raw_spec_$1.txt'>$1</a>");
+  str = str.replace( /#.\.txt/g, ".txt" );
+
+  str=str.replace( /{{ATK_Header}}/g,
+    "<div style='margin:0 auto;background:#EEEEFF;padding:10px;border:1px solid" +
+    " #999999;width:90%;align:center;margin-top:30px;margin-bottom:30px'" +
+    ">This is an example interactive" +
+    " diagram created with " +
+    "<a href='https://wikidiagrams.com'>Wikidiagrams" +
+    "</a>.  The aim of the Wikidiagrams" +
+    " project is to provide interactive diagrams for Wikipedia. "+
+    " Before it is ready for that, it will be used for biochemical pathways and" +
+    " other interactive diagrams.</div>");
+
+  str = str.replace( /^======(.*)======/gm, "<h2>$1</h2>" );
+  str = str.replace( /^=====(.*)=====/gm, "<h3>$1</h3>" );
+  str = str.replace( /\*\*(.*)\*\*/gm, "<b>$1</b>" );
+  str = str.replace( /~~(.*)~~/gm, "<s>$1</s>" );
+  str = str.replace( /\n'''\n([\s\S]*?)\n'''\n/g, "<pre><xmp>$1</xmp></pre>" );
+  str = str.replace( /(\s)http(\S*)(\.\s)/gm, "$1<a href='http$2'>http$2</a>$3" );
+  str = str.replace( /(\s)http(\S*)(\s)/gm, "$1<a href='http$2'>http$2</a>$3" );
+
+  str = str.replace( /^\*/gm, "<br> • " );
+  str = str.replace( /\n\n([^<])/gm, "<br><br>$1" );
+  str = str.replace( /\{\{#widget:WikiDiagram\|page=([_A-Z0-9a-z\u00C0-\u017F]*).*?\}\}/gm, '        <div id="content_here1" class="atkContentDiv2" data-page="$1">\n' +
+    '        </div>' );
+  return str;
+}
