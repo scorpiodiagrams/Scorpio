@@ -1,6 +1,6 @@
 
 
-// WikiWords with info cards
+// A null format that does not emit content.
 function Hide_Fmt(){
   return this;
 }

@@ -47,7 +47,7 @@ Loader.prototype ={
     var new_canvas = document.createElement('canvas');
     new_canvas.width = Annotated.width;
     new_canvas.height = Annotated.height;
-    var ctx = new_canvas.getContext('2d');
+    var ctx = new_canvas.canvas.getContext('2d', {willReadFrequently: true});
     ctx.fillStyle = 'blue';
     ctx.fillRect(5, 5, 70, 70);
     ctx.drawImage(Gui.Ctx.canvas, Annotated.x, Annotated.y, Annotated.width,
@@ -82,12 +82,33 @@ function wikiWordsArrive(A, url, text)
   module.afterLoading( {"fmt_init":true});
 }
 
+function sidebarArrives(A, url, text)
+{
+  console.log( "Processing sidebar from "+url);
+  Markdown_Fmt.hasBigLogo = false;
+  var module = Registrar.modules.Omnia;
+  var pieces = text.split( /\r?\n/g);
+  var text = pieces.join( "\r\n");
+  var str = module.htmlOfBlock( 'Polyglot', text );
+//  str = "<div class='outer'><div class='nut_content'>" + str +"</div></div>";
+//  var str = module.htmlOf( text );
+  showSidebar( str );
+  // sets value, if the div is present.
+  //DomUtils.setValue( "raw_output", text );
+  //module.afterLoading( {"fmt_init":true});
+}
+
 function loadSource( source )
 {
   if( !source.match( /^([a-z_0-9A-Z\.])*\.md$/) )
     return;
   console.log( "Request to load: "+source);
   Loader.loadFromUrl( "foo", Registrar.wikiSrc+source, wikiWordsArrive);
+}
+
+function loadSidebar( source ){
+  console.log( "Request to load sidebar: "+source);
+  Loader.loadFromUrl( "foo", Registrar.wikiSrc+source, sidebarArrives);
 }
 
 function readFromText()

@@ -3,6 +3,36 @@
 
 function mainFunctions(){
 
+	Symbol();
+	Jatex();
+
+  Twisty();
+  Frac();
+  Stack();
+  Tile();
+  SupSub();
+  FontHandler();
+  Settings();
+  Ruler();
+  //Grid(); part of Macro.
+  SvgSymbols();
+  Transform();
+  Macro();
+  Graph();
+  Stretcher();
+
+
+
+  astOfTokens( ast, tokens, i, len );
+  measureSubtree( ctx, parent, ast);
+  positionSubtree(parent, ast, v);
+  outSubtree( ctx, ast, color );
+
+// compare with registration - objects we position and draw.
+  reg( "Ruler",createRuler,sizeNowt,layoutMargined, drawRuler);
+// objects we read and write to text.
+  reg( "MindMap", readMindMap, writeMindMap);
+
 
 	// The most important draw function that calls the 
 	// angle, bond and atom drawing functions.

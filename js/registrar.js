@@ -11,6 +11,9 @@ function Registrar(){
 Registrar.prototype ={
   name : "Registrar",
   modules : {},
+  classes : {},
+  verbs   : {},
+  js      : {},
 
 // Configuration paramters:  
   wikiSrc : './wiki/',
@@ -24,8 +27,17 @@ Registrar.prototype ={
   register( module ){
     this.modules[ module.name ] = module;
   },
+  registerTextFormat( module ){
+    this.modules[ module.name ] = module;
+  },
+  registerClass( classIn ){
+    this.classes[ classIn.name ] = classIn;
+  },
+  registerVerbs( verb ){
+    this.verbs[ verb.name ] = verb;
+  },
   doInits(){
-    inits = this.inits;
+    inits = this.inits || [];
     for(init of inits)
       init();
     this.inits = [];

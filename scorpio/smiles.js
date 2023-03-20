@@ -182,6 +182,12 @@ function makeAtom( parser, type){
 
   atom.r = 10;
   atom.value = type || "P";
+  // Allow jatex in the label.
+  if( atom.value.startsWith("$$")){
+    atom.jatex = atom.value.substring( 2 );
+    if( atom.jatex.endsWith("$$") )
+      atom.jatex.slice(0,-2);
+  }
   atom.colour = rgbOfAtom( atom.value );
   atom.level=0; // the default.
   atom.x=parser.x;

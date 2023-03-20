@@ -15,6 +15,7 @@
 
     <script data-cfasync="false" src="./scorpio/scorpiodiagrams.js"></script>
     <script data-cfasync="false" src="./scorpio/getters.js"></script>
+    <script data-cfasync="false" src="./scorpio/details_panel.js"></script>
     <script data-cfasync="false" src="./scorpio/annotator.js"></script>
     <script data-cfasync="false" src="./scorpio/curves.js"></script>
     <script data-cfasync="false" src="./scorpio/vector2d.js"></script>
@@ -37,6 +38,7 @@
     <script data-cfasync="false" src="./js/scorpio_fmt.js"></script>
     <script data-cfasync="false" src="./js/editor_fmt.js"></script>
     <script data-cfasync="false" src="./js/hide_fmt.js"></script>
+    <script data-cfasync="false" src="./js/polyglot_fmt.js"></script>
 <style>
 html {
   scroll-behavior: smooth;
@@ -88,23 +90,30 @@ setFromConfig( 'index.html' );
 Is the document where it should be??
 ` );
   DomUtils.set( "div_output", str );
-  var page = DomUtils.getAnchor() || DomUtils.getArg('page') || Registrar.firstFile;
+  var page = DomUtils.getAnchor() || DomUtils.getArg('page') || 'index';
   if( page ){
-    loadSource( page + '.md');
+    setPage( page );
   }
 
 window.onpopstate = function(event)
 {
   var afterHash = (""+document.location).split('#')[1];
+  afterHash = afterHash.split(';');
+  var repo  = afterHash[1]?afterHash[0]:"";
+  afterHash = afterHash[1]||afterHash[0];
+  if( 
+    (window.afterHash == afterHash ) &&
+    (Registrar.repo == repo))
 
-  if( window.afterHash == afterHash )
     return;
   window.afterHash = afterHash;
 //  console.log( "IN popstate")
-  loadSource( afterHash+'.md' );
+  setLocalRepo( repo, afterHash );
+  //loadSource( afterHash+'.md' );
 };
 
 </script>
+
 
 
 </body>

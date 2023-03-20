@@ -14,6 +14,7 @@ scorpio.validModules =
 //    "/js/registrar.js",
     "/scorpio/scorpiodiagrams.js",
     "/scorpio/getters.js",
+    "/scorpio/details_panel.js",
     "/scorpio/annotator.js",
     "/scorpio/curves.js",
     "/scorpio/vector2d.js",

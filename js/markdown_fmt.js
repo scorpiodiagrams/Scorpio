@@ -4,45 +4,6 @@ function Markdown_Fmt(){
   return this;
 }
 
-var pageReplacements = {
-  'vectors': 'Euclidean_vector',
-  'differential_operators': 'Vector_operators',
-  'maxwells_equations': 'maxwells_equations',
-  'differentiation': 'Differential_calculus',
-  'trigonometry': 'trigonometry',
-  'complex_numbers': 'Complex_number',
-  'immunology': 'Immunology',
-
-  'scorpio_labels': '#scorpio_labels',
-  'scorpio_link_styles': '#scorpio_link_styles',
-  'scorpio_blocks': '#scorpio_blocks',
-  'scorpio_connections': '#scorpio_connections',
-  'index': '#index',
-  'scorpio_diagram_types': '#scorpio_diagram_types',
-  'scorpio_diagrams': '#scorpio_diagrams',
-  'scorpio_example_diagrams': '#scorpio_example_diagrams',
-  'more_examples': '#more_examples',
-  'more_label_styles': '#more_label_styles',
-  'scorpio_cards': '#scorpio_cards',
-  'scorpio_connections': '#scorpio_connections',
-  'scorpio_details_panel': '#scorpio_details_panel',
-  'diagram_forge': '#diagram_forge',
-  'smiles': '#smiles',
-  'sankey_lines': '#sankey_lines',
-  'gitwrapping': '#gitwrapping',
-  'snippet': '#snippet',
-  'downloads': '#downloads',
-//  'scorpio_charts': '#scorpio_charts',
-};
-
-function linkReplacement( link ){
-  if(!Registrar.useUrlChecklist)
-    return link;
-  if( !link.startsWith('#'))
-    return link;
-  return pageReplacements[ link.slice(1) ];
-}
-
 Markdown_Fmt.prototype ={
   name : "Markdown",
   bubblesMade : 0,
@@ -54,17 +15,17 @@ Markdown_Fmt.prototype ={
   },
   heroHeading(match,date,title){
     DomUtils.setFavicon( './centaur.ico');
-    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Centaur](./images/centaur_public_domain.svg)\r\n\r\n#BackAgain`);
+    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Centaur](${Registrar.imageSrc}centaur_public_domain.svg)\r\n\r\n#BackAgain`);
   },
   heading(match,date,title){
     DomUtils.setFavicon( './centaur.ico');
-    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Centaur](./images/centaur_public_domain.svg =250x)\r\n\r\n#BackAgain\r\n🕔 *${date}, by James Crook*`);
+    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Centaur](${Registrar.imageSrc}centaur_public_domain.svg =250x)\r\n\r\n#BackAgain\r\n🕔 *${date}, by James Crook*`);
   },
   subsiteHeading(match,date,title){
     DomUtils.setFavicon( './scorpio.ico');
     Markdown_Fmt.hasBigLogo = true;
     // We're showing a big logo, so hide the small one.
-    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Scorpion](./images/Scorpion.svg =250x)\r\n\r\n#BackAgain`);
+    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Scorpion](./content/scorpio/images/Scorpion.svg =250x)\r\n\r\n#BackAgain`);
   },
   inlineKatex(match,formula){
     return Katex_Fmt.htmlInlineOf( "\\small "+formula );
@@ -73,22 +34,11 @@ Markdown_Fmt.prototype ={
     return Jatex_Fmt.htmlInlineOf( formula );
   },
   moreLink(match,link){
-    var newLink = linkReplacement( link );
-    if( newLink == link )
-      return `<a href='${newLink}'>More...</a>`;
-
-    if( newLink )
-      return `#Wiki(${newLink})`
-    else
-      return `<!--${link}-->`;
+    return `<a href='${link}'>More...</a>`;
   },
   generalLink(match,name,link){
-    var newLink = linkReplacement( link );
-    if( newLink == link)
-      return `<a href='${newLink}'>${name}</a>`;
-    if( newLink)
-      return `<a target='blank' href='https://en.wikipedia.org/wiki/${newLink}'>${name}</a>`;
-    return ` MISSING_LINK ${name} `;
+    return `<a href='${link}'>${name}</a>`;
+//  return `<a target='blank' href='https://en.wikipedia.org/wiki/${newLink}'>${name}</a>`;
   },
   nutMaker(match, arg){
     var that = Markdown_Fmt;
@@ -99,7 +49,7 @@ Markdown_Fmt.prototype ={
   },
 
   htmlOf( str ){
-    str = str || "No text provided in this section";
+    //str = str || "No text provided in this section";
     str = str.replace(/\r\n/g, "\n");
     var lines = str.split("\n");
     var html = "";
@@ -174,7 +124,9 @@ Markdown_Fmt.prototype ={
     return html;// + "<br/>";
   },
   afterLoading(){
-    showLittleLogo( !Markdown_Fmt.hasBigLogo );
+    // Show little logo?
+    var show = !Markdown_Fmt.hasBigLogo;
+    DomUtils.setVisibility( "little_logo", show );
   }
 
 }

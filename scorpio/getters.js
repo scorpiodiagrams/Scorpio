@@ -94,7 +94,7 @@ Getters.handleIfGraphKeyword = function( obj, line, state ){
 //  }
 
   // bond with format COMMAND,id,id,text:
-  matches = line.match( /^bond:\s*([A-z][A-z]?|\*)\s+([A-z][A-z]?|\*)\s*(.*?)\s*$/);
+  matches = line.match( /^link:\s*([A-z][A-z]?|\*)\s+([A-z][A-z]?|\*)\s*(.*?)\s*$/);
   if( matches){
     var wild_bond = {};
     wild_bond.points = [ indexOfMoniker( state, matches[1] ),
@@ -231,7 +231,8 @@ Getters.handleIfGraphKeyword = function( obj, line, state ){
 Getters.handleMarkdown = function( obj, line, state ){
 
 // Our markdown rules are highly trusting of the input!
-// No sanitization whatsoever.
+// WARNING: No sanitization whatsoever.
+// Every $1 is a potential exploit.
 
 // for #Wiki: Systemic HACK.  We are parsing using regex, 
 // and need to deal with a specific kind of () inside 
@@ -250,6 +251,9 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = line.replace(/!\[(.*?)\]\((.*?) =x(.*?)\)/gi, "<img alt='$1' src='$2' height='$3' />");
   line = line.replace(/!\[(.*?)\]\((.*?)\)/gi, "<img alt='$1' src='$2' />");
   line = line.replace(/\[(.*?)\]\((.*?)\)/gi, state.generalLink );
+
+  line = line.replace(/src='\.\/images\//gi, `src='${Registrar.imageSrc}`);
+
   if( state.moreLink )
     line = line.replace(/#More\((.*?)\)/gi, state.moreLink );
   line = line.replace(/#Wiki\((.*?)\)(?!\))/gi, "<a href='https://en.wikipedia.org/wiki/$1' target='blank'>On Wikipedia...</a>");
@@ -257,6 +261,10 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = line.replace(/#DropCapRight\((.*?)\)/gi, "<span class='bigRight'>$1</span>");
   line = line.replace(/#ButtonWide\((.*?),(.*?)\)/gi, "<button class='wide' onclick=\"location.href='#$1';\"><a '><a href='#$1'>$2</a></button>");
   line = line.replace(/#Button\((.*?),(.*?)\)/gi, "<button onclick=\"location.href='#$1';\"><a '><a href='#$1'>$2</a></button>");
+  line = line.replace(/#Repo\((.*?),(.*?)\)/gi, "<button onclick=\"setLocalRepo('$1');\"><a '><a href='#index'>$2</a></button>");
+  
+//  line=line.replace( /\> \[!info\]/gi,  
+
   if( state.heroHeading )
     line = line.replace(/^#HeroHead\((.*?),(.*?)\)/gi, state.heroHeading );
   if( state.heading )
@@ -271,6 +279,17 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = line.replace(/^#Example\(/gi, "<div class='example'>");
   line = line.replace(/\)End#/gi, "</div>");
 
+  line = line.replace(/#CloseBrace/gi, ")" );
+  line = line.replace(/#UFO\((.*?)\)/g, "<span class='tooltip'>🛸 $1<span class='tooltiptext'>A plan for the far future</span></span>" );
+  line = line.replace(/#Rock\((.*?)\)/g, "<span class='tooltip'>🚀 $1<span class='tooltiptext'>A plan for the near future</span></span>" );
+  line = line.replace(/#Boat\((.*?)\)/g, "<span class='tooltip'>⛵ $1<span class='tooltiptext'>Code from the past needs updating</span></span>" );
+  line = line.replace(/#Caption\((.*?)\)/g, "<div class='caption'><em>$1</em></div>" );
+
+
+
+
+
+
 //  if( state.inlineJatex )
 //    line = line.replace( /\$\$(.*?)\$\$/gi, state.inlineJatex );
   if( state.inlineKatex )
@@ -281,7 +300,7 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = line  
     .replace(/^(\[X\])(.*)/, '<span class="highlight"><input type="checkbox" checked="checked" class="anki" id="item'+state.i+'"><label for="item'+state.i+'">$2</label></span>');
 
-  line = escapeEmoji( line );
+  line = DomUtils.escapeEmoji( line );
   state.fragment = line;
 
   if( typeof Katex_Fmt )
@@ -294,6 +313,7 @@ Getters.handleMarkdown = function( obj, line, state ){
   line = line.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
   line = line.replace(/^\< (.*$)/gim, '<blockquote class="right">$1</blockquote>');
   line = line.replace(/^----*$/gim, '<hr>');
+  line = line.replace(/^-( -)*$/gim, '<hr>');
 
   obj.line = line;
 

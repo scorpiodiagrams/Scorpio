@@ -53,7 +53,7 @@ Vector2d.prototype = {
    max(v,y) {
       if( y!==undefined)
          v = Vector2d( v, y);
-      else if( v instanceof Vector2d )
+      else if( (v.x !== undefined) && (v.y !== undefined) )
          return new Vector2d(
             Math.max(this.x, v.x),
             Math.max(this.y, v.y)
@@ -199,4 +199,125 @@ function setFromVector2d( x, v ){
    return Vector2d.prototype.assignFrom.call( x, v );
 }
 
+
+
+Registrar.js.utils_js = function( Registrar ){
+
+
+var metaData = 
+{ 
+  version: "2023-02",
+  docString: "Utilities"
+};
+
+// Imports
+// var Vector2d = Registrar.classes.Vecotr2d
+
+function Exports(){
+  // Namespaced  formats classes and verbs
+  // These are all for export.
+  Registrar.registerClass( Box );
+  // Global Exports 
+  // These pollute the main namespace
+}
+
+// Now all our declarations...
+function Box(x,y){
+  if((x!==undefined)&&(y == undefined))
+  {
+    this.vecs = [Vector2d(0,0),Vector2d(0,0)];
+    this.merge( x );
+    return this;
+  }
+  x = x || 0;
+  y = y || 0
+  this.vecs = [Vector2d(0,0),Vector2d(x,y)];
+  return this;
+}
+
+Box.prototype ={
+  name: "Box",
+  merge( box, by ){
+    if( by !== undefined){
+      var v = Vector2d( box, by);
+      box = new Box();
+      box.vecs[1]=v;
+    }
+    this.vecs[0]= this.vecs[0].min( box.vecs[0]);
+    this.vecs[1]= this.vecs[1].max( box.vecs[1]);
+    return this;
+  },
+  merge2( box, by ){
+    if( by !== undefined){
+      var v = Vector2d( box, by);
+      box = new Box();
+      box.vecs[1]=v;
+    }
+    this.vecs[1]= this.vecs[1].max( box.vecs[1]);
+    return this;
+  },  
+  addRight( box, by ){
+    if( by !== undefined ){
+      box = new Box(box,by);
+    }
+    this.vecs[1].x += box.width();
+    this.vecs[1].y = Math.max( this.vecs[1].y,box.vecs[1].y );
+    return this;
+  },
+  addDown( box, by ){
+    if( by !== undefined ){
+      box = new Box(box,by);
+    }
+    this.vecs[1].y += box.height();
+    this.vecs[1].x = Math.max( this.vecs[1].x,box.vecs[1].x );
+    return this;
+  },
+  addBox( b ){
+    v = this.diagonal().add( b.diagonal());
+    this.vecs[0] = Vector2d(0,0);
+    this.vecs[1] = v;
+    return this;
+  },  
+  set0( v,y ){
+    if( y !== undefined )
+      v = Vector2d( v, y);
+    this.vecs[0]=v.newCopy();
+    return this;
+  },
+  set1( v,y){
+    if( y !== undefined )
+      v = Vector2d( v, y);
+    this.vecs[1]=v.newCopy();
+    return this;
+  },
+  expand( x,y ){
+    box = new Box();
+    box.set0( this.vecs[0].sub(x,y));
+    box.set1( this.vecs[1].add(x,y));
+    return box;
+  },
+  move( x, y){
+    this.vecs[0] = this.vecs[0].add(x,y);
+    this.vecs[1] = this.vecs[1].add(x,y);
+    return this;
+  },
+  diagonal(){
+    return this.vecs[1].sub(this.vecs[0]);
+  },
+  midpoint(){
+    return this.vecs[1].add(this.vecs[0]).mul( 0.5 );
+  },
+  width(){
+    return this.vecs[1].x - this.vecs[0].x;
+  },
+  height(){
+    return this.vecs[1].y - this.vecs[0].y;
+  }
+}
+
+
+Exports();
+
+return metaData;
+}( Registrar );// end of utils_js
 

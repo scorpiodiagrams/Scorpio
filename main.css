@@ -1,4 +1,7 @@
 
+/* zero margin necessary for reliable measurements*/
+body{margin:0;}
+
 html {
   scroll-behavior: smooth;
 }
@@ -14,7 +17,9 @@ h3 {
 }
 
 h4 {
-  color:  #777;
+  color:  #003;
+  font-size: 0.9em ;
+  font-family:  Arial;
   font-style: italic;
 }
 
@@ -45,23 +50,20 @@ h1 + h3{
   margin-top: -20px;
 }
 
-h4{
-  text-decoration: underline;  
-  font-family:  Arial;
-  color:  #441;
-}
-
 h3 + h4{
   margin-top: -6px;
   text-decoration: none;  
   font-family:  Times;
   color:  #776;
-  margin-bottom:  10px;
+  margin-bottom:  20px;
 }
 
-
 h4 + p{
-  margin-top:  -20px;
+  margin-top:  -1.1em;
+}
+
+h4 + ul{
+  margin-top:  -1em;
 }
 
 br {
@@ -91,12 +93,27 @@ blockquote p {
 
 button {
   width: 10em;
+  height: 2.0em;
   padding: 0.1em;
   margin:  1px;
+  border:1px solid #888;
+  border-radius: 5px;
+
+  background-color: #eee;
+}
+
+button:hover {
+  background-color: #fff;
+  border:1px solid #111; 
+  cursor:pointer; 
 }
 
 button.wide {
   width: 15em;
+}
+
+button.smallbutton {
+  width: 2.3em;
 }
 
 .emoji {
@@ -163,6 +180,13 @@ span.example{
  transition: all .8s ease;
 }
 
+.popbox_link {
+  /*background-color: #aa03;*/
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: blue;
+  cursor: pointer;
+}
 /*
 .MainDiv::before{
   content: '';
@@ -384,16 +408,7 @@ span.highlight:hover {
 }
 */
 
-.SidePanelDiv {
-  margin-left:  715px;
-  margin-right:  20px;
-  width : auto;
-  height: 100%;
 
-  padding:  5px;
-  border:  5px dotted black;
-  /*min-height : 400px;*/
-}
 
 /**/
 .CaptionDiv {
@@ -403,6 +418,11 @@ span.highlight:hover {
 
   text-align : center;
   float:  left;
+}
+
+.caption{
+  clear: both;
+  text-align : center;
 }
 
 .TableOfHotsDiv {
@@ -475,16 +495,48 @@ span.highlight:hover {
   background:repeating-linear-gradient(-45deg,#d68252,#9c43ad,#326489,#32852f 33%);
 }
 
+.SidebarDiv
+{
+  font-size : 80%;
+  font-weight:  900;
+
+  position : fixed;
+  left : 0px;
+  top : 0px;
+  display : block;
+  padding : 2px;
+  text-align : left;
+  margin : 0px;
+  overflow: auto;
+  background-color : #ba9d;
+  z-index:1;
+}
+
+
+.jatex_block{
+  color: #651;
+}
+.jatex_inline{
+  color: #651;
+}
+
+.DarkDiv .jatex_block{
+  color: #99f;
+}
+.DarkDiv .jatex_inline{
+  color: #99f;
+}
+
 .DarkDiv {
   color: #c8c8c8;
-  background-color: #272b30;
+  /*background-color: #272b30;*/
   background-color : rgba(40,40,30,0.9);
 }
 
 .InfoCardDiv
 {
   color: #c8c8c8;
-  background-color: #272b30;
+  /*background-color: #272b30;*/
   background-color : rgba(40,40,30,0.9);
   position : fixed;
   left : 0px;
@@ -498,6 +550,7 @@ span.highlight:hover {
   text-align : left;
   margin : 0px;
   overflow: auto;
+  z-index:3;
 }
 
 .DarkDiv a:link {
@@ -509,7 +562,7 @@ span.highlight:hover {
 }
 
 .DarkDiv h1, .DarkDiv h2, .DarkDiv h3, .DarkDiv h4 {
-    color: #ebba88;
+  color: #ebba88;
   text-decoration: none;  
 }
 
@@ -518,6 +571,19 @@ span.highlight:hover {
   border-color:  #707050;
 }
 
+.DarkDiv button {
+  background-color: #ebba88;
+  border:1px solid #ccc;  
+}
+.DarkDiv button:hover {
+  background-color: #fccb99;
+  border:1px solid #fff; 
+  cursor:pointer; 
+}
+
+.DarkDiv hr {
+  border: 1px solid #cd853e;
+}
 
 img {
   -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
@@ -538,7 +604,7 @@ img.coloured {
   padding:  1px;
   background-color: #e3d1ae;
 /*  border: 2px solid black;*/
-  z-index:100; 
+  z-index:2; 
 }
 
 #editor
@@ -651,4 +717,42 @@ ul {
 
 .gitbutton {
   width: 100px;
+}
+
+.tooltip {
+  position: relative;
+  /*display: inline-block;*/
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }

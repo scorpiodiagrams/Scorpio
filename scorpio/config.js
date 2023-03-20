@@ -1,9 +1,46 @@
 // for configuration related features...
 
 
+
+
 function getGitContent( repo ){
   repo = DomUtils.getValue( 'url_input'+repo );//'JamesCrook/Scorpio';
   setRepo( repo );
+}
+
+
+function setLocalRepo( repo, file ){
+
+  file = file || 'index';
+  repo = repo || Registrar.repo;
+  var srcUrl = "./content/"+repo+"/";
+
+  Registrar.repo = repo;
+  Registrar.wikiSrc = srcUrl +  'wiki/',
+  Registrar.diagramSrc = srcUrl + 'diagrams/'
+  Registrar.imageSrc = srcUrl + 'images/'
+  Registrar.useUrlChecklist = false;
+  Registrar.enableGitWraping = false;
+
+  Omnia_Fmt.intro =  
+`
+<div class='button_holder'>
+<button onclick="location.href='#index';"><a href='#index'>Index</a></button><br><br>
+<div class='example'>
+Locally serving the repo: ${repo}<br>
+</div>
+</div><br clear="all"/>
+`  
+  loadSource( file + ".md");
+  loadSidebar( "sidebar.md");
+}
+
+function setPage( page ){
+  page = page.split(";");
+  if( page.length > 1)
+    setLocalRepo( page[0],page[1]);
+  else
+    setLocalRepo( 'scorpio',page[0]);
 }
 
 

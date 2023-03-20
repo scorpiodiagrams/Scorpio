@@ -4,12 +4,6 @@ function Scorpio_Fmt(){
   return this;
 }
 
-
-function activateEditor( i ){
-  //alert("Activiating Editor "+i);
-  editSource( i );
-}
-
 Scorpio_Fmt.prototype ={
   name : "Scorpio",
   outro : ``,

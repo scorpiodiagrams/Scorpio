@@ -160,6 +160,10 @@ function fToB(f){
   return Math.floor(f*255) & 0xFF;
 }
 
+function isDefined(x){
+  var undef;
+  return x !== undef;
+}
 
 // These are constants for drawing stages.
 const kStageArrowShaft=1;
@@ -184,66 +188,7 @@ function Locs(){
 var Locs = new Locs();
 var LocalPages = [];
 
-function showLittleLogo( show ){
-  DomUtils.setVisibility( "little_logo", show );
-}
 
-/** 
- * This unassuming function does all the iterations to set
- * up and draw the scene graph.
- */
-function sizeLayoutAndDrawDiagram(A, obj, d){
-  sizeCells(A, obj, d);
-  d.margins = 0;
-  layoutCells(A, obj, d);
-  drawDiagram(A, obj, d);
-}
-
-function setupAndDrawDiagramDiv(A){
-  console.log(`[${A.index}] now setupAndDrawDiagram`);
-  A.setInfoCardSize();
-  A.resizeDivs();
-  var d = {};
-  var obj = A.RootObject;
-  setCellLayout( A,0, 0, A.Porthole.width, A.Porthole.height, obj);
-  sizeLayoutAndDrawDiagram(A, obj, d);
-  A.Status.isAppReady = true;
-}
-
-function updateImages(A){
-  if( !A.BackingCanvas )
-    return;
-  setupAndDrawDiagramDiv(A);
-}
-
-
-function animateForOneDiagram(A){
-  // When to animate depends on 
-  // Whether we have focus (i.e. is cursor over diagram?)
-  // Whether we are in the animate period.
-  // Whether there are new events.
-  var animate = !A.Status.isFocus && (A.Status.time < 30 );
-  animate = animate || A.newEvents 
-  if( !animate )
-    return;
-  A.newEvents = false;
-  A.Status.time++;
-  // animation stops on America.
-  // and dark side of moon.
-  //if( A.Status.time > 600 )
-  //  continue;
-  if( !A.Status.drawing )
-    drawDiagram(A, A.RootObject, {});
-}
-
-function timerCallback(){
-  // Iterate through all the diagrams in the document.
-  for(var i=0;i<AnnotatorList.length;i++){
-    A = AnnotatorList[i];
-    A.timeoutsForOneDiagram();
-    animateForOneDiagram(A);
-  }
-}
 
 function stringOfCoord( coord, mul ){
   mul = mul || 1;
@@ -417,6 +362,586 @@ function firstValid( a, b ){
     return a;
   return b;
 }
+
+// ^^ Above here, polyfiller and similar
+//------------------------------------------------
+// vv Below here, the actual code...
+
+
+Registrar.js.scorpiodiagrams_js = function( Registrar ){
+
+
+var metaData = 
+{ 
+  version: "2023-02",
+  docString: "Scorpio's Core and Iterator functions",
+};
+
+// Imports
+// var Vector2d = Registrar.classes.Vecotr2d
+
+function Exports(){
+  // Namespaced  formats classes and verbs
+  // These are all for export.
+//  Registrar.registerTextFormat( Jatex_Fmt );
+//  Registrar.registerClass( Box );
+  // Global Exports
+  // These pollute the main namespace
+  window.registerMethod = registerMethod;
+  window.registerReadWrite = registerReadWrite;
+  window.layoutMargined = layoutMargined;
+
+  window.initContent = initContent;
+  window.handleNewData = handleNewData;
+  window.sanitiseHtml = sanitiseHtml;
+  window.formatClassNames = formatClassNames;
+  window.setCellLayout = setCellLayout;
+  window.sizeLayoutAndDrawDiagram = sizeLayoutAndDrawDiagram;
+  window.createDraggable = createDraggable;
+  window.addObjectToDictionary =  addObjectToDictionary;
+  window.newPos = newPos;
+  window.onLockInMove = onLockInMove;
+  window.getCtx = getCtx;
+  window.drawDiagramAgain = drawDiagramAgain;
+
+  window.mayRequestDisplayableImage = mayRequestDisplayableImage;
+  window.getImageSource = getImageSource;
+  // for map demo...
+  window.drawContainer = drawContainer;
+  window.createRuler = createRuler;
+  window.drawRuler = drawRuler;
+
+  //window.mayUpdateObjectStyle = mayUpdateObjectStyle;
+  //window.applyObjectSettingsToContext = applyObjectSettingsToContext;
+//  window.drawFocusSpot = drawFocusSpot;
+//  window.drawInfoButton = drawInfoButton;
+//  window.drawFocusDragger = drawFocusDragger;
+
+  window.Nozone = Nozone;
+  window.Message2 = Message2;
+  window.Message = Message;
+  window.obeyCode = obeyCode;
+
+//  window.transformXy = transformXy;
+//  window.drawLineLabelAndText = drawLineLabelAndText;
+//  window.drawWigglyLine = drawWigglyLine;
+//  window.drawStraightLabel = drawStraightLabel;
+}
+
+
+// ------------- some ruler functions.....
+function drawRuler(A, obj, d){
+  //console.log( "draw - "+obj.type);
+  var stage = d.stage;
+
+  if(!isDefined( obj.atEnd ) ){
+    obj.atStart = 0;
+    obj.atEnd = 300;
+  }
+
+  var {x,y,xw,yh} = getBox( obj );
+
+  if( stage===kStageDragging){
+    updateDraggers( A, obj, d );
+
+    if( A.dragObj !== obj )
+      return;
+    // Calculate new offset
+    var dd = newPos( A, obj );
+    if( obj.dragFn )
+      obj.dragFn( A, obj, dd );
+    // And always accept it.
+    onLockInMove(A,obj,dd);
+
+    return;
+  }
+  if( stage===kStageHots ){
+    var ctx2 = A.HotspotsCanvas.ctx;
+
+    ctx2.save();
+    var c = A.nextAutoColour("");
+    A.addDown(A,["clickObject",obj.id]);
+
+    ctx2.beginPath();
+    ctx2.rect(x, y, xw, yh);
+    ctx2.fillStyle = c;
+    ctx2.fill();
+
+    drawDraggers(A, obj, d );
+    ctx2.restore();
+    return;
+  }
+  if( stage!==kStageFillAndText)
+    return;
+
+
+  mayUpdateObjectStyle(A, obj);
+
+  var ctx = A.BackingCanvas.ctx;
+
+
+  ctx.save();
+  ctx.beginPath();
+
+  applyObjectSettingsToContext(ctx, obj);
+  if( obj.cornerRadius )
+    drawRoundRect(A,obj,obj);
+  else
+    ctx.rect(x, y, xw, yh);
+
+  ctx.strokeStyle = "rgb(0,0,0)";
+  ctx.strokeWidth = 0.5;
+  var i;
+
+  // The lazy way is to draw every single item in the ruler
+  // That is just crazy, because the density would be too high.
+
+  // So instead we draw 'bars' which might be every 5th item,
+  // every 10, every 20, every 50, every 100...
+
+  // How many to a bar?  Well, we work out a pixel density.
+  // A minimum of 3 pixels between bars seems about right.
+
+  obj.itemsPerPixel = (obj.atEnd - obj.atStart)/xw;
+  var pixelsPerBar = 100/obj.itemsPerPixel;
+  var spec = 0;
+
+  // Each time round this loop is a 10x zoom out
+  while( pixelsPerBar > 6){
+    spec++;
+    pixelsPerBar /= 2;
+    if( pixelsPerBar <= 15 )
+      break;
+    spec++;
+    pixelsPerBar /= 5;
+  }
+
+  // The number of pixels per bar in turn lets us compute
+  // how many items for each bar.
+  obj.pixelsPerBar= pixelsPerBar;
+  obj.itemsPerBar = obj.itemsPerPixel * pixelsPerBar;
+
+  if( (spec%2) === 1 ){
+    rulerSpec = rulerSpec2;
+    otherSpec = rulerSpec1;
+  } else {
+    rulerSpec = rulerSpec1;
+    otherSpec = rulerSpec2;
+  }
+
+  // Actually draw the 'bars'.
+  var nBars = Math.floor( xw / pixelsPerBar)+1;
+  for(i=0;i<nBars;i++){
+    drawRulerMark( ctx, obj, i );
+  }
+
+  drawDraggers(A, obj, d );
+
+  ctx.restore();
+}
+
+
+function createRuler(A, obj, d){
+  obj.onClick = onRulerClicked;//["clickAction",obj.name ];
+  obj.dragFn = draggingRuler;
+}
+
+function setCentreDraggerX(ruler, x){
+  if( !ruler )
+    return;
+  var mid = ruler.content[1];
+
+  if( ruler.flip === 6 )
+    mid.yCenter = x;
+  else
+    mid.offset.x = x-mid.pos.x;
+}
+
+function setCentreDraggerY(ruler, y){
+  if( !ruler )
+    return;
+  var mid = ruler.content[1];
+  if( ruler.flip === 6 )
+    mid.offset.x = y-mid.pos.x;
+  else
+    mid.yCentre = y;
+}
+
+function zoom( ruler, delta ){
+  if( !ruler )
+    return;
+  var itemsPerPixel = (ruler.atEnd-ruler.atStart)/ruler.rect.x;
+  var k = 1.07;
+  if( delta > 0 )
+    itemsPerPixel *= k;
+  else
+    itemsPerPixel /= k;
+  computeMidDraggerIx(A, ruler);
+  setItemsPerPixel( A, ruler, itemsPerPixel );
+}
+
+function rulerIxOfx( A, obj, x ){
+  return obj.atStart + (x-obj.pos.x) * obj.itemsPerPixel;
+}
+
+function xOfRulerIx( A, obj, ix ){
+  return (ix - obj.atStart) / obj.itemsPerPixel + obj.pos.x;
+}
+
+/**
+ * Converts mid dragger x position to an Ix and remembers it.
+ * @param A
+ * @param obj
+ */
+function computeMidDraggerIx(A, obj){
+  var mid = obj.content[1];
+  var midx = mid.offset.x + mid.pos.x;
+  //midx=0;
+  obj.centerIx = rulerIxOfx(A, obj, midx);
+}
+
+/**
+ * Converts mid dragger Ix back to an x position, ready for drawing.
+ * In conjunction with computeMidDraggerIx this allows the mid dragger
+ * to be repositioned for ruler changes.
+ * @param A
+ * @param obj
+ */
+function replaceMidDragger(A, obj){
+  var mid = obj.content[1];
+  var left = obj.content[0];
+  var right = obj.content[2];
+  var inset = mid.inset;
+
+
+  obj.itemsPerPixel = (obj.atEnd - obj.atStart) / obj.rect.x;
+  var newpos = xOfRulerIx(A, obj, obj.centerIx);
+  //var bak = rulerIxOfx( A, obj, newpos );
+  //console.log( "Midx: "+midx + " Ix: "+obj.centerIx + " newx "+newpos+ " atIx
+  // "+ bak ); reposition mid-dragger.
+  mid.offset.x = constrain( inset, newpos - mid.pos.x, obj.rect.x - inset);
+
+  mid.offset.x = constrain( left.offset.x+40, mid.offset.x, right.offset.x-40 );
+  computeMidDraggerIx(A, obj );
+}
+
+/**
+ * Ensures the mid dragger ends up between the left and right dragger.
+ * @param A
+ * @param obj
+ */
+function repositionMidDragger(A, obj){
+  var mid = obj.content[1];
+  var left = obj.content[0];
+  var right = obj.content[2];
+  var inset = mid.inset;
+
+/*
+    obj.itemsPerPixel = (obj.atEnd - obj.atStart) / obj.layout.xw;
+    var newpos = xOfRulerIx(A, obj, obj.centerIx);
+    //var bak = rulerIxOfx( A, obj, newpos );
+    //console.log( "Midx: "+midx + " Ix: "+obj.centerIx + " newx "+newpos+ " atIx
+    // "+ bak ); reposition mid-dragger.
+    mid.offset.x = constrain( inset, newpos - mid.layout.x0, obj.layout.xw - inset);
+*/
+  mid.offset.x = constrain( left.offset.x+33, mid.offset.x, right.offset.x-33 );
+  computeMidDraggerIx(A, obj );
+}
+
+function onRulerClicked(A, obj){
+  var {x,y,xw,yh} = getBox( obj );
+
+  if( !A.Status.click )
+    return;
+
+  console.log( "Clicked on Object " + obj.id );
+  A.dragObj = obj;
+  //obj.draggerIx = rulerIxOfx( A, obj, obj.content[1].offset.x);
+  if( obj.flip === 6 )
+    obj.offset = {x:A.Status.click.y ,y:A.Status.click.x };
+  else
+    obj.offset = {x:A.Status.click.x ,y:A.Status.click.y };
+  obj.dragIx = rulerIxOfx( A, obj, obj.offset.x);
+  computeMidDraggerIx(A, obj);
+  console.log( "Click Index: "+obj.dragIx );
+  console.log( "Center Index: "+obj.centerIx );
+}
+
+
+function setItemsPerPixel( A, obj, itemsPerPixel ){
+  if( obj.minScale )
+    if( itemsPerPixel < obj.minScale )
+      return;
+  if( obj.maxScale )
+    if( itemsPerPixel > obj.maxScale )
+      return;
+
+  var mid = obj.content[1];
+
+  //console.log("New scale: "+scale);
+  var startIx = obj.centerIx - mid.offset.x * itemsPerPixel;
+  var endIx = obj.centerIx + (obj.rect.x - mid.offset.x ) * itemsPerPixel;
+
+  obj.atStart = constrain( -70, startIx, 2000 );
+  obj.atEnd = constrain( -70, endIx, 2000 );
+  var shift = Math.max( startIx - obj.atStart, endIx - obj.atEnd );
+
+  obj.atStart = startIx - shift;
+  obj.atEnd = endIx - shift;
+
+}
+
+
+function draggingRuler( A, obj, dd ){
+  dd.y = constrain( 20, dd.y, 20 );
+  dd.x = constrain( 20+obj.pos.x, dd.x, obj.pos.x+obj.rect.x-20 );
+
+  var mid = obj.content[1];
+  var midx = mid.offset.x + mid.pos.x;
+
+
+  //midx=0;
+  //console.log("dd.x: "+dd.x);
+  var dx = dd.x - midx;// - obj.pos.x;
+  if( Math.abs( dx) < 0 )
+    return;
+  var itemsPerPixel = (obj.dragIx - obj.centerIx)/dx;
+  if( itemsPerPixel <= 0 )
+    return;
+
+  // this size gives us numbers at 0.1, 0.2, and prevents
+  // zooming in further than that.  For waveforms display.
+  if( itemsPerPixel < 0.002)
+    return;
+
+  setItemsPerPixel( A, obj, itemsPerPixel );
+  replaceMidDragger(A, obj );
+
+  if( obj.zoomSets ){
+    //var xStart = obj.atStart;
+    //var xEnd = obj.atEnd;
+    //var ddx = xEnd - xStart;
+    //var xScale = ddx / obj.rect.x;
+
+    ruler2 = getObjectByName(A, obj.zoomSets);
+    computeMidDraggerIx(A, ruler2);
+    setItemsPerPixel( A, ruler2, itemsPerPixel );
+
+  }
+}
+
+/**
+ * Dragger can be on its line or slightly below.
+ * If below, it moves without dragging.
+ * When dragging, gearing is 3x for ruler motion.
+ * @param A
+ * @param obj
+ * @param dd
+ */
+function draggingMarker( A, obj, dd ){
+  var parent = obj.parent;
+  var inset = obj.inset;
+  inset = 0;
+  dd.y = constrain( 0, dd.y, obj.wobble );
+  dd.x = constrain( inset, dd.x,
+    parent.rect.x-inset );
+
+  // code for disengaging the dragger.
+  // if we're far enough off the line, disengage.
+  if( dd.y >= Math.max(1,obj.wobble) )
+    return;
+
+  // offset is used in positioning for drawing.
+  var dx = obj.offset.x - dd.x;
+  dx *= parent.itemsPerPixel;
+  dx *= obj.gearing;
+  //dx *=3;
+  dx = constrain( -70-parent.atStart, dx, 2000-parent.atEnd );
+  parent.atStart += dx;
+  parent.atEnd   += dx;
+  console.log( "SE: "+ parent.atStart +" "+ parent.atEnd );
+
+  // dragging the end draggers can position the mid dragger...
+  if( obj.glyph === "Mid" )
+    return;
+  repositionMidDragger(A, obj.parent );
+}
+
+var dragNamer = 1234;
+
+function onDraggableClicked2(A, obj){
+  var {x,y,xw,yh} = getBox( obj );
+
+  if( !A.Status.click )
+    return;
+  console.log( "Clicked on Ruler Object ", obj.id );
+  A.dragObj = obj;
+  computeMidDraggerIx(A, obj.parent);
+}
+
+
+function makeDraggerObject(obj, A, pos){
+  var dragger = {};
+  dragger.pos = {};
+  dragger.rect = {}
+  var inset = 30;
+  var objectWidth = 15;
+  dragger.pos.x = obj.pos.x;
+  dragger.pos.y = obj.pos.y+obj.rect.y-objectWidth;
+  dragger.rect.x = objectWidth*(1+(pos%2));
+  dragger.rect.y = objectWidth;
+  dragger.type = "Drag2";
+  dragger.flip = obj.flip;
+  var types = "L Mid R".split(" ");
+  dragger.glyph = types[pos];
+  dragger.onClick = onDraggableClicked2;
+  dragger.offset = { x: pos * (obj.rect.x / 2 -inset ) +inset, y: 0};
+  dragger.id = "Drag"+(dragNamer++);
+  dragger.wobble = 0;
+  dragger.gearing = 1;
+  dragger.inset = inset;
+  addObjectToDictionary(A, dragger);
+  dragger.parent = obj;
+  obj.content.push(dragger);
+  return dragger;
+}
+
+/**
+ * On finishing mid dragger dragging, it pops back onto its line.
+ * (it could have been dragged down slightly)
+ * @param A
+ * @param obj
+ */
+function finishMid( A, obj ){
+  obj.offset.y = 0;
+  A.dragObj = undefined;
+  finalDraw( A, obj );
+}
+
+/**
+ * On finishing left dragger dragging, it goes back to the left end.
+ * @param A
+ * @param obj
+ */
+function finishLDragger( A, obj ){
+  obj.offset.x = obj.inset;//45;// - obj.pos.x;
+  A.dragObj = undefined;
+  finalDraw( A, obj );
+}
+
+/**
+ * On finishing right dragger dragging, it goes back to the right end.
+ * @param A
+ * @param obj
+ */
+function finishRDragger( A, obj ){
+  obj.offset.x = obj.parent.rect.x  - obj.inset;
+  A.dragObj = undefined;
+  finalDraw( A, obj );
+}
+
+/**
+ * Updates the position of the draggers AND
+ * updates the parent object too, if required.
+ * @param A
+ * @param obj
+ * @param d
+ */
+
+function updateDraggers(A, obj, d){
+  //console.log( "draw - "+obj.type);
+  //var stage = d.stage;
+  //if( stage !== kStageFillAndText ) return;
+
+  if( obj.content.length === 0 ){
+    var dragger;
+    dragger = makeDraggerObject(obj, A, 0);
+    dragger.dragFn = draggingMarker;
+    dragger.onMouseUp = finishLDragger;
+    dragger = makeDraggerObject(obj, A, 1);
+    dragger.dragFn = draggingMarker;
+    // wobble is how far off the horizontal line the dragger can move
+    // if it moves as far as possible off the line it 'disengages'.
+    //dragger.wobble = 5;
+    dragger.gearing= 1;
+    dragger.inset += 20;
+    dragger.onMouseUp = finishMid;
+    dragger = makeDraggerObject(obj, A, 2);
+    dragger.dragFn = draggingMarker;
+    dragger.onMouseUp = finishRDragger;
+  }
+  // invokes drawDraggers, but this is actually just doing position updates.
+  drawDraggers(A, obj, d );
+}
+
+function drawDraggers(A, obj, d){
+  //console.log( "draw - "+obj.type);
+  drawContainer(A, obj, d);
+}
+
+
+//--------- end of ruler functions.
+
+
+
+/** 
+ * This unassuming function does all the iterations to set
+ * up and draw the scene graph.
+ */
+function sizeLayoutAndDrawDiagram(A, obj, d){
+  sizeCells(A, obj, d);
+  d.margins = 0;
+  layoutCells(A, obj, d);
+  drawDiagram(A, obj, d);
+}
+
+function setupAndDrawDiagramDiv(A){
+  console.log(`[${A.index}] now setupAndDrawDiagram`);
+  A.setInfoCardSize();
+  A.resizeDivs();
+  var d = {};
+  var obj = A.RootObject;
+  setCellLayout( A,0, 0, A.Porthole.width, A.Porthole.height, obj);
+  sizeLayoutAndDrawDiagram(A, obj, d);
+  A.Status.isAppReady = true;
+}
+
+function updateImages(A){
+  if( !A.BackingCanvas )
+    return;
+  setupAndDrawDiagramDiv(A);
+}
+
+
+function animateForOneDiagram(A){
+  // When to animate depends on 
+  // Whether we have focus (i.e. is cursor over diagram?)
+  // Whether we are in the animate period.
+  // Whether there are new events.
+  var animate = !A.Status.isFocus && (A.Status.time < 30 );
+  animate = animate || A.newEvents 
+  if( !animate )
+    return;
+  A.newEvents = false;
+  A.Status.time++;
+  // animation stops on America.
+  // and dark side of moon.
+  //if( A.Status.time > 600 )
+  //  continue;
+  if( !A.Status.drawing )
+    drawDiagram(A, A.RootObject, {});
+}
+
+function timerCallback(){
+  infoCardTimerCallback();
+  // Iterate through all the diagrams in the document.
+  for(var i=0;i<AnnotatorList.length;i++){
+    A = AnnotatorList[i];
+    //A.timeoutsForOneDiagram();
+    animateForOneDiagram(A);
+  }
+}
+
 
 /**
  * Where an object contains styling information, update the style from it.
@@ -1878,7 +2403,7 @@ function getImageSource(A,obj,S){
     imageSource.canvas = document.createElement("canvas");
     imageSource.canvas.width = img.width;
     imageSource.canvas.height = img.height;
-    imageSource.ctx = imageSource.canvas.getContext('2d');
+    imageSource.ctx = imageSource.canvas.getContext('2d', {willReadFrequently: true});
     ctx2 = imageSource.ctx;
   }
   if( !imageSource.srcData)
@@ -2598,31 +3123,6 @@ function drawCircle(A, obj, d){
   }
 }
 
-function drawFilledArrow(A, obj, S){
-  var ctx = A.FocusCanvas.ctx;
-
-  ctx.save();
-  ctx.beginPath();
-
-  ctx.translate(S.x, S.y);
-  ctx.rotate(S.theta);
-  ctx.translate( S.shaftWidth/2, 0 );
-
-  ctx.moveTo(0,S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, S.headWidth/2 );
-  ctx.lineTo( S.shaftLength+S.headLength, 0 );
-  ctx.lineTo( S.shaftLength, -S.headWidth/2 );
-  ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
-  ctx.lineTo(0,-S.shaftWidth/2 );
-
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.restore();
-}
 
 // 8 rigid transformations
 function innerTransform( A, obj, S ){
@@ -2849,77 +3349,6 @@ function drawGraph( A, obj, d ){
 
 // >>>>>>>>>>>>>>>>>>>> Draw on focus layer
 
-function drawInfoButtonHotspot(A){
-  var xw = 25;
-  var yh = 25;
-  var x = 5;
-  var y = 5;
-  var ctx2 = A.HotspotsCanvas.ctx;
-  ctx2.lineWidth = 0;
-  ctx2.beginPath();
-  ctx2.fillStyle = "rgba(0,0,5,1.0)";
-  //ctx2.rect(x, y, xw, yh);
-  ctx2.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
-  ctx2.fill();
-}
-
-function drawInfoButton(A){
-  var xw = 25;
-  var yh = 25;
-  var x = 5;
-  var y = 5;
-  var ctx = A.FocusCanvas.ctx;
-  ctx.lineWidth = 3;
-  ctx.font = "20px Times New Roman";
-  ctx.strokeStyle = "rgba( 55, 55,155,1.0)";
-  ctx.globalCompositeOperation = 'source-over';
-
-  ctx.beginPath();
-  ctx.fillStyle = "rgba(255,255,255,1.0)";
-
-  ctx.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "rgba(0,0,0,1.0)";
-  ctx.fillText("i", x + 9, y + 19);
-}
-
-// Draws arrows pointing North, South East and West
-// as an overlay.
-function drawFocusDragger(A,x, y){
-
-  var ctx = A.FocusCanvas.ctx;
-
-  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
-
-
-//  ctx.fillStyle = "rgba( 5,5,5,0.2)";
-  ctx.fillStyle = "#ffffff40";
-
-  var S={};
-  S.shaftWidth = 10;
-  S.shaftLength = 20;
-  S.headWidth = 30;
-  S.headLength = 25;
-  S.theta = 0;
-  S.x = x;
-  S.y = y;
-  S.style = "pointed";
-
-  drawFilledArrow(A, S, S);
-  S.theta = Math.PI/2;
-  drawFilledArrow(A, S, S);
-  S.theta = Math.PI;
-  drawFilledArrow(A, S, S);
-  S.theta = Math.PI*1.5;
-  drawFilledArrow(A, S, S);
-
-  ctx.beginPath();
-  var w = S.shaftWidth;
-  ctx.rect( x-w/2,y-w/2,w,w );
-  ctx.closePath();
-  ctx.fill();
-}
 
 function drawFocusGuide(A,x, y, bVis){
   var ctx = A.FocusCanvas.ctx;
@@ -2964,100 +3393,7 @@ function drawFocusGuide(A,x, y, bVis){
 
 }
 
-function drawFocusSpot(A,x, y){
 
-  var ctx = A.FocusCanvas.ctx;
-
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
-
-  ctx.fillStyle = "rgba( 5,5,5,0.2)";
-  ctx.fillStyle = "#ffffff40";
-
-  // Bigger circle
-  ctx.beginPath();
-  ctx.arc(x, y, A.Focus.radius+15, 0, Math.PI * 2.0, true);
-  ctx.arc(x, y, A.Focus.radius, 0, Math.PI * 2.0, false);
-  ctx.closePath();
-  ctx.fill();
-}
-
-/**
- * Recolours the hotspot image onto the focus layer.
- * Used from on-mouse events relating to the zones list.
- *
- * When we hover over the stripy all box or the individual colour
- * boxes, the related part of the image lights up.
- *
- * @param ix
- * @param action
- * @param colourMatch
- * @returns {number}
- */
-function drawHotShape(ix, action, colourMatch){
-  var A = AnnotatorList[ ix ];
-  var ctx = A.FocusCanvas.ctx;
-
-  if( !A.HotspotsCanvas.ctx ) return -1;
-
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
-
-  if( action === "clear" ){
-    A.Hotspots.lastHot = action;
-    return;
-  }
-
-  var drawAll = action === "drawAll";
-
-  var colourString;
-  if( drawAll )
-    colourString = "all";
-  else
-    colourString = rgbOfColourTuple(colourMatch);
-
-  // We'll cache the picked-out shape.
-  if( A.Hotspots.lastHot !== colourString ){
-    var c = colourMatch;
-
-
-    // colourWith is slightly faded so we can see image underneath.
-    var colourWith   = drawAll ? [255,255,255,200] : [ c[0],c[1],c[2],200];
-    var colourAbsent = [ 255,255,255, 200];
-    var drawAllOpacity = 230;
-    var w = A.Porthole.width;
-    var h = A.Porthole.height;
-    var pixels = A.HotspotsCanvas.ctx.getImageData(0, 0, w, h);
-    var d = pixels.data;
-    for( var i = 0; i < w * h * 4; i += 4 ){
-      if( drawAll  && d[i+3]<50){
-        d[i    ] = colourWith[0];
-        d[i + 1] = colourWith[1];
-        d[i + 2] = colourWith[2];
-        d[i + 3] = colourWith[3];
-      }
-      else if( drawAll ){
-        d[i + 3] = drawAllOpacity;
-      }
-      else if( d[i] === c[0] && d[i + 1] === c[1] && d[i + 2] === c[2] &&
-        d[i + 3] === c[3] ){
-        d[i    ] = colourWith[0];
-        d[i + 1] = colourWith[1];
-        d[i + 2] = colourWith[2];
-        d[i + 3] = colourWith[3];
-      } else if( colourAbsent[3] > 50) {
-        d[i    ] = colourAbsent[0];
-        d[i + 1] = colourAbsent[1];
-        d[i + 2] = colourAbsent[2];
-        d[i + 3] = colourAbsent[3];
-      }
-    }
-    A.Hotspots.lastHot = colourString;
-    A.Hotspots.pixels = pixels;
-  }
-
-  ctx.putImageData( A.Hotspots.pixels, 0, 0);
-}
 
 // finds field value to first ; or </pre>
 function fieldValue(field, line){
@@ -3654,7 +3990,14 @@ function obeyMediaWikiLines(A, lines){
       root.content = root.content || [];
       data = fieldValue("DATA", item);
       var container = [];
-      var json = JSON.parse(data);
+      var json;
+      try{ 
+        json = JSON.parse(data);
+      } catch(e) { 
+        alert("JSON: " + e.message + "\n"+ data);
+        window.Message.innerHTML = "<textarea>"+data+"</textarea>";
+        return;
+      }
       //console.log("flow-data:" + JSON.stringify(json, null, 2));
 
       //console.log(obj);
@@ -4138,23 +4481,10 @@ function getObjectByName(A, name){
   return A.RootObject.objectDict[shortName];
 }
 
-function isDefined(x){
-  var undef;
-  return x !== undef;
-}
-
 function removeFrame(A){
   var doc = document.getElementById("body");
   doc.innerHTML =
     '<div id="content_here" style="text-align:center;"></div><div id="captionDiv" style="text-align:center;"><em>No Hotspot Zones Loaded (Yet)</em></div><div id="spec" style="margin-left:10px"></div>';
-}
-
-function getArg(arg){
-  var line = window.location.href;
-  line = "&" + line.split('?')[1] || "";
-  line = line.split('&' + arg + '=')[1] || "";
-  line = (line + '&').split('&')[0];
-  return line;
 }
 
 function isFromServer(){
@@ -4186,14 +4516,14 @@ function initContent( classes ){
   for(var i=0;i<contentDivs.length;i++){
     var A = new Annotator();
     A.index = i+base;
-    A.page = getArg('page' + (i + base)) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
+    A.page = DomUtils.getArg('page' + (i + base)) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
     A.inner = contentDivs[i].innerHTML;
 
     // Make the divs etc for the display.
     A.createDomElement( contentDivs[i] );
 
     // If it's an existing spec, update it with new data.
-    if( (base > 0 ) && (A.page === getArg('page0')) ){
+    if( (base > 0 ) && (A.page === DomUtils.getArg('page0')) ){
       var spec = Editors[0].MainDiv.value;
       console.log( 'page0 handleNewData');
       handleNewData( A, spec );
@@ -4221,8 +4551,8 @@ function initEditors(){
   for(var i=0;i<contentDivs.length;i++){
     var A = {};
     A.index = i;
-    A.page = getArg('page' + i) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
-    A.tab = getArg('action');
+    A.page = DomUtils.getArg('page' + i) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
+    A.tab = DomUtils.getArg('action');
 
     populateEditorElement( A, contentDivs[i] );
     requestSpec(A,A.page, 'remote',1,handleEditorData);
@@ -4344,7 +4674,7 @@ function onLockInMove( A, obj, d, e){
 //  A.Status.click.y += d.y - offset.y;
 //  offset.x = d.x;
 //  offset.y = d.y;
-  editSource( A.index );
+  Editor.editSource( A.index );
   //if( (Math.abs(d.x -obj.pos.x ) >0.1)|| (Math.abs(d.y -obj.pos.y )>0.1) ){
   //  console.log("New offset: "+ stringOfCoord( obj.offset) );
   //}
@@ -4406,3 +4736,8 @@ function registerMethods()
 }
 
 Registrar.inits.push( registerMethods );
+
+Exports();
+
+return metaData;
+}( Registrar );// end of scorpiodiagrams_js

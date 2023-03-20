@@ -7,7 +7,7 @@ function writeMindMap( A, obj, d){
   var str = "";
   if( A.Caption.text ){
     str += "caption: "+A.Caption.text+"\r\n";
-    setEditorTitle( A.Caption.text );
+    Editor.setEditorTitle( A.Caption.text );
   }
 
   for( name of settingNames){
@@ -22,6 +22,8 @@ function writeMindMap( A, obj, d){
     if( atom.isJref )
       continue;
     var val = atom.oldValue || atom.value;
+    if( atom.jatex )
+      val = "$$"+atom.jatex;
     str += "**********:".slice(-1 - atom.level) + 
     monikerOfIndex(i) +": "+val+"\r\n";
   }
@@ -46,8 +48,8 @@ function writeMindMap( A, obj, d){
     }
     if( atom.subdiagram )
       str+= "subdiagram: "+atom.subdiagram+"\r\n";
-    if( atom.jatex )
-      str+= "jatex: "+atom.jatex+"\r\n";
+//    if( atom.jatex )
+//      str+= "jatex: "+atom.jatex+"\r\n";
     for( j in atom.jref || []){
       var jref = atom.jref[j];
       var atomIx = atom.jrefAtom[j] ;
@@ -74,7 +76,7 @@ function writeMindMap( A, obj, d){
     bendReported = bond.bend || 0;
     if( !bond.bend )
       break;
-    str += "bond: * *\r\n";
+    str += "link: * *\r\n";
     str += "bend: "+bendReported + "\r\n";
     break;
   }
@@ -88,7 +90,7 @@ function writeMindMap( A, obj, d){
       bondConfig += "multiplicity: "+bond.multiplicity +"\r\n";
     }
     if( bondConfig || !bond.tree){
-      str += "bond: "+ 
+      str += "link: "+ 
         monikerOfIndex(bond.points[0]) + " " + 
         monikerOfIndex(bond.points[1]) +
         (bond.value ? " "+bond.value : "") + "\r\n" +

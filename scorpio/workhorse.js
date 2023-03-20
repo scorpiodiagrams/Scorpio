@@ -1,4 +1,33 @@
+Registrar.js.workhorse_js = function( Registrar ){
 
+
+var metaData = 
+{ 
+  version: "2023-02",
+  docString: "Scorpio's mind-map related code (this file is called 'workhorse' because it does most of the heavy lifting)",
+};
+
+// Imports
+var Box = Registrar.classes.Box;
+
+function Exports(){
+  // Namespaced  formats classes and verbs
+  // These are all for export.
+//  Registrar.registerTextFormat( Jatex_Fmt );
+//  Registrar.registerClass( Box );
+  // Global Exports
+  // These pollute the main namespace
+  window.Ruler = Ruler;
+
+  window.transformXy = transformXy;
+  window.antiTransformXy = antiTransformXy;
+  window.drawLineLabelAndText = drawLineLabelAndText;
+  window.drawWigglyLine = drawWigglyLine;
+  window.drawStraightLabel = drawStraightLabel;
+  // for ruler.
+  window.drawRulerMark = drawRulerMark;
+  //window.drawDraggers = drawDraggers;
+}
 
 function drawBackground( A,obj,d){
   var ctx = getCtx( A, obj, d );
@@ -188,79 +217,6 @@ function layoutMindMap( A, obj, S)
     }
   }
 }
-
-function anglesFromAtoms( obj ){
-  var i,j;
-  // Now tell all the angles their ends have moved.
-  for( j=0;j<obj.angles.length; j++){
-    var angle = obj.angles[j];
-    var pts = angle.points;
-    // record the end points...
-    angle.atoms = [
-      obj.atoms[pts[0]],
-      obj.atoms[pts[1]],
-      obj.atoms[pts[2]],
-      ];
-
-    // Angles are also affected by bends of the lines.
-    // So we record the bends.
-    // This is O( n*m )  where n is no of angles
-    // and m is no of bonds.
-    angle.bends = [0,0];
-    for( i = 0; i < obj.bonds.length; i++ ){
-      var bond = obj.bonds[i];
-      var bend = bond.bend || 0;
-      if( pts[1] == bond.points[0] ){
-        if( pts[0] == bond.points[1]  )
-          angle.bends[0] = bend;
-        if( pts[2] == bond.points[1]  )
-          angle.bends[1] = bend;
-      }
-      if( pts[1] == bond.points[1] ){
-        if( pts[0] == bond.points[0]  )
-          angle.bends[0] = -bend;
-        if( pts[2] == bond.points[0]  )
-          angle.bends[1] = -bend;
-      }
-    }
-  }
-}
-
-function getHotspots( atom, tokens){
-  for( var jrefIx in (atom.jref || []) ){
-    var jref   = atom.jref[ jrefIx ];
-    var atomIx = atom.jrefAtom[ jrefIx ];
-    var start = atom.jatex.indexOf( jref );
-    // each jref corresponds to an atom.
-    while( start >= 0 ){
-      var end = start+jref.length-1;
-      for( var i=0;i<tokens.length;i+=4){
-        if( (tokens[i+1]>=start ) && (tokens[i+2]<=end)){
-          // use atomIx to indicate the hotspot color.
-          tokens[i+3]=atomIx;
-        }
-      }
-      start = atom.jatex.indexOf( jref, start+1 );
-    }
-  }
-}
-
-function processJatex( obj ){
-  for( var atomIx in obj.atoms ){
-    var atom = obj.atoms[atomIx];
-    if( !atom.jatex )
-      continue;
-    var tokens = Jatex.tokenise( atom.jatex, atomIx );
-    getHotspots( atom, tokens );
-
-    var ast = {};
-    ast.token = "{";
-    ast.subtree = [];
-    Jatex.astOfTokens( ast, tokens, 0, tokens.length );
-    atom.ast = ast;
-  }
-}
-
 
 // >>>>>>>>>>>>>>>>>>> Draw Functions >>>>>>>>>>>>>>>>>>>>>>>>>>
 
@@ -756,21 +712,27 @@ function drawWigglyLine( ctx, v0, v1, wiggleCount, bend){
     ctx.bezierCurveTo( p.x, p.y, q.x, q.y, v1.x,v1.y);
     return;
   }
-
+  //wiggleCount=2;
   var along = along.mul( 1/wiggleCount );
-  var disp = along.perp();
+  var disp = along.perp(0.3);
 
-  var j,t;
+  var t;
   var p,q,r;
 
-  for(j=0;j<wiggleCount;j++){
-    p = v0.add( along.mul(j ).add( disp.mul( (j%2)?-1:1)));
-    q = v0.add( along.mul(j+1 ).add( disp.mul( (j%2)?1:-1)));
+  for(var j=0;j<wiggleCount;j++){
+    p = v0.add( along.mul(j+0.333 ).add( disp.mul( (j%2)?-1:1)));
+    q = v0.add( along.mul(j+0.666 ).add( disp.mul( (j%2)?-1:1)));
     r = v0.add( along.mul(j+1 ));
-    p = applyBend( bender, p, j/wiggleCount);
-    q = applyBend( bender, q, (j+1)/wiggleCount);
+    p = applyBend( bender, p, (j+0.333)/wiggleCount);
+    q = applyBend( bender, q, (j+0.666)/wiggleCount);
     r = applyBend( bender, r, (j+1)/wiggleCount);
-    ctx.bezierCurveTo( p.x, p.y, q.x, q.y, r.x,r.y);
+
+    var m = v0.add( along.mul(j+0.5 ).add( disp.mul( (j%2)?-1:1)));
+    m = applyBend( bender, m, (j+0.5)/wiggleCount);
+    ctx.quadraticCurveTo( m.x, m.y, r.x, r.y );
+
+//    ctx.bezierCurveTo( p.x, p.y, q.x, q.y, r.x,r.y);
+//    ctx.lineTo( r.x,r.y);
   }
 
 }
@@ -1133,341 +1095,6 @@ function bondsFromAtoms( obj ){
   }
 }
 
-function rulerIxOfx( A, obj, x ){
-  return obj.atStart + (x-obj.pos.x) * obj.itemsPerPixel;
-}
-
-function xOfRulerIx( A, obj, ix ){
-  return (ix - obj.atStart) / obj.itemsPerPixel + obj.pos.x;
-}
-
-/**
- * Converts mid dragger x position to an Ix and remembers it.
- * @param A
- * @param obj
- */
-function computeMidDraggerIx(A, obj){
-  var mid = obj.content[1];
-  var midx = mid.offset.x + mid.pos.x;
-  //midx=0;
-  obj.centerIx = rulerIxOfx(A, obj, midx);
-}
-
-/**
- * Converts mid dragger Ix back to an x position, ready for drawing.
- * In conjunction with computeMidDraggerIx this allows the mid dragger
- * to be repositioned for ruler changes.
- * @param A
- * @param obj
- */
-function replaceMidDragger(A, obj){
-  var mid = obj.content[1];
-  var left = obj.content[0];
-  var right = obj.content[2];
-  var inset = mid.inset;
-
-
-  obj.itemsPerPixel = (obj.atEnd - obj.atStart) / obj.rect.x;
-  var newpos = xOfRulerIx(A, obj, obj.centerIx);
-  //var bak = rulerIxOfx( A, obj, newpos );
-  //console.log( "Midx: "+midx + " Ix: "+obj.centerIx + " newx "+newpos+ " atIx
-  // "+ bak ); reposition mid-dragger.
-  mid.offset.x = constrain( inset, newpos - mid.pos.x, obj.rect.x - inset);
-
-  mid.offset.x = constrain( left.offset.x+40, mid.offset.x, right.offset.x-40 );
-  computeMidDraggerIx(A, obj );
-}
-
-/**
- * Ensures the mid dragger ends up between the left and right dragger.
- * @param A
- * @param obj
- */
-function repositionMidDragger(A, obj){
-  var mid = obj.content[1];
-  var left = obj.content[0];
-  var right = obj.content[2];
-  var inset = mid.inset;
-
-/*
-    obj.itemsPerPixel = (obj.atEnd - obj.atStart) / obj.layout.xw;
-    var newpos = xOfRulerIx(A, obj, obj.centerIx);
-    //var bak = rulerIxOfx( A, obj, newpos );
-    //console.log( "Midx: "+midx + " Ix: "+obj.centerIx + " newx "+newpos+ " atIx
-    // "+ bak ); reposition mid-dragger.
-    mid.offset.x = constrain( inset, newpos - mid.layout.x0, obj.layout.xw - inset);
-*/
-  mid.offset.x = constrain( left.offset.x+33, mid.offset.x, right.offset.x-33 );
-  computeMidDraggerIx(A, obj );
-}
-
-function onRulerClicked(A, obj){
-  var {x,y,xw,yh} = getBox( obj );
-
-  if( !A.Status.click )
-    return;
-
-  console.log( "Clicked on Object " + obj.id );
-  A.dragObj = obj;
-  //obj.draggerIx = rulerIxOfx( A, obj, obj.content[1].offset.x);
-  if( obj.flip === 6 )
-    obj.offset = {x:A.Status.click.y ,y:A.Status.click.x };
-  else
-    obj.offset = {x:A.Status.click.x ,y:A.Status.click.y };
-  obj.dragIx = rulerIxOfx( A, obj, obj.offset.x);
-  computeMidDraggerIx(A, obj);
-  console.log( "Click Index: "+obj.dragIx );
-  console.log( "Center Index: "+obj.centerIx );
-}
-
-function setCentreDraggerX(ruler, x){
-  if( !ruler )
-    return;
-  var mid = ruler.content[1];
-
-  if( ruler.flip === 6 )
-    mid.yCenter = x;
-  else
-    mid.offset.x = x-mid.pos.x;
-}
-
-function setCentreDraggerY(ruler, y){
-  if( !ruler )
-    return;
-  var mid = ruler.content[1];
-  if( ruler.flip === 6 )
-    mid.offset.x = y-mid.pos.x;
-  else
-    mid.yCentre = y;
-}
-
-function zoom( ruler, delta ){
-  if( !ruler )
-    return;
-  var itemsPerPixel = (ruler.atEnd-ruler.atStart)/ruler.rect.x;
-  var k = 1.07;
-  if( delta > 0 )
-    itemsPerPixel *= k;
-  else
-    itemsPerPixel /= k;
-  computeMidDraggerIx(A, ruler);
-  setItemsPerPixel( A, ruler, itemsPerPixel );
-}
-
-function setItemsPerPixel( A, obj, itemsPerPixel ){
-  if( obj.minScale )
-    if( itemsPerPixel < obj.minScale )
-      return;
-  if( obj.maxScale )
-    if( itemsPerPixel > obj.maxScale )
-      return;
-
-  var mid = obj.content[1];
-
-  //console.log("New scale: "+scale);
-  var startIx = obj.centerIx - mid.offset.x * itemsPerPixel;
-  var endIx = obj.centerIx + (obj.rect.x - mid.offset.x ) * itemsPerPixel;
-
-  obj.atStart = constrain( -70, startIx, 2000 );
-  obj.atEnd = constrain( -70, endIx, 2000 );
-  var shift = Math.max( startIx - obj.atStart, endIx - obj.atEnd );
-
-  obj.atStart = startIx - shift;
-  obj.atEnd = endIx - shift;
-
-}
-
-
-function draggingRuler( A, obj, dd ){
-  dd.y = constrain( 20, dd.y, 20 );
-  dd.x = constrain( 20+obj.pos.x, dd.x, obj.pos.x+obj.rect.x-20 );
-
-  var mid = obj.content[1];
-  var midx = mid.offset.x + mid.pos.x;
-
-
-  //midx=0;
-  //console.log("dd.x: "+dd.x);
-  var dx = dd.x - midx;// - obj.pos.x;
-  if( Math.abs( dx) < 0 )
-    return;
-  var itemsPerPixel = (obj.dragIx - obj.centerIx)/dx;
-  if( itemsPerPixel <= 0 )
-    return;
-
-  // this size gives us numbers at 0.1, 0.2, and prevents
-  // zooming in further than that.  For waveforms display.
-  if( itemsPerPixel < 0.002)
-    return;
-
-  setItemsPerPixel( A, obj, itemsPerPixel );
-  replaceMidDragger(A, obj );
-
-  if( obj.zoomSets ){
-    //var xStart = obj.atStart;
-    //var xEnd = obj.atEnd;
-    //var ddx = xEnd - xStart;
-    //var xScale = ddx / obj.rect.x;
-
-    ruler2 = getObjectByName(A, obj.zoomSets);
-    computeMidDraggerIx(A, ruler2);
-    setItemsPerPixel( A, ruler2, itemsPerPixel );
-
-  }
-
-
-}
-
-function onDraggableClicked2(A, obj){
-  var {x,y,xw,yh} = getBox( obj );
-
-  if( !A.Status.click )
-    return;
-  console.log( "Clicked on Ruler Object ", obj.id );
-  A.dragObj = obj;
-  computeMidDraggerIx(A, obj.parent);
-}
-
-
-/**
- * Dragger can be on its line or slightly below.
- * If below, it moves without dragging.
- * When dragging, gearing is 3x for ruler motion.
- * @param A
- * @param obj
- * @param dd
- */
-function draggingMarker( A, obj, dd ){
-  var parent = obj.parent;
-  var inset = obj.inset;
-  inset = 0;
-  dd.y = constrain( 0, dd.y, obj.wobble );
-  dd.x = constrain( inset, dd.x,
-    parent.rect.x-inset );
-
-  // code for disengaging the dragger.
-  // if we're far enough off the line, disengage.
-  if( dd.y >= Math.max(1,obj.wobble) )
-    return;
-
-  // offset is used in positioning for drawing.
-  var dx = obj.offset.x - dd.x;
-  dx *= parent.itemsPerPixel;
-  dx *= obj.gearing;
-  //dx *=3;
-  dx = constrain( -70-parent.atStart, dx, 2000-parent.atEnd );
-  parent.atStart += dx;
-  parent.atEnd   += dx;
-  console.log( "SE: "+ parent.atStart +" "+ parent.atEnd );
-
-  // dragging the end draggers can position the mid dragger...
-  if( obj.glyph === "Mid" )
-    return;
-  repositionMidDragger(A, obj.parent );
-}
-
-var dragNamer = 1234;
-
-function makeDraggerObject(obj, A, pos){
-  var dragger = {};
-  dragger.pos = {};
-  dragger.rect = {}
-  var inset = 30;
-  var objectWidth = 15;
-  dragger.pos.x = obj.pos.x;
-  dragger.pos.y = obj.pos.y+obj.rect.y-objectWidth;
-  dragger.rect.x = objectWidth*(1+(pos%2));
-  dragger.rect.y = objectWidth;
-  dragger.type = "Drag2";
-  dragger.flip = obj.flip;
-  var types = "L Mid R".split(" ");
-  dragger.glyph = types[pos];
-  dragger.onClick = onDraggableClicked2;
-  dragger.offset = { x: pos * (obj.rect.x / 2 -inset ) +inset, y: 0};
-  dragger.id = "Drag"+(dragNamer++);
-  dragger.wobble = 0;
-  dragger.gearing = 1;
-  dragger.inset = inset;
-  addObjectToDictionary(A, dragger);
-  dragger.parent = obj;
-  obj.content.push(dragger);
-  return dragger;
-}
-
-/**
- * On finishing mid dragger dragging, it pops back onto its line.
- * (it could have been dragged down slightly)
- * @param A
- * @param obj
- */
-function finishMid( A, obj ){
-  obj.offset.y = 0;
-  A.dragObj = undefined;
-  finalDraw( A, obj );
-}
-
-/**
- * On finishing left dragger dragging, it goes back to the left end.
- * @param A
- * @param obj
- */
-function finishLDragger( A, obj ){
-  obj.offset.x = obj.inset;//45;// - obj.pos.x;
-  A.dragObj = undefined;
-  finalDraw( A, obj );
-}
-
-/**
- * On finishing right dragger dragging, it goes back to the right end.
- * @param A
- * @param obj
- */
-function finishRDragger( A, obj ){
-  obj.offset.x = obj.parent.rect.x  - obj.inset;
-  A.dragObj = undefined;
-  finalDraw( A, obj );
-}
-
-/**
- * Updates the position of the draggers AND
- * updates the parent object too, if required.
- * @param A
- * @param obj
- * @param d
- */
-
-function updateDraggers(A, obj, d){
-  //console.log( "draw - "+obj.type);
-  //var stage = d.stage;
-  //if( stage !== kStageFillAndText ) return;
-
-  if( obj.content.length === 0 ){
-    var dragger;
-    dragger = makeDraggerObject(obj, A, 0);
-    dragger.dragFn = draggingMarker;
-    dragger.onMouseUp = finishLDragger;
-    dragger = makeDraggerObject(obj, A, 1);
-    dragger.dragFn = draggingMarker;
-    // wobble is how far off the horizontal line the dragger can move
-    // if it moves as far as possible off the line it 'disengages'.
-    //dragger.wobble = 5;
-    dragger.gearing= 1;
-    dragger.inset += 20;
-    dragger.onMouseUp = finishMid;
-    dragger = makeDraggerObject(obj, A, 2);
-    dragger.dragFn = draggingMarker;
-    dragger.onMouseUp = finishRDragger;
-  }
-  // invokes drawDraggers, but this is actually just doing position updates.
-  drawDraggers(A, obj, d );
-}
-
-function drawDraggers(A, obj, d){
-  //console.log( "draw - "+obj.type);
-  drawContainer(A, obj, d);
-}
-
-
 rulerSpec1 = [
   { mod :10, height : 1.0, 'width': 1.7},
   { mod : 5, height : 0.6, 'width': 0.7},
@@ -1483,7 +1110,7 @@ rulerSpec2 = [
 rulerSpec = rulerSpec1;
 otherSpec = rulerSpec2;
 
-function drawRulerMark( A, obj, i ){
+function drawRulerMark( ctx, obj, i ){
   var {x,y,xw,yh} = getBox( obj );
 
   x  += i * obj.pixelsPerBar;
@@ -1491,7 +1118,7 @@ function drawRulerMark( A, obj, i ){
   var barCountAtStart = obj.atStart / obj.itemsPerBar;
   i += Math.floor( barCountAtStart );
   x -= (barCountAtStart-Math.floor( barCountAtStart ))*obj.pixelsPerBar;
-  var ctx = A.BackingCanvas.ctx;
+
   var v = rulerSpec[1].mod;
 
   var j;
@@ -1520,7 +1147,6 @@ function drawRulerMark( A, obj, i ){
 
   height = height2 + blend * (height-height2);
 
-
   ctx.beginPath();
   ctx.moveTo( x, y+yh);
   ctx.lineTo( x,y+yh*(1-height*0.6));
@@ -1546,121 +1172,110 @@ function drawRulerMark( A, obj, i ){
 
 }
 
-function drawRuler(A, obj, d){
-  //console.log( "draw - "+obj.type);
-  var stage = d.stage;
+function Ruler(){
+  return this;
+}
 
-  if(!isDefined( obj.atEnd ) ){
-    obj.atStart = 0;
-    obj.atEnd = 300;
-  }
+Ruler.prototype = {
+  fns : "\\ruler",
+  name: "Ruler",
+  astOfRuler(ast, node, tokens, i, len){
+    return i;
+  },
+  measureRuler( ctx, prev, ast ){
+    var box = new Box();
+    ast.box = box;
+    var tree = ast.subtree;
+    ast.box.addRight( new Box(300,20)); 
+    return ast.box;
+  },
+  positionRuler( parent, ast, v){
+    ast.box.move( v );
+  },
+  outRulerMarks( ctx, ast, color, proportion ){
+    var v = ast.box.vecs[0];
+    var dv = ast.box.diagonal();
 
-  var {x,y,xw,yh} = getBox( obj );
+    var i;
 
-  if( stage===kStageDragging){
-    updateDraggers( A, obj, d );
+    // The lazy way is to draw every single item in the ruler
+    // That is just crazy, because the density would be too high.
 
-    if( A.dragObj !== obj )
+    // So instead we draw 'bars' which might be every 5th item,
+    // every 10, every 20, every 50, every 100...
+
+    // How many to a bar?  Well, we work out a pixel density.
+    // A minimum of 3 pixels between bars seems about right.
+
+    var obj = {};
+    obj.atStart = -10;
+    obj.atEnd = 310;
+
+    obj.itemsPerPixel = (obj.atEnd - obj.atStart)/dv.x;
+    var pixelsPerBar = 100/obj.itemsPerPixel;
+    var spec = 0;
+
+    // Find which spec we are drawing to...
+    // Each time round this loop is a 10x zoom out
+    while( pixelsPerBar > 6){
+      spec++;
+      pixelsPerBar /= 2;
+      if( pixelsPerBar <= 15 )
+        break;
+      spec++;
+      pixelsPerBar /= 5;
+    }
+
+    // The number of pixels per bar in turn lets us compute
+    // how many items for each bar.
+    obj.pixelsPerBar= pixelsPerBar;
+    obj.itemsPerBar = obj.itemsPerPixel * pixelsPerBar;
+
+    // some horrible nearly globals here...
+    if( (spec%2) === 1 ){
+      rulerSpec = rulerSpec2;
+      otherSpec = rulerSpec1;
+    } else {
+      rulerSpec = rulerSpec1;
+      otherSpec = rulerSpec2;
+    }
+
+    // These are so that getBox works...
+    obj.pos = v;
+    obj.rect = dv;
+
+    // Actually draw the 'bars'.
+    var nBars = Math.floor( dv.x / pixelsPerBar)+1;
+    for(i=0;i<nBars;i++){
+      drawRulerMark( ctx, obj, i );
+    }
+  },
+  outRuler( ctx, ast, color, proportion ){
+    this.P.mayOutHotBox( ctx, ast );
+    // hotspots don't draw the ruler markings...
+    if( this.P.isHotspot ){
       return;
-    // Calculate new offset
-    var dd = newPos( A, obj );
-    if( obj.dragFn )
-      obj.dragFn( A, obj, dd );
-    // And always accept it.
-    onLockInMove(A,obj,dd);
+    }
 
-    return;
-  }
-  if( stage===kStageHots ){
-    var ctx2 = A.HotspotsCanvas.ctx;
+    var v = ast.box.vecs[0];
+    var dv = ast.box.diagonal();
 
-    ctx2.save();
-    var c = A.nextAutoColour("");
-    A.addDown(A,["clickObject",obj.id]);
-
-    ctx2.beginPath();
-    ctx2.rect(x, y, xw, yh);
-    ctx2.fillStyle = c;
-    ctx2.fill();
-
-    drawDraggers(A, obj, d );
-    ctx2.restore();
-    return;
-  }
-  if( stage!==kStageFillAndText)
-    return;
-
-
-  mayUpdateObjectStyle(A, obj);
-
-  var ctx = A.BackingCanvas.ctx;
-
-
-  ctx.save();
-  ctx.beginPath();
-
-  applyObjectSettingsToContext(ctx, obj);
-  if( obj.cornerRadius )
-    drawRoundRect(A,obj,obj);
-  else
-    ctx.rect(x, y, xw, yh);
-
-  ctx.strokeStyle = "rgb(0,0,0)";
-  ctx.strokeWidth = 0.5;
-  var i;
-
-  // The lazy way is to draw every single item in the ruler
-  // That is just crazy, because the density would be too high.
-
-  // So instead we draw 'bars' which might be every 5th item,
-  // every 10, every 20, every 50, every 100...
-
-  // How many to a bar?  Well, we work out a pixel density.
-  // A minimum of 3 pixels between bars seems about right.
-
-  obj.itemsPerPixel = (obj.atEnd - obj.atStart)/xw;
-  var pixelsPerBar = 100/obj.itemsPerPixel;
-  var spec = 0;
-
-  // Each time round this loop is a 10x zoom out
-  while( pixelsPerBar > 6){
-    spec++;
-    pixelsPerBar /= 2;
-    if( pixelsPerBar <= 15 )
-      break;
-    spec++;
-    pixelsPerBar /= 5;
-  }
-
-  // The number of pixels per bar in turn lets us compute
-  // how many items for each bar.
-  obj.pixelsPerBar= pixelsPerBar;
-  obj.itemsPerBar = obj.itemsPerPixel * pixelsPerBar;
-
-  if( (spec%2) === 1 ){
-    rulerSpec = rulerSpec2;
-    otherSpec = rulerSpec1;
-  } else {
-    rulerSpec = rulerSpec1;
-    otherSpec = rulerSpec2;
-  }
-
-  // Actually draw the 'bars'.
-  var nBars = Math.floor( xw / pixelsPerBar)+1;
-  for(i=0;i<nBars;i++){
-    drawRulerMark( A, obj, i );
-  }
-
-  drawDraggers(A, obj, d );
-
-  ctx.restore();
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = color || "#ccc";
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = "rgb(0,0,0)";
+    ctx.strokeWidth = 0.5;
+    ctx.rect(v.x, v.y, dv.x, dv.y);
+    ctx.fill();
+    this.outRulerMarks( ctx, ast, color, proportion );
+    ctx.stroke();
+    ctx.restore();
+  },
 }
 
+var Ruler = new Ruler();
 
-function createRuler(A, obj, d){
-  obj.onClick = onRulerClicked;//["clickAction",obj.name ];
-  obj.dragFn = draggingRuler;
-}
 
 function createIcon(A,obj,d){
   A.fonty = new Fonty();
@@ -1721,3 +1336,9 @@ function registerWorkhorseMethods()
 }
 
 Registrar.inits.push( registerWorkhorseMethods );
+
+Exports();
+
+return metaData;
+}( Registrar );// end of workhorse_js
+

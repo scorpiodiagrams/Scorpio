@@ -14,7 +14,7 @@ Omnia_Fmt.prototype ={
   htmlOfScorpioWidget(){
     var str;
     str = "<img alt='Scorpio' draggable='false' src='./images/Scorpion.svg' width='100' height='100'/></img>";
-    str = "<div class='popup' id='scorpio' style='text-align:left;top:10px;left:10px;background-color: #ffffff30;'><div class='grab_bar' id='grab_bar' style='color:#000;background-color:#c3b18e80;' onmousedown='dragMouseDown(this)'><span class='scorpio_title_bar'>Scorpio</span></div>" + str + "</div>";
+    str = "<div class='popup' id='scorpio' style='text-align:left;top:10px;left:10px;background-color: #ffffff30;'><div class='grab_bar' id='grab_bar' style='color:#000;background-color:#c3b18e80;' onmousedown='DomUtils.dragMouseDown(this)'><span class='scorpio_title_bar'>Scorpio</span></div>" + str + "</div>";
     return str    
   },
 

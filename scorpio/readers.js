@@ -104,6 +104,80 @@ function init_quad( quad, obj, state ){
   return true;
 }
 
+function anglesFromAtoms( obj ){
+  var i,j;
+  // Now tell all the angles their ends have moved.
+  for( j=0;j<obj.angles.length; j++){
+    var angle = obj.angles[j];
+    var pts = angle.points;
+    // record the end points...
+    angle.atoms = [
+      obj.atoms[pts[0]],
+      obj.atoms[pts[1]],
+      obj.atoms[pts[2]],
+      ];
+
+    // Angles are also affected by bends of the lines.
+    // So we record the bends.
+    // This is O( n*m )  where n is no of angles
+    // and m is no of bonds.
+    angle.bends = [0,0];
+    for( i = 0; i < obj.bonds.length; i++ ){
+      var bond = obj.bonds[i];
+      var bend = bond.bend || 0;
+      if( pts[1] == bond.points[0] ){
+        if( pts[0] == bond.points[1]  )
+          angle.bends[0] = bend;
+        if( pts[2] == bond.points[1]  )
+          angle.bends[1] = bend;
+      }
+      if( pts[1] == bond.points[1] ){
+        if( pts[0] == bond.points[0]  )
+          angle.bends[0] = -bend;
+        if( pts[2] == bond.points[0]  )
+          angle.bends[1] = -bend;
+      }
+    }
+  }
+}
+
+function getHotspots( atom, tokens){
+  for( var jrefIx in (atom.jref || []) ){
+    var jref   = atom.jref[ jrefIx ];
+    var atomIx = atom.jrefAtom[ jrefIx ];
+    var start = atom.jatex.indexOf( jref );
+    // each jref corresponds to an atom.
+    while( start >= 0 ){
+      var end = start+jref.length-1;
+      for( var i=0;i<tokens.length;i+=4){
+        if( (tokens[i+1]>=start ) && (tokens[i+2]<=end)){
+          // use atomIx to indicate the hotspot color.
+          tokens[i+3]=atomIx;
+        }
+      }
+      start = atom.jatex.indexOf( jref, start+1 );
+    }
+  }
+}
+
+function processJatex( obj ){
+  for( var atomIx in obj.atoms ){
+    var atom = obj.atoms[atomIx];
+    if( !atom.jatex )
+      continue;
+    // Naughty? Mutating the singleton.
+    Jatex.atomIx = atomIx;
+    var tokens = Jatex.tokenise( atom.jatex, atomIx );
+    getHotspots( atom, tokens );
+
+    var ast = {};
+    ast.token = "{";
+    ast.subtree = [];
+    Jatex.astOfTokens( ast, tokens, 0, tokens.length );
+    atom.ast = ast;
+  }
+}
+
 
 function nMatcher( match, slashes ){
   return ((slashes.length %2)==0) ? slashes+'n' : slashes.slice(1)+'<br>';
@@ -121,7 +195,7 @@ function removeEscapes( str ){
 }
 
 function defaultInfoTip( caption ){
-  return "<h3>"+caption+"</h3><b>Credits:</b> <em>©2022 CC-BY-SA-4.0</em>";
+  return "<h3>"+caption+"</h3><b>Credits:</b> <em>©2023 CC-BY-SA-4.0</em>";
 }
 
 function metaInfoObject( caption, infoTip, boxed, options)
@@ -590,7 +664,7 @@ function setBools( name, matches, state ){
   return false;
 }
 
-var settingNames = "bounding_boxes frac_color sym_color twisty_color".split(" ");
+var settingNames = "bounding_boxes shade_jrefs frac_color sym_color twisty_color".split(" ");
 
 function readStandardStyle( obj, str ){
   obj.atoms = [];
@@ -797,6 +871,7 @@ function readStandardStyle( obj, str ){
 
     matches = line.match( /^multiplicity:\s*(\S+)$/);
     if( matches ){
+      matches;
       for( bond of state.bonds)
         bond.multiplicity = +(matches[1]);
       continue;
@@ -918,7 +993,7 @@ function readStandardStyle( obj, str ){
       continue;
     }
 
-    matches = line.match( /^nobond:\s*/);
+    matches = line.match( /^nolink:\s*/);
     if( matches && state.bonds){
       for( bond of state.bonds){
         var ix;
@@ -946,11 +1021,11 @@ function readStandardStyle( obj, str ){
     if(Getters.handleIfGraphKeyword( obj, line, state ))
       continue;
 
-    // ignore the nobond.
+    // ignore the nolink
     continue;
   }
 
-  setEditorTitle( obj.caption ||'Untitled');
+  Editor.setEditorTitle( obj.caption ||'Untitled');
 
   if( obj.boxed ){
     var matches = obj.boxed.match( /^plain|^\d*\s*$/);

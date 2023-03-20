@@ -9,6 +9,10 @@ Raw_Fmt.prototype ={
   debug(A,url,text){
     alert( url );
   },
+  activateEditor( i ){
+    //alert("Activiating Editor "+i);
+    Editor.editSource( i );
+  },
   htmlOf( str ){
     str = str || "No text (raw)";
     var click ='';

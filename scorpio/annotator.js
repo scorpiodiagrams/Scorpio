@@ -2,230 +2,202 @@ var AnnotatorList = [];
 
 
 
+function drawFocusSpot(A,x, y){
 
-/*
-Intention:
-Move all the hard coded strings into one section.
-Upgrade the way we make the elements, so that it can all be
-driven off of a markdown document.
-*/
+  var ctx = A.FocusCanvas.ctx;
 
-function tabbedHeader( index ){
-  return `
-<div class="tab">
-  <button class="tablinks active" id="HeaderHotspots${index}" onclick="openTab(event, 'Hotspots${index}')">Hotspots</button>
-  <button class="tablinks" id="HeaderController${index}" onclick="openTab(event, 'Controller${index}')">Controller</button>
-  <button class="tablinks" id="HeaderEdit${index}" onclick="openTab(event, 'Edit${index}')">Edit</button>
-  <button class="tablinks" id="HeaderDownload${index}" onclick="openTab(event, 'Download${index}')">Download</button>
-  <button class="tablinks" id="HeaderUpload${index}" onclick="openTab(event, 'Upload${index}')">Upload</button>
-</div>`
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
+
+  ctx.fillStyle = "rgba( 5,5,5,0.2)";
+  ctx.fillStyle = "#ffffff40";
+
+  // Bigger circle
+  ctx.beginPath();
+  ctx.arc(x, y, A.Focus.radius+15, 0, Math.PI * 2.0, true);
+  ctx.arc(x, y, A.Focus.radius, 0, Math.PI * 2.0, false);
+  ctx.closePath();
+  ctx.fill();
 }
 
-function tabHotspots( index ){
-  return `
-  <h3 style='margin-top:10px;'>Hotspots</h3>
-  <p>A list of all the what's that comments</p>`
+function drawInfoButtonHotspot(A){
+  var xw = 25;
+  var yh = 25;
+  var x = 5;
+  var y = 5;
+  var ctx2 = A.HotspotsCanvas.ctx;
+  ctx2.lineWidth = 0;
+  ctx2.beginPath();
+  ctx2.fillStyle = "rgba(0,0,5,1.0)";
+  //ctx2.rect(x, y, xw, yh);
+  ctx2.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
+  ctx2.fill();
 }
 
-function tabController( index ){
-  return `
-  <h3 style='margin-top:10px;'>Controller</h3>
-  <p>Here be mighty fine controllers for diverse things</p>
-<div class="slidecontainer">
-  <span style="width:70px;display:inline-block;">Size:</span>
-  <input type="range" min="35" max="250" value="100" class="slider" style="width:200px" id="size${index}" oninput="updateSize(${index},this.value)"><br>
-  <span style="width:70px;display:inline-block;">Rotate:</span>
-  <input type="range" min="-36" max="36" value="0" class="slider" style="width:200px" id="rotate${index}" oninput="updateRotate(${index},this.value)"><br>
-  <span style="width:70px;display:inline-block;">Animate:</span>
-  <input type="range" min="0" max="100" value="0" class="slider" style="width:200px" id="animate${index}" oninput="updateAnimate(${index},this.value)">
-</div>`  
+function drawInfoButton(A){
+  var xw = 25;
+  var yh = 25;
+  var x = 5;
+  var y = 5;
+  var ctx = A.FocusCanvas.ctx;
+  ctx.lineWidth = 3;
+  ctx.font = "20px Times New Roman";
+  ctx.strokeStyle = "rgba( 55, 55,155,1.0)";
+  ctx.globalCompositeOperation = 'source-over';
+
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(255,255,255,1.0)";
+
+  ctx.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "rgba(0,0,0,1.0)";
+  ctx.fillText("i", x + 9, y + 19);
 }
 
-function tabEdit( index ){
-  return `
-  <h3 style='margin-top:10px;'>Edit</h3>
-  <p>Edit ye the stuff</p>
-<button onclick='editSource(${index})'>Edit!</button>
-`
+function drawFilledArrow(A, obj, S){
+  var ctx = A.FocusCanvas.ctx;
+
+  ctx.save();
+  ctx.beginPath();
+
+  ctx.translate(S.x, S.y);
+  ctx.rotate(S.theta);
+  ctx.translate( S.shaftWidth/2, 0 );
+
+  ctx.moveTo(0,S.shaftWidth/2 );
+  ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
+  ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
+  ctx.lineTo( S.shaftLength, S.headWidth/2 );
+  ctx.lineTo( S.shaftLength+S.headLength, 0 );
+  ctx.lineTo( S.shaftLength, -S.headWidth/2 );
+  ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
+  ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
+  ctx.lineTo(0,-S.shaftWidth/2 );
+
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
 }
 
-function tabDownload( index ){
-  return `
-  <h3 style='margin-top:10px;'>Download</h3>
-  <p>Download a copy of the diagram.
-  </p>
-  <button onclick='downloadImage(${index})'>Image</button> - Download a .png of the diagram.<br>
-  <button onclick='downloadImage(${index},1)'>Diagram Spec</button> - Download a text version of the diagram.<br>
-  <button onclick='downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.
-  `
+// Draws arrows pointing North, South East and West
+// as an overlay.
+function drawFocusDragger(A,x, y){
+
+  var ctx = A.FocusCanvas.ctx;
+
+  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
+
+
+//  ctx.fillStyle = "rgba( 5,5,5,0.2)";
+  ctx.fillStyle = "#ffffff40";
+
+  var S={};
+  S.shaftWidth = 10;
+  S.shaftLength = 20;
+  S.headWidth = 30;
+  S.headLength = 25;
+  S.theta = 0;
+  S.x = x;
+  S.y = y;
+  S.style = "pointed";
+
+  drawFilledArrow(A, S, S);
+  S.theta = Math.PI/2;
+  drawFilledArrow(A, S, S);
+  S.theta = Math.PI;
+  drawFilledArrow(A, S, S);
+  S.theta = Math.PI*1.5;
+  drawFilledArrow(A, S, S);
+
+  ctx.beginPath();
+  var w = S.shaftWidth;
+  ctx.rect( x-w/2,y-w/2,w,w );
+  ctx.closePath();
+  ctx.fill();
 }
 
+/**
+ * Recolours the hotspot image onto the focus layer.
+ * Used from on-mouse events relating to the zones list.
+ *
+ * When we hover over the stripy all box or the individual colour
+ * boxes, the related part of the image lights up.
+ *
+ * @param ix
+ * @param action
+ * @param colourMatch
+ * @returns {number}
+ */
+function drawHotShape(ix, action, colourMatch){
+  var A = AnnotatorList[ ix ];
+  var ctx = A.FocusCanvas.ctx;
 
-function downloadImage( index, mode ){
-  if( mode == 1)
-    doDownloadSource(index);
-  else if( mode == 2)
-    doDownloadSnippet(index);
-  else if( mode == 3)
-    doDownloadJavascript(index);
-  else
-    doDownloadImage(index);
-}
+  if( !A.HotspotsCanvas.ctx ) return -1;
 
-function acceptImage(fileTag, index ){
-  if (fileTag.files && fileTag.files[0]) {
-    var img = document.getElementById(`uploadedImg${index}`);
-    img.onload = () => {
-      //alert( `revoked image ${index} object ${img.src}`);
-      URL.revokeObjectURL(img.src);  // 
-      var A = AnnotatorList[index];
-      A.backgroundImg = img;
-      drawDiagramAgain(A);
-    }
-    var file = fileTag.files[0];
-    img.src = URL.createObjectURL(file); // set 
-    var name = document.getElementById(`fileName${index}`);
-    name.innerHTML = ">>>"+file.name+"<<<";
-    var noBackground = document.getElementById(`noBackground${index}`);
-    noBackground.disabled=false;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
 
-  }  
-}
-
-function acceptSource(fileTag, index ){
-  if (fileTag.files && fileTag.files[0]) {
-
-    var fileName = fileTag.files[0].name;
-    var matches;
-    matches = fileName.match( /^.*(\/|\\)(.*?)$/);
-    if( matches )
-      fileName = matches[2];
-    matches = fileName.match( /^(.*)\.txt$/);
-    if( matches )
-      fileName = matches[1];
-    matches = fileName.match( /^(.*) \(\d*\)$/);
-    if( matches )
-      fileName = matches[1];
-    const reader = new FileReader()
-    reader.addEventListener('load', () => {
-      console.log( reader.result);
-      var A = AnnotatorList[index];
-      A.SpecName = fileName;
-      setTextVersion( index, "!!Scorpio"+reader.result );
-
-//      var A = AnnotatorList[index];
-//      A.backgroundImg = img;
-//      drawDiagramAgain(A);
-    })
-    reader.readAsText(fileTag.files[0]);
-  }  
-}
-
-
-
-function acceptInternalImage( index ){
-  var A = AnnotatorList[index];
-  A.internalImg = document.getElementById(`internalImg${index}`);
-  A.receivedBackground = A.requestedBackground;
-  drawDiagramAgain( A );
-}
-
-
-function removeBackground(index){
-  var noBackground = document.getElementById(`noBackground${index}`);
-  noBackground.disabled=true;
-  var A = AnnotatorList[index];
-  A.backgroundImg = null;
-  var name = document.getElementById(`fileName${index}`);
-  name.innerHTML = "No File Uploaded";
-  drawDiagramAgain(A);
-}
-
-
-function uploadImageTrampoline(index){
-  var fileInput = document.getElementById(`imageUpload${index}`);
-  fileInput.click();
-}
-
-function uploadSourceTrampoline(index){
-  var fileInput = document.getElementById(`sourceUpload${index}`);
-  fileInput.click();
-}
-
-
-function tabUpload( index ){
-  return `
-  <h3 style='margin-top:10px;'>Upload</h3>
-  Upload an image to use as a background for your diagram.<br><br>
-  <div>
-  <button id='noBackground${index}' onclick='removeBackground(${index})' disabled>No Background</button>
-  <label for="fileUpload${index}" class="fileUpload">
-    <button onclick='uploadImageTrampoline(${index})'>New Background</button>
-  </label>
-  <span id='fileName${index}'>No File Uploaded yet.</span>
-  </div><br>
-  Upload a diagram spec to replace this diagram.<br><br>
-  <button onclick='uploadSourceTrampoline(${index})'>Load Spec</button> - Use a Scorpio spec you made earlier.
-  <div style='display:none'>
-  <input id='imageUpload${index}' type='file' onChange="acceptImage(this,${index})"/>
-  <br><img id="uploadedImg${index}" src="#"></img>
-  <img id="internalImg${index}" onload="acceptInternalImage(${index})" src="#"></img>
-  <input id='sourceUpload${index}' type='file' onChange="acceptSource(this,${index})"/>
-  </div>
-  `
-}
-
-
-function tabbedContent( index ){
-  str = "";
-  str += tabHotspots( index );
-  str += tabController( index );
-  str += tabUpload( index );
-  str += tabEdit( index );
-  str += tabDownload( index );
-  return str;
-}
-
-
-function updateSize( index, value ){
-  //console.log( "Size ", value);
-  var A = AnnotatorList[ index ];
-  var obj = A.RootObject;
-  obj.content[1].size = value;
-  updateSource( index )
-  drawDiagramAgain(A);
-}
-
-function updateRotate( index, value ){
-  //console.log( "Rotate ", value * 5);
-  var A = AnnotatorList[ index ];
-  var obj = A.RootObject;
-  obj.content[1].rotate = value * 5;
-  updateSource( index )
-  drawDiagramAgain(A);
-}
-
-function updateAnimate( index, value ){
-  var A = AnnotatorList[ index ];
-  var obj = A.RootObject;
-  obj.content[1].animate = value;
-
-  var nPages = A.pagesLoaded.length -1 ;
-  var newPage = Math.floor(value * nPages/100.001);
-  var frac = (value * nPages/100)-newPage;
-  if( newPage != A.currentPage)
-  {
-    A.currentPage = newPage;
-    handleNewData(A, A.pagesLoaded[newPage], 0);
-    updateSource( index )
+  if( action === "clear" ){
+    A.Hotspots.lastHot = action;
+    return;
   }
-  A.equanimTime = frac;
-  drawDiagramAgain(A);
+
+  var drawAll = action === "drawAll";
+
+  var colourString;
+  if( drawAll )
+    colourString = "all";
+  else
+    colourString = rgbOfColourTuple(colourMatch);
+
+  // We'll cache the picked-out shape.
+  if( A.Hotspots.lastHot !== colourString ){
+    var c = colourMatch;
+
+
+    // colourWith is slightly faded so we can see image underneath.
+    var colourWith   = drawAll ? [255,255,255,200] : [ c[0],c[1],c[2],200];
+    var colourAbsent = [ 255,255,255, 200];
+    var drawAllOpacity = 230;
+    var w = A.Porthole.width;
+    var h = A.Porthole.height;
+    var pixels = A.HotspotsCanvas.ctx.getImageData(0, 0, w, h);
+    var d = pixels.data;
+    for( var i = 0; i < w * h * 4; i += 4 ){
+      if( drawAll  && d[i+3]<50){
+        d[i    ] = colourWith[0];
+        d[i + 1] = colourWith[1];
+        d[i + 2] = colourWith[2];
+        d[i + 3] = colourWith[3];
+      }
+      else if( drawAll ){
+        d[i + 3] = drawAllOpacity;
+      }
+      else if( d[i] === c[0] && d[i + 1] === c[1] && d[i + 2] === c[2] &&
+        d[i + 3] === c[3] ){
+        d[i    ] = colourWith[0];
+        d[i + 1] = colourWith[1];
+        d[i + 2] = colourWith[2];
+        d[i + 3] = colourWith[3];
+      } else if( colourAbsent[3] > 50) {
+        d[i    ] = colourAbsent[0];
+        d[i + 1] = colourAbsent[1];
+        d[i + 2] = colourAbsent[2];
+        d[i + 3] = colourAbsent[3];
+      }
+    }
+    A.Hotspots.lastHot = colourString;
+    A.Hotspots.pixels = pixels;
+  }
+
+  ctx.putImageData( A.Hotspots.pixels, 0, 0);
 }
 
 
 // Constructs an Annotator object
-// An Annototor object deals with one diagram on one canvas.
+// An Annotator object deals with one diagram on one canvas.
 // It coordinates the status and different layers.
 class Annotator{
 
@@ -353,9 +325,9 @@ class Annotator{
     A.HotspotsCanvas.width = A.Porthole.width;
     A.HotspotsCanvas.height = A.Porthole.height;
 
-    A.HotspotsCanvas.ctx = A.HotspotsCanvas.getContext('2d');
-    A.BackingCanvas.ctx = A.BackingCanvas.getContext('2d');
-    A.FocusCanvas.ctx = A.FocusCanvas.getContext('2d');
+    A.HotspotsCanvas.ctx = A.HotspotsCanvas.getContext('2d', {willReadFrequently: true});
+    A.BackingCanvas.ctx = A.BackingCanvas.getContext('2d', {willReadFrequently: true});
+    A.FocusCanvas.ctx = A.FocusCanvas.getContext('2d', {willReadFrequently: true});
   }
 
   resizeForImage(img){
@@ -374,7 +346,7 @@ class Annotator{
     var A = this;
     // Used for debugging messages
     // Only create for debugging users
-    if(getArg('bonus')){
+    if(DomUtils.getArg('bonus')||true){
       Message = document.getElementById("message");
       Message2 = document.getElementById("message2");
     }
@@ -390,51 +362,22 @@ class Annotator{
     A.SidePanelDiv = document.createElement("div");
 
     A.CaptionDiv = document.createElement("div");
-    A.ToolsDiv = document.createElement("div");
-    A.ToolHeaderDiv = document.createElement("div");
-    A.ToolHotspotsDiv = document.createElement("div");
-    A.ToolControllerDiv = document.createElement("div");
-    A.ToolEditDiv = document.createElement("div");
-    A.ToolDownloadDiv = document.createElement("div");
-    A.ToolUploadDiv = document.createElement("div");
+
+    DetailsPanel.makeDivs( A );
 
     // InfoCard div floats above the white-out
     A.InfoCardDiv = document.createElement("div");
 
     A.SidePanelDiv.className = "SidePanelDiv";
-    A.SidePanelDiv.innerHTML = tabbedContent();//"Nothing here yet, folks.";
+    //A.SidePanelDiv.innerHTML = tabbedContent();//"Nothing here yet, folks.";
 
     A.CaptionDiv.className = "CaptionDiv";
     A.CaptionDiv.innerHTML = "<em>No Hotspot Zones Loaded (Yet)</em>";
 
-    A.ToolsDiv.className="ToolsDiv DarkDiv"
     A.MainDiv.className="MainDiv"
     A.BackingCanvas.className="ScorpioCanvas";
     A.FocusCanvas.className="ScorpioCanvas";
     A.HotspotsCanvas.className="ScorpioCanvas";
-
-    var index = A.index;
-    A.ToolHeaderDiv.innerHTML = tabbedHeader( index );
-    A.ToolHotspotsDiv.innerHTML = tabHotspots( index );
-    A.ToolControllerDiv.innerHTML = tabController( index );
-    A.ToolEditDiv.innerHTML = tabEdit( index );
-    A.ToolDownloadDiv.innerHTML = tabDownload( index );
-    A.ToolUploadDiv.innerHTML = tabUpload( index );
-
-    A.ToolHeaderDiv.id = "Header"+index;
-    A.ToolHotspotsDiv.id = "Hotspots"+index;
-    A.ToolControllerDiv.id = "Controller"+index;
-    A.ToolEditDiv.id = "Edit"+index;
-    A.ToolDownloadDiv.id = "Download"+index;
-    A.ToolUploadDiv.id = "Upload"+index;
-
-    //A.ToolHeaderDiv.className = "tabcontent";
-    A.ToolHotspotsDiv.className = "tabcontent active";
-    A.ToolControllerDiv.className = "tabcontent";
-    A.ToolEditDiv.className = "tabcontent";
-    A.ToolDownloadDiv.className = "tabcontent";
-    A.ToolUploadDiv.className = "tabcontent";
-    A.ToolHotspotsDiv.style.display = 'block';
 
     var p;
 
@@ -455,7 +398,6 @@ class Annotator{
     A.InfoCardDiv.className="InfoCardDiv DarkDiv";
 
     A.InfoCardUpdateDelay = 0;
-    A.InfoCardDivFrozen = false; // frozen = don't hide.
     A.InfoCardPos = Vector2d(0,0);
 
     p = contentHere;
@@ -467,25 +409,7 @@ class Annotator{
     p.appendChild(A.FocusCanvas);
     p.appendChild(A.InfoCardDiv);
     p.appendChild(A.CaptionDiv);
-    p.appendChild(A.ToolsDiv);
-
-    p = A.ToolsDiv;
-    p.appendChild(A.ToolHeaderDiv);
-    var q = document.createElement("div");  
-    q.className="Scroller DarkDiv"
-    p.appendChild(q);
-    p = q;
-    p.appendChild(A.ToolHotspotsDiv);
-    p.appendChild(A.ToolControllerDiv);
-    p.appendChild(A.ToolEditDiv);
-    p.appendChild(A.ToolDownloadDiv);
-    p.appendChild(A.ToolUploadDiv);
-
-
-
-
-
-
+    DetailsPanel.appendDivs( A );
 
     // Hotspot canvas and context do not need to be attached.
     A.resizeDivs();
@@ -703,21 +627,6 @@ class Annotator{
     }
   }
 
-  // This function is called without any preceeding delay.
-  showOrHideTip( actions){
-    var A = this;
-    var newContent = "";
-    if( actions.Tip ){
-      newContent = Markdown_Fmt.htmlOf(actions.Tip);
-    } 
-    
-    if( A.RichToolTipContent != newContent){
-      A.RichToolTipContent = newContent;
-      A.InfoCardUpdateDelay = 10;
-      A.InfoCardDivFrozen = false;
-    } 
-  }
-
   makeRainbowBox(){
     var A = this;
     var card = 
@@ -811,7 +720,7 @@ class Annotator{
     if( !captionDiv )
       return;
 
-    caption = escapeEmoji( caption );
+    caption = DomUtils.escapeEmoji( caption );
     var str = "<em>"+caption+"</em>";
     if( page ){
 
@@ -940,15 +849,14 @@ function onMouseOut(e){
     // State that we are showing something.
     A.Status.Zone = 10000;
   }
-  else if( !A.InfoCardDivFrozen){
+  else{
     A.InfoCardDiv.style.display = "none";
     A.InfoCardUpdateDelay = 10; 
     A.Status.Zone = -1;
   }
-  A.InfoCardDivFrozen = false;
   A.Cursor = "spot";
   A.dragObj = undefined;
-  e.target.style.cursor = 'auto';
+  //e.target.style.cursor = 'auto';
 }
 
 function onMouseUp( e ){
@@ -956,7 +864,7 @@ function onMouseUp( e ){
   var A = AnnotatorList[index];
   window.getSelection().empty();
 
-  e.target.style.cursor = 'auto';
+  //e.target.style.cursor = 'auto';
   A.Cursor="spot";
   console.log( "Up at "+ stringOfCoord(A.Status.move ) );
   if( A.dragObj && A.dragObj.onMouseUp )
@@ -1001,8 +909,9 @@ function onMouseDown( e ){
     A.Cursor="dragger";
     A.drawFocusLayer(x, y);
   } else {
-    A.InfoCardDivFrozen = true;
-    A.showOrHideTip( actions );
+    //A.InfoCardDivFrozen = true;
+    var v = Vector2d( e.clientX, e.clientY );
+    showOrHideTip( v, actions );
   }
 
   drawDiagramAgain(A);
@@ -1043,7 +952,6 @@ function onFocusClicked(e){
 }
 
 function onMouseWheel(e) {
-  e.preventDefault();
   var index = e.target.toolkitIndex;
   var A = AnnotatorList[index];
   A.zoom = Math.sign(e.deltaY);
@@ -1054,22 +962,25 @@ function onMouseWheel(e) {
   var actions = A.latestActions;
 
   if( actions.Zoom ){
+    e.preventDefault();
     obeyCode( A,actions.Zoom );
   }
 
   console.log(A.zoom);
 };
 
-function enterNewZone(A){
+function enterNewZone(v,A){
   var actions = A.latestActions;
   A.Highlight = "%none";
   // Update the detail div
-  if( !A.InfoCardDivFrozen )
-    A.showOrHideTip( actions);
+  showOrHideTip( v, actions);
+
   // Do any additional hover action
   if( actions.Hover ){
     obeyCode( A,actions.Hover );
   }
+  if( actions.Zoom )
+    A.MainDiv.style.cursor = "zoom-in";
 }
 
 function onMouseMove(e){
@@ -1089,7 +1000,6 @@ function onMouseMove(e){
   var actions = A.actionsFromCursorPos( x, y);
   A.latestActions = actions;
   if( Message ) Message.innerHTML = coordinates;
-
   var pt = A.detailPosFromCursorPos( x, y);
   A.InfoCardPos.x = pt.x;
 
@@ -1115,9 +1025,11 @@ function onMouseMove(e){
 
   if( (A.Status.Zone !== actions.Zone) && !e.buttons  ){
     A.Status.Zone = actions.Zone;
-    enterNewZone(A);
-    if( !actions.Down )
-      e.target.style.cursor = actions.Click ? 'pointer' : 'auto';
+    A.MainDiv.style.cursor = actions.Zone ? "move" : "auto";
+    var v = Vector2d( e.clientX, e.clientY );
+    enterNewZone(v,A);
+    //if( !actions.Down )
+    //  e.target.style.cursor = actions.Click ? 'pointer' : 'move';
     //drawDiagramAgain(A);
   }
 
@@ -1135,80 +1047,6 @@ function onMouseMove(e){
   }
 }
 
-function doDownloadImage(index){
-  var A = AnnotatorList[index];
-  if( !A.Status.isAppReady ) return;
-  var dataUrl = A.BackingCanvas.toDataURL("image/png");
-  //alert( "Download! "+dataUrl);
-  Loader.downloadDurl( A.SpecName + ".png" , dataUrl );
-}
-
-function doDownloadSource( index ){
-  var A = AnnotatorList[index];
-  if( !A.Status.isAppReady ) return;
-  var str = getTextVersion( index );
-  var dataUrl = Loader.durlOfText( str );
-  //alert( "Download! "+dataUrl);
-  Loader.downloadDurl( A.SpecName + ".txt" , dataUrl );
-  console.log( str );
-}
-
-function doDownloadSnippet( index ){
-  var A = AnnotatorList[index];
-  if( !A.Status.isAppReady ) return;
-  var str = getTextVersion( index );
-  str = str.replace(/\\/g,"\\\\");
-  str =
-`<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <script data-cfasync="false" src="http://www.scorpiodiagrams.com/scorpio/jsloader.js"></script>
-    <script type="text/javascript">
-
-      // Load the modules you'll be using...
-      scorpio.load('diagrams annotations katex');
-
-      // Set a callback to run when scorpio is ready
-      scorpio.setOnLoadCallback(makeDiagram);
-
-      // Callback that makes the diagram
-      function makeDiagram() {
-        var diagram = new scorpio.diagram();
-        diagram.setDiv( document.getElementById( 'diagram_div' ));
-        diagram.setSpec(
-\`
-${str}
-\`
-          );
-      }
-    </script>
-  </head>
-
-  <body>
-    <!--Div that will hold the diagram-->
-    <div id="diagram_div">Diagram is not loaded (yet)</div>
-    <br clear=all>
-  </body>
-</html>`;
-  var dataUrl = Loader.durlOfText( str );
-  //alert( "Download! "+dataUrl);
-  Loader.downloadDurl( A.SpecName + ".html" , dataUrl );
-  console.log( str );
-}
-
-
-function doDownloadJavascript( index ){
-  var A = AnnotatorList[index];
-  if( !A.Status.isAppReady ) return;
-  var str = getJavascriptVersion( index );
-  var dataUrl = Loader.durlOfText( str );
-  //alert( "Download! "+dataUrl);
-  Loader.downloadDurl( A.SpecName + ".json" , dataUrl );
-  console.log( str );
-}
-
-
 function setTextVersion( index, spec ){
   var A = AnnotatorList[index];
   if( !A )
@@ -1218,8 +1056,8 @@ function setTextVersion( index, spec ){
 
 function getTextVersion( index ){
   var A = AnnotatorList[index];
-  var str = "Nothing Found";
-  for( var obj of A.RootObject.content ){
+  var str = "No diagram, no instructions for drawing";
+  if( A ) for( var obj of A.RootObject.content ){
     if( writeThing[ obj.type ] ){
       str = "##"+obj.value +"\r\n";
       str += writeThing[obj.type]( A, obj, {} );
@@ -1240,5 +1078,239 @@ function toggleToolsVisibility(index){
   A.TocShown = !(A.TocShown || false);
   A.setToc( A.TocShown );
   return false;
+}
+
+
+
+
+function infoCardMove(e) {
+  e = e || window.event;
+  e.preventDefault();
+  // calculate the new cursor position:
+  var v = Vector2d( e.clientX, e.clientY);
+  // set the element's new position:
+  updateInfoCardFromMouse( v );
+  mayExitHotspot( v );
+}
+
+
+// Consumes the UpdateDelay.
+function infoCardTimerCallback()
+{
+  var A=window.TipBox || {};
+  if( !A.InfoCardDiv )
+    return;
+  if( A.InfoCardUpdateDelay > 0){
+    A.InfoCardUpdateDelay--;
+    if( A.InfoCardUpdateDelay > 0 )
+      return;
+  }
+  var inTheDetail = A.InfoCardDiv.matches(':hover');
+  if( inTheDetail && (A.InfoCardUpdateDelay==0)){
+    return;
+  }
+  if( A.ShownContent == A.RichToolTipContent)
+    return;
+  A.ShownContent == A.RichToolTipContent;
+
+  A.InfoCardUpdateDelay = 10;
+  if( A.RichToolTipContent ){
+    A.InfoCardDiv.innerHTML = A.RichToolTipContent;
+    A.InfoCardDiv.style.display = "block";
+    if( isDefined( A.InfoCardPos.x ))
+      A.InfoCardDiv.style.left = A.InfoCardPos.x + "px";
+  }
+  else
+  {
+    A.InfoCardDiv.style.display = "none";
+  }
+}
+
+function mayCreateInfoCard(A){
+  if( A.InfoCardDiv )
+    return;
+  A.InfoCard = {};
+  A.InfoCard.width = 340;
+  A.InfoCard.height = 300;
+
+  // InfoCard div floats above the white-out
+  A.InfoCardDiv = document.createElement("div");
+
+  A.InfoCardDiv.style.width = '340px';
+  A.InfoCardDiv.style.height = '300px';
+
+  A.InfoCardDiv.className="InfoCardDiv DarkDiv";
+  A.InfoCardPos = A.InfoCardPos || Vector2d(0,0);
+  var box = document.body;
+  box.appendChild(A.InfoCardDiv);
+  A.InfoCardUpdateDelay = -1;// force immediate...
+
+  A.InfoCardDiv.innerHTML = A.RichToolTipContent;
+  A.InfoCardDiv.style.display = "block";
+  if( isDefined( A.InfoCardPos.x ))
+    A.InfoCardDiv.style.left = A.InfoCardPos.x + "px";
+  //A.InfoCardUpdateDelay = -1;
+  //window.TipBox = A;
+  //positionInfoCard( Vector2d( 10,50 ));
+  document.onmousemove = infoCardMove;
+}
+
+// The info card update logic needs care to get the UI we want.
+// We want low flicker when moving over diverse items.
+// We want to be able to quick-move to the card and get what we expect.
+
+// 1. If blank, display the next hover immediately.
+// 2. Continue displaying a displayed hover for at least 10 ticks 
+// after moving off of it
+// 3. [Last Gasp rule] If it is time to blank, display the most recent 
+// hover and invoke rule 2, provided it is not what we are showing. ow
+// do blank
+
+// These rules prioritise displaying something over being blank.
+// They reduce flicker by avoiding blanking when momentarily between
+// hovers. Rule 2 is what lets us move from a hover to the card.
+
+// Then when on the card:
+// A. Rescind the blanking. Keep displaying whilst we are on it.
+// B. Rescind card movement.
+// C. Blank the card the moment we move off it.
+
+// The rules take some getting right. It is easy to mix up
+// - Time of start of hover and time of end of hover.
+// - Action when on hover and when on card
+// - What the hover state says you are (e.g. blank) and what you are 
+//   actually showing.
+
+
+
+// Tooltip showing == timer not zero.
+function changeTipText( v, text ){
+  var A=window.TipBox || {};
+  window.TipBox = A;
+
+  A.InfoCardPos = A.InfoCardPos || {};
+  var newContent = text;//Markdown_Fmt.htmlOf( text );
+  mayCreateInfoCard( A );
+
+  // No text update? return.  
+  if( A.RichToolTipContent == newContent)
+    return;
+  A.RichToolTipContent = newContent;
+  updateInfoCardFromMouse( v ); // handles S2.
+  if( A.InfoCardUpdateDelay > 0)
+    return; // S3 text to show was updated.
+  // S1. Immediate update.
+  A.InfoCardUpdateDelay = -1;
+  infoCardTimerCallback();
+}
+
+function mayExitHotspot( v ){
+  //return;
+  var A = window.TipBox;
+  var hover = document.elementFromPoint( v.x, v.y);
+  if( hover.className == 'popbox_link' )
+    return;
+  if ( hover.className == 'ScorpioCanvas' )
+    return;
+  changeTipText( v, "");
+}
+
+// v is the mouse position, not the card position.
+function updateInfoCardFromMouse(v){
+  var h = window.innerHeight;
+  var w = document.body.clientWidth;
+
+  var A=window.TipBox ||{};
+  window.TipBox = A;
+  A.InfoCardPos = A.InfoCardPos || {};
+
+  if( v.x >= 0)
+    A.InfoCardPos.x = v.x;
+  A.InfoCardPos.y = v.y;
+
+  var div = A && A.InfoCardDiv;
+  if(!div)
+    return;
+
+
+  var p = A.InfoCardPos.y/h;
+  h = h-A.InfoCard.height;
+  var q = A.InfoCardPos.x/w;
+  q = (q>0.5)?0:1;
+  w = w-A.InfoCard.width;
+  A.InfoCardPos.x = q*w; // delayed
+  A.InfoCardPos.y = p*h; // delayed
+  // No delay on y.
+  // But don't move if in the info card.
+  var inTheDetail = div.matches(':hover') && div.style.display=='block';
+  if( inTheDetail && (A.InfoCardUpdateDelay==0)){
+    A.RichToolTipContent=0;
+    return;
+  }
+  if( A.RichToolTipContent===0 )
+    return;
+  div.style.top  = (p*h) + "px";
+}
+
+
+
+function showTipBoxFromDiv( e, divName ){
+  var v = Vector2d( e.clientX, e.clientY );
+
+  var div=document.getElementById( divName );
+  changeTipText( v, div.innerHTML );
+}
+
+// This function is called without any preceeding delay.
+function showOrHideTip( v, actions){
+  var A=window.TipBox || {};
+  window.TipBox = A;
+  var newContent = "";
+  if( actions.Tip ){
+    newContent = Markdown_Fmt.htmlOf(actions.Tip);
+  } 
+  
+  if( A.RichToolTipContent != newContent){
+    if( newContent )
+      changeTipText( v, newContent );
+    else 
+      A.RichToolTipContent = "";
+  } 
+}
+
+function showSidebar( text ){
+  var A=window.Sidebar || {};
+  var newContent = text;//Markdown_Fmt.htmlOf( text );
+  
+  if( A.SidebarContent != newContent){
+    A.SidebarContent = newContent;
+
+    if( !A.SidebarDiv ){
+      // InfoCard div floats above the white-out
+      A.SidebarDiv = document.createElement("div");
+
+      A.SidebarDiv.style.width = '160px';
+      A.SidebarDiv.style.height = '100%';
+  
+      A.SidebarDiv.className="SidebarDiv DarkDiv";
+      A.SidebarPos = Vector2d(0,0);
+      var box = document.body;
+      box.appendChild(A.SidebarDiv);
+    }
+
+
+    A.SidebarDiv.innerHTML = A.SidebarContent;
+    A.SidebarDiv.style.display = "block";
+    if( isDefined( A.SidebarPos.x ))
+      A.SidebarDiv.style.left = A.SidebarPos.x + "px";
+  } 
+  window.Sidebar = A;
+  A.SidebarDiv.style.display  = 'block';
+  //positionInfoCard( Vector2d( 10,50 ));
+}
+
+function showSidebarFromDiv( divName ){
+  var div=document.getElementById( divName );
+  showSidebar( div.innerHTML );
 }
 

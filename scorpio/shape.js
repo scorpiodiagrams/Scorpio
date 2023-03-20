@@ -232,7 +232,12 @@ function getBondData( bond, d, r ){
    var r0 = r || a.size || a.r;
    var l1 = a.level;
    a = bond.a2;
+
    var v1 = Vector2d( a.x, a.y );
+   if( a.ast && a.ast.box )
+   {
+      v1 = a.ast.box.midpoint();
+   }
    var r1 = r || a.size || a.r;
    var l2 = a.level;
 
