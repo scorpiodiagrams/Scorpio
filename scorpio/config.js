@@ -13,7 +13,7 @@ function setLocalRepo( repo, file ){
 
   file = file || 'index';
   repo = repo || Registrar.repo;
-  var srcUrl = "./content/"+repo+"/";
+  var srcUrl = "../"+repo+"/";
 
   Registrar.repo = repo;
   Registrar.wikiSrc = srcUrl +  'wiki/',

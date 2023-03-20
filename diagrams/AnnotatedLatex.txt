@@ -30,7 +30,7 @@ caption: Annotated JáTéK for Maxwell's equations
 :M: at: 573,41
 :N: at: 400,62
 background: MaxwellEquations.png
-bond: K L ~~""~~>
+link: K L ~~""~~>
 bend: 30
 :A:B:
 card:
