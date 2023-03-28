@@ -905,7 +905,7 @@ function FontHandler(){
   this.FontAdjust = numberDictOfString( "1 \\Sigma 1 \\Pi 1 \\A 1 \\Z 5 \\left( 5 \\right) 5 \\left[ 5 \\right] 9 \\left{ 9 \\right} 4 \\sqrt".split(" ") );
   this.fns = Object.keys( this.fontNames ).join( " ");
   this.fontRecord("\\invert").fx = "Invert"
-  this.fontRecord("\\mathitaltiny").color = "#950";
+  this.fontRecord("\\mathitaltiny").colour = "#950";
   return this;
 }
 
@@ -974,6 +974,7 @@ FontHandler.prototype = {
   },
   // font handler applies to the next token only.
   astOfFontHandler(ast, node, tokens, i, len){
+    i= this.P.astMayEatColour(node, tokens, i);
     i= this.P.astOfTokens( node, tokens, i, i+1);
     this.P.astAddUndefined( node, 1);
     return i;
@@ -988,7 +989,7 @@ FontHandler.prototype = {
   positionFontHandler( parent, ast, v){
     this.P.positionHAligned( parent, ast, v, 0.5);
   },
-  outFontHandler( ctx, ast, color ){
+  outFontHandler( ctx, ast, colour ){
     this.pushFont(ast.token);
     var font = this.fontRecord( this.topFont());
     if( font.fx){
@@ -1001,7 +1002,7 @@ FontHandler.prototype = {
       ctx.restore();
     }
     else
-      this.P.outSubtree( ctx, ast.subtree[0], font.color || color);
+      this.P.outSubtree( ctx, ast.subtree[0], ast.colour || font.colour || colour);
     this.popFont();
   },
 }
@@ -1313,6 +1314,9 @@ function Macro(){
   this.LetterCode['r']="{ \\straight #e88 \\ \\straight }"
   this.LetterCode['g']="{ \\straight #8e8 \\ \\straight }"
   this.LetterCode['b']="{ \\straight #88e \\ \\straight }"
+  this.LetterCode['4']="{ \\straight #444 \\ \\straight }"
+  this.LetterCode['8']="{ \\straight #888 \\ \\straight }"
+  this.LetterCode['c']="{ \\straight #ccc \\ \\straight }"
   this.LetterCode['M']="{\\ \\round #e88 \\ \\round \\\\}"
   this.LetterCode['N']="{\\ \\round #8e8 \\ \\round \\\\}"
   this.LetterCode['O']="{\\ \\round #88e \\ \\round \\\\}"

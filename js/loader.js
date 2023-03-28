@@ -80,6 +80,8 @@ function wikiWordsArrive(A, url, text)
   // sets value, if the div is present.
   DomUtils.setValue( "raw_output", text );
   module.afterLoading( {"fmt_init":true});
+  if( Registrar.anchor )
+    DomUtils.scrollToDiv(Registrar.anchor);
 }
 
 function sidebarArrives(A, url, text)

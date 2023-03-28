@@ -15,14 +15,14 @@ Katex_Fmt.prototype ={
   htmlOf( str ){
     str = str || "c = \\pm\\sqrt{a^2 + b^2}";
     var html = katex.renderToString(str, {
-    throwOnError: false, displayMode: true
+    throwOnError: false, displayMode: true, strict:false
 });
     return html;
   },
   htmlInlineOf( str ){
     str = str || "c = \\pm\\sqrt{a^2 + b^2}";
     var html = katex.renderToString(str, {
-    throwOnError: false, displayMode: false
+    throwOnError: false, displayMode: false, strict:false
 });
     return html;
   },

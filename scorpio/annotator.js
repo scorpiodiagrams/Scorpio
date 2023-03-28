@@ -644,7 +644,13 @@ class Annotator{
     str += "</table>";
     return str;
   }
-
+  boxText( colour, size, text, action ){
+    var textColour = textColourToContrastWithColourTuple(colour);
+    return "<span style='display:inline-block;width:"+size+"px;height:"+size+"px;color:" + textColour +
+      ";border:thin solid black;text-align:center;vertical-align:middle;" +
+      "line-height:30px;background-color:" + colour + "' "+action+">" + text +
+      "</span>";
+  }
   makeToc(){
     var A = this;
     var h = A.Hotspots;
@@ -664,15 +670,13 @@ class Annotator{
         continue;
       card = Markdown_Fmt.htmlOf(card);
       // White text for numbers on dark backgrounds, black when light.
-      var c2 = colourTupleOfJsonString(c);
       var clicker = "onmouseover='drawHotShape("+A.index+",\"draw\","+c+")'" +
         " onmouseout='drawHotShape("+A.index+",\"clear\")'";
-      var textColor = textColourToContrastWithColourTuple(c2);
+      var c2 = colourTupleOfJsonString(c);
+
       str += "<tr><td style='vertical-align:top;padding:5px;padding-left:0px'>" +
-        "<div style='width:30px;height:30px;color:" + textColor +
-        ";border:thin solid black;text-align:center;vertical-align:middle;" +
-        "line-height:30px;background-color:" + rgbOfColourTuple(c2) + "' "+clicker+">" + (i-1) +
-        "</div></td><td  style='padding:5px'>" + card + "</td></tr>";
+        this.boxText( rgbOfColourTuple(c2), 30, i-1, clicker) +
+        "</td><td  style='padding:5px'>" + card + "</td></tr>";
     }
     str += "</table>";
     return str;
@@ -1085,7 +1089,7 @@ function toggleToolsVisibility(index){
 
 function infoCardMove(e) {
   e = e || window.event;
-  e.preventDefault();
+  //e.preventDefault();
   // calculate the new cursor position:
   var v = Vector2d( e.clientX, e.clientY);
   // set the element's new position:
@@ -1109,14 +1113,16 @@ function infoCardTimerCallback()
   if( inTheDetail && (A.InfoCardUpdateDelay==0)){
     return;
   }
+  A.InfoCardUpdateDelay = 10;
+
   if( A.ShownContent == A.RichToolTipContent)
     return;
-  A.ShownContent == A.RichToolTipContent;
+  A.ShownContent = A.RichToolTipContent;
 
-  A.InfoCardUpdateDelay = 10;
   if( A.RichToolTipContent ){
     A.InfoCardDiv.innerHTML = A.RichToolTipContent;
     A.InfoCardDiv.style.display = "block";
+    A.InfoCardDiv.scrollTo( 0, 0);
     if( isDefined( A.InfoCardPos.x ))
       A.InfoCardDiv.style.left = A.InfoCardPos.x + "px";
   }
@@ -1130,13 +1136,13 @@ function mayCreateInfoCard(A){
   if( A.InfoCardDiv )
     return;
   A.InfoCard = {};
-  A.InfoCard.width = 340;
+  A.InfoCard.width = 390;
   A.InfoCard.height = 300;
 
   // InfoCard div floats above the white-out
   A.InfoCardDiv = document.createElement("div");
 
-  A.InfoCardDiv.style.width = '340px';
+  A.InfoCardDiv.style.width = '390px';
   A.InfoCardDiv.style.height = '300px';
 
   A.InfoCardDiv.className="InfoCardDiv DarkDiv";
@@ -1189,6 +1195,10 @@ function changeTipText( v, text ){
   window.TipBox = A;
 
   A.InfoCardPos = A.InfoCardPos || {};
+
+  var div = A && A.InfoCardDiv;
+  var inTheDetail = div && div.matches(':hover') && div.style.display=='block';
+
   var newContent = text;//Markdown_Fmt.htmlOf( text );
   mayCreateInfoCard( A );
 
@@ -1196,6 +1206,13 @@ function changeTipText( v, text ){
   if( A.RichToolTipContent == newContent)
     return;
   A.RichToolTipContent = newContent;
+  // The guard is for the special case where the info card 
+  // itself triggers a change in text.
+  if( inTheDetail ){
+    A.InfoCardDiv.innerHTML = A.RichToolTipContent;    
+    //A.InfoCardUpdateDelay = 200;
+    return;
+  }
   updateInfoCardFromMouse( v ); // handles S2.
   if( A.InfoCardUpdateDelay > 0)
     return; // S3 text to show was updated.
@@ -1208,11 +1225,22 @@ function mayExitHotspot( v ){
   //return;
   var A = window.TipBox;
   var hover = document.elementFromPoint( v.x, v.y);
+  // When debugging, and maybe when scrolling, there may be no element.
+  if( !hover )
+    return;
   if( hover.className == 'popbox_link' )
+    return;
+  if( hover.className == 'popbox_link2' )
     return;
   if ( hover.className == 'ScorpioCanvas' )
     return;
   changeTipText( v, "");
+}
+
+function infoCardPos(){
+  var A=window.TipBox ||{};
+  A.InfoCardPos = A.InfoCardPos || {};
+  return Vector2d( A.InfoCardPos.x ||0, A.InfoCardPos.y||0);
 }
 
 // v is the mouse position, not the card position.
@@ -1252,13 +1280,37 @@ function updateInfoCardFromMouse(v){
   div.style.top  = (p*h) + "px";
 }
 
-
-
 function showTipBoxFromDiv( e, divName ){
   var v = Vector2d( e.clientX, e.clientY );
-
+  var header = "";
+  if( divName.startsWith("footer_")){
+    header = "<h4>Footnote "+divName.split("footer_")[1]+"</h4>";
+  }
+  else if( divName.startsWith("equation_")){
+    header = "<h4>Equation "+divName.split("equation_")[1]+"</h4>";
+  }
+  else if( divName.startsWith("figure_")){
+    header = "<h4>Figure "+divName.split("figure_")[1]+"</h4>";
+  }  
+  else if( divName.startsWith("content_of_section_")){
+    header = "<h4>Section "+divName.split("content_of_section_")[1]+"</h4>";
+  }  
+  else if( divName.startsWith("content_of_exercise_")){
+    header = "<h4>Exercise "+divName.split("content_of_exercise_")[1]+"</h4>";
+  }  
   var div=document.getElementById( divName );
-  changeTipText( v, div.innerHTML );
+  var text = div ? div.innerHTML : `No preview available. Did not find "${divName}" in this document. I plan to fix this in a future version.<br><br>Haven't yet decided whether to load the page in the background, or to make a digest of the links in the entire document, and load that.`;
+  changeTipText( v, header+text );
+}
+
+function closeTip(){
+  var A=window.TipBox ||{};
+  if( !A.InfoCardDiv )
+    return;  
+  A.InfoCardDiv.style.display='none';
+  A.RichToolTipContent = ""; 
+  A.ShownContent = "";  
+  A.InfoCardUpdateDelay = 0;
 }
 
 // This function is called without any preceeding delay.
@@ -1309,6 +1361,7 @@ function showSidebar( text ){
   //positionInfoCard( Vector2d( 10,50 ));
 }
 
+// contents of sidebar IS contents of div.
 function showSidebarFromDiv( divName ){
   var div=document.getElementById( divName );
   showSidebar( div.innerHTML );

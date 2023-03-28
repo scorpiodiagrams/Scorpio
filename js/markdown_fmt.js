@@ -22,7 +22,7 @@ Markdown_Fmt.prototype ={
     return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Centaur](${Registrar.imageSrc}centaur_public_domain.svg =250x)\r\n\r\n#BackAgain\r\n🕔 *${date}, by James Crook*`);
   },
   subsiteHeading(match,date,title){
-    DomUtils.setFavicon( './scorpio.ico');
+    //DomUtils.setFavicon( './scorpio.ico');
     Markdown_Fmt.hasBigLogo = true;
     // We're showing a big logo, so hide the small one.
     return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Scorpion](./content/scorpio/images/Scorpion.svg =250x)\r\n\r\n#BackAgain`);
@@ -37,6 +37,11 @@ Markdown_Fmt.prototype ={
     return `<a href='${link}'>More...</a>`;
   },
   generalLink(match,name,link){
+    if( link.includes("http")){
+      ;
+    } else if( !link.includes(";") ){
+      link = "#"+Registrar.repo + ";"+link;
+    }
     return `<a href='${link}'>${name}</a>`;
 //  return `<a target='blank' href='https://en.wikipedia.org/wiki/${newLink}'>${name}</a>`;
   },

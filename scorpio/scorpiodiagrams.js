@@ -175,6 +175,10 @@ const kStageFillAndText=6;
 const kStageArrowHead=9;
 const kStageHots=10;
 
+
+// Locs is deprecated. 
+// It used to use set locations, when on server.
+
 //---- Paths to various content, all relative to domain.
 function Locs(){
   var prefix = window.location.protocol + "//" + window.location.hostname + "/";
@@ -1161,12 +1165,7 @@ function anchorTagFromDoxygennedClassName(word){
  * @returns {string}
  */
 function urlOfFilename(file){
-  if( isFromServer() === "yes" )
-    {
-      file = Locs.imagesPath + file;
-    }
-  else
-    file = Registrar.imageSrc + file;
+  file = Registrar.imageSrc + file;
   return file;
 }
 

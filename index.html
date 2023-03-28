@@ -45,21 +45,24 @@ html {
   background: #202060;
 }
 </style>
-
     <script>
       window.onload = function(){
+
       //  initContent();
       }
 
-
-//Registrar.wikiSrc = './wiki/';
-//Registrar.firstFile = 'index';//'diagram_forge';
-//Registrar.useUrlChecklist = false;
+Registrar.repo = 'scorpio';
+//Registrar.wikiSrc = './content/scorpio/wiki/';
+//Registrar.addExtraButtons = true;
+Registrar.firstFile = 'index';//'diagram_forge';
+//Registrar.useUrlChecklist = true;
 //
-//Registrar.enableGitWraping = false;
-//setFromConfig( 'index.html' );
+//setRepo( 'scorpio', 'index')
+//setFromConfig( 'scorpio.html' );
+
 
 </script>
+
 </head>
 <body>
 
@@ -68,9 +71,8 @@ html {
 <button onclick="closeAllNutshells()">Close All</button>
 <br>-->
 
-<!--div id="little_logo" style="position: absolute;right: 50%;margin-right:-285px;top:30px;">
-<img src="./images/LittleLogo.svg" style="width:100px;height:100px;"></img></div-->
-
+<div id="little_logo" style="position: absolute;right: 50%;margin-right:-285px;top:30px;">
+<img id="little_logo_src" src="./images/Scorpion.svg" style="width:100px;height:100px;"></img></div>
 
 <!--Output div contents will be replaced-->
 <div id="div_output">
@@ -90,7 +92,7 @@ html {
 Is the document where it should be??
 ` );
   DomUtils.set( "div_output", str );
-  var page = DomUtils.getAnchor() || DomUtils.getArg('page') || 'index';
+  var page = DomUtils.getAnchor() || DomUtils.getArg('page') || Registrar.firstFile;
   if( page ){
     setPage( page );
   }
@@ -101,12 +103,6 @@ window.onpopstate = function(event)
   afterHash = afterHash.split(';');
   var repo  = afterHash[1]?afterHash[0]:"";
   afterHash = afterHash[1]||afterHash[0];
-  if( 
-    (window.afterHash == afterHash ) &&
-    (Registrar.repo == repo))
-
-    return;
-  window.afterHash = afterHash;
 //  console.log( "IN popstate")
   setLocalRepo( repo, afterHash );
   //loadSource( afterHash+'.md' );

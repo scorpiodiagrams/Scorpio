@@ -12,17 +12,22 @@ h1, h2, h3, h4 {
 
 h3 {
   color:  #555;
+  font-size: 1.0em ;
   font-style: italic;
   margin-bottom: 3px;
 }
 
 h4 {
   color:  #003;
-  font-size: 0.9em ;
+  font-size: 1.0em ;
   font-family:  Arial;
   font-style: italic;
 }
 
+h5 {
+  font-size: 1.0em ;
+  font-family:  Arial;
+}
 
 /* No space before in tables */
 h1:first-child{
@@ -69,7 +74,6 @@ h4 + ul{
 br {
   line-height: 150%;
 }
-
 
 blockquote {
   background: #e3d1ae;
@@ -187,6 +191,9 @@ span.example{
   text-decoration-color: blue;
   cursor: pointer;
 }
+.popbox_link2 {
+  cursor: pointer;
+}
 /*
 .MainDiv::before{
   content: '';
@@ -298,6 +305,13 @@ span.example{
 .raw p {
   margin-top:  -20px;
   margin-bottom:  0px;
+}
+
+.moniker {
+  display:inline-block;
+  float:right;
+  color : #555;
+  border: 1px solid #ccc;
 }
 
 .wordcolumn {

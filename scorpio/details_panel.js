@@ -52,9 +52,9 @@ DetailsPanel.prototype ={
     <h3 style='margin-top:10px;'>Download</h3>
     <p>Download a copy of the diagram.
     </p>
-    <button onclick='DetailsPanel.downloadImage(${index})'>Image</button> - Download a .png of the diagram.<br>
+    <button onclick='DetailsPanel.downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.<br>
     <button onclick='DetailsPanel.downloadImage(${index},1)'>Diagram Spec</button> - Download a text version of the diagram.<br>
-    <button onclick='DetailsPanel.downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.
+    <button onclick='DetailsPanel.downloadImage(${index})'>Image</button> - Download a .png of the diagram.
     `
   },
   tabUpload( index ){

@@ -13,8 +13,18 @@ function setLocalRepo( repo, file ){
 
   file = file || 'index';
   repo = repo || Registrar.repo;
-  var srcUrl = "../"+repo+"/";
 
+  file=file.split("!");
+
+  Registrar.anchor = file[1]||"";
+  file=file[0];
+
+  if( Registrar.page==file && Registrar.repo==repo ){
+    DomUtils.scrollToDiv(Registrar.anchor);
+    return;
+  }
+  var srcUrl = '';
+  Registrar.page = file;
   Registrar.repo = repo;
   Registrar.wikiSrc = srcUrl +  'wiki/',
   Registrar.diagramSrc = srcUrl + 'diagrams/'
@@ -27,10 +37,11 @@ function setLocalRepo( repo, file ){
 <div class='button_holder'>
 <button onclick="location.href='#index';"><a href='#index'>Index</a></button><br><br>
 <div class='example'>
-Locally serving the repo: ${repo}<br>
+[${repo}]<br>
 </div>
 </div><br clear="all"/>
 `  
+  scrollTo(0,0);
   loadSource( file + ".md");
   loadSidebar( "sidebar.md");
 }
@@ -40,7 +51,7 @@ function setPage( page ){
   if( page.length > 1)
     setLocalRepo( page[0],page[1]);
   else
-    setLocalRepo( 'scorpio',page[0]);
+    setLocalRepo( Registrar.repo,page[0]);
 }
 
 

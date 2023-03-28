@@ -21,8 +21,6 @@ function mainFunctions(){
   Graph();
   Stretcher();
 
-
-
   astOfTokens( ast, tokens, i, len );
   measureSubtree( ctx, parent, ast);
   positionSubtree(parent, ast, v);

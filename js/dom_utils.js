@@ -37,7 +37,7 @@ DomUtils.prototype ={
     // stop moving when mouse button is released:
     elmnt = null;
     document.onmouseup = null;
-    document.onmousemove = null;
+    document.onmousemove = infoCardMove;
   },
   escapeEmoji( str ){
     // italics for non unicode characters.    
@@ -88,6 +88,22 @@ DomUtils.prototype ={
     what.style.top = "0px";
     return what;
   },
+  scrollToDiv( name ){
+    if( !name ){
+      scrollTo(0,0);
+      return;
+    }
+    var div = document.getElementById(name)
+    if( !div ){
+      //return;
+      // Alternative code that tells you about a missing link..
+      var text = `### ${name} not found
+        May need information from a different document`
+      changeTipText( infoCardPos(), Markdown_Fmt.htmlOf(text) );
+      return;
+    }
+    div.scrollIntoView({behavior:'smooth',block:"center"});
+  },
   initDiagramDiv( name,size ){
     //if( typeof what == "string")
     //   what = document.getElementById(what);
@@ -132,12 +148,17 @@ DomUtils.prototype ={
   getValue( what ){
     var div = document.getElementById(what);
     return div.value;
-  },   
+  },
   setValue( what, value){
     var div = document.getElementById(what);
     if( div )
       div.value = value;
   },
+  setAttr( what, attr, value){
+    var div = document.getElementById(what);
+    if( div )
+      div[attr] = value;
+  },  
   set( what, value){
     var div = document.getElementById(what);
     div.innerHTML = value;

@@ -150,10 +150,14 @@ scorpio.diagram.prototype ={
   }
 }
 
+
 //Modules register with the registrar.  Once this is all done, the code knows what all the modules are.
 function Registrar(){
   this.modules = {};
   this.inits = [];
+  this.classes={};
+  this.js={};
+  this.verbs={};
   //this.register( this );
   return this;
 }
@@ -163,12 +167,15 @@ function Registrar(){
 Registrar.prototype ={
   name : "Registrar",
   modules : {},
+  classes : {},
+  verbs   : {},
+  js      : {},
 
 // Configuration paramters:  
   wikiSrc : './wiki/',
   diagramSrc : './diagrams/',
   imageSrc : './images/',
-  useUrlChecklist : true,
+  useUrlChecklist : false,
 
   debug(A,url,text){
     alert( url );
@@ -176,8 +183,17 @@ Registrar.prototype ={
   register( module ){
     this.modules[ module.name ] = module;
   },
+  registerTextFormat( module ){
+    this.modules[ module.name ] = module;
+  },
+  registerClass( classIn ){
+    this.classes[ classIn.name ] = classIn;
+  },
+  registerVerbs( verb ){
+    this.verbs[ verb.name ] = verb;
+  },
   doInits(){
-    inits = this.inits;
+    inits = this.inits || [];
     for(init of inits)
       init();
     this.inits = [];
