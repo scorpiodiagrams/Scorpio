@@ -1,7 +1,7 @@
 ## ☰ Menu
 #Button(index,Index)
 ----
-### User Interfaces
+### Sampler
 
 #Jump( annotated_images \Pen Annotated
 # \Pen Annotated
