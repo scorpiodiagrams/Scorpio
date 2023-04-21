@@ -909,6 +909,7 @@ function drawTaper(A, obj, d){
   //style.bevel = d.dddStyle.bevel;
 
   var proxyObj = {};
+  var multiplicity = 1;
   if( bLabel ){
     proxyObj.endShape1 = obj.endShape1 || "(";
     proxyObj.endShape2 = obj.endShape2 || ")";
@@ -916,6 +917,9 @@ function drawTaper(A, obj, d){
   else {
     proxyObj.endShape1 = getEndShape( obj.lineEndShape1 );
     proxyObj.endShape2 = getEndShape( obj.lineEndShape2 );
+    multiplicity = obj.multiplicity || 1;
+    if( obj.lineType1 == "==" )
+      multiplicity = 2;
   }
   if( bend ){
     setInOutBend( "bend",     `C 25 ${bend} 75 ${bend} 100 0` );
@@ -930,7 +934,17 @@ function drawTaper(A, obj, d){
     proxyObj.bevel   = d.dddStyle.bevel;
   }
 
-  drawScorpioLabel( ctx, proxyObj, style, va, vb, vc, vd );
+  var da = vd.sub(va);
+  var db = vc.sub(vb);
+  var nTot = 2*multiplicity-1;
+
+  for(var i=0;i<multiplicity;i++){
+    var vva = va.add( da.mul( (2*i)/nTot ) );
+    var vvb = vb.add( db.mul( (2*i)/nTot ));
+    var vvc = vvb.add( db.mul( 1/nTot ));
+    var vvd = vva.add( da.mul( 1/nTot ));
+    drawScorpioLabel( ctx, proxyObj, style, vva, vvb, vvc, vvd );
+  }
 }
 
 function drawScorpioLabel( ctx, obj, style, va, vb, vc, vd )
