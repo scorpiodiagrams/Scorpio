@@ -38,7 +38,7 @@ Editor_Fmt.prototype ={
   textChanged( evt ){
     if( !isDefined( Editor_Fmt.boxIndex ))
       return;
-    setTextVersion( Editor_Fmt.boxIndex, "!!Scorpio"+evt.value );
+    RR.setTextVersion( Editor_Fmt.boxIndex, "!!Scorpio"+evt.value );
   },
   updateSource( index ){
     var box = document.getElementById("editor_box");
@@ -46,7 +46,7 @@ Editor_Fmt.prototype ={
       return false;
     }
     Editor_Fmt.boxIndex = index;
-    var str = getTextVersion( index );
+    var str = RR.getTextVersion( index );
     box.value = str;
     return true;
   },

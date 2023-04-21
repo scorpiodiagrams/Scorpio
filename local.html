@@ -86,17 +86,17 @@ window.onpopstate = function(event)
 };
 
 // index.htm: When you make a subdirectory, ./content/ and have repos there...
-Registrar.urlPrefix = './content/';
-Registrar.urlSuffix = '';
-Registrar.repo = 'scorpio_docs';
-Registrar.firstFile = 'scorpio_diagrams';
-
-// local.htm: When you place your repos alongside this distro
-// This is very handy for development.
-//Registrar.urlPrefix = '../../Scorpios/';
+//Registrar.urlPrefix = './content/';
 //Registrar.urlSuffix = '';
 //Registrar.repo = 'scorpio_docs';
 //Registrar.firstFile = 'scorpio_diagrams';
+
+// local.htm: When you place your repos alongside this distro
+// This is very handy for development.
+Registrar.urlPrefix = '../../Scorpios/';
+Registrar.urlSuffix = '';
+Registrar.repo = 'sampler';
+Registrar.firstFile = 'index';
 
 // index2.htm: Like index, but different start page.
 //Registrar.urlPrefix = './content/';

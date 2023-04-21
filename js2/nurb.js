@@ -1,4 +1,21 @@
 
+Registrar.js.nurb_js = function( Registrar ){
+
+var metaData = 
+{ 
+  version: "2023-04",
+  docString: "Spline patches that warp and use a solver."
+};
+
+// Imports
+// var Vector2d = Registrar.classes.Vector2d
+// var Box = Registrar.classes.Box;
+
+function Exports(){
+  RR.drawTexture = drawTexture;
+}
+
+
 /**
  * Texture warping using nurbs
  * involves a solver for x,y back to s,t texture coordinates.
@@ -609,3 +626,9 @@ function registerNurbMethods()
 }
 
 Registrar.inits.push( registerNurbMethods );
+
+
+Exports();
+
+return metaData;
+}( Registrar );// end of nurbs_js

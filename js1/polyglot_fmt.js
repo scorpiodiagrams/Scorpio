@@ -57,7 +57,7 @@ function Exports(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.addCommands( "#Code( Bold ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Menu( Menu #Quote( Quote ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Image( Image2 #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline");
+  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Image( Image2 #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
   this.fns[ "\r\n# " ]="H1";
@@ -74,13 +74,13 @@ function Polyglot_Fmt(){
   this.fns[ "#####" ]="H5";
   this.fns[ "######" ]="H6";
   this.fns[ "#######" ]="H7";
-  this.fns[ "\r\n*" ]="Ul1";
-  this.fns[ "\r\n**" ]="Ul2";
-  this.fns[ "\r\n***" ]="Ul3";
-  this.fns[ "\r\n****" ]="Ul4";
-  this.fns[ "\r\n*****" ]="Ul5";
-  this.fns[ "\r\n******" ]="Ul6";
-  this.fns[ "\r\n*******" ]="Ul7";
+  this.fns[ "\r\n* " ]="Ul1";
+  this.fns[ "\r\n** " ]="Ul2";
+  this.fns[ "\r\n*** " ]="Ul3";
+  this.fns[ "\r\n**** " ]="Ul4";
+  this.fns[ "\r\n***** " ]="Ul5";
+  this.fns[ "\r\n****** " ]="Ul6";
+  this.fns[ "\r\n******* " ]="Ul7";
   this.fns[ "\r\n> [!" ]="Dropdown";
   this.blobCounter = 0;
   return this;
@@ -90,6 +90,33 @@ Polyglot_Fmt.prototype ={
   name : "Polyglot",
   fns : [],
 
+  handleCommandList(){
+    this.html.push(`<div class='raw'>`);
+    var cmds = Object.keys( this.fns ).sort();
+    var proto = Object.getPrototypeOf(this);
+
+    for(var mode=0;mode<2;mode++){
+      for(var i=0;i<cmds.length;i++){
+        var name = cmds[i].replace("\r\n","");
+        var translation = this.fns[cmds[i]];
+        var fn = proto[ "handle"+translation ];
+        if( fn && mode == 0)
+          this.html.push(`${name} - handle${translation}\r\n`);
+        if( !fn && mode ==1 )
+          this.html.push(`${name} - ${translation}\r\n`);
+      }
+    }
+    this.html.push(`</div>`);
+  },
+  handleJatexList(){
+    this.html.push(`<div class='raw'>`);
+    var cmds;
+    cmds = RR.Jatex.listCommands();
+    this.html.push(cmds.join("\r\n"));
+    cmds = RR.Jatex.listSymbols();
+    this.html.push(cmds.join("\r\n"));
+    this.html.push(`</div>`);
+  },
   handleButtonWide(){
     var line = this.getBraced();
     line = line.replace(/^(.*),(.*)$/gi, "<button class='wide' onclick=\"location.href='#$1';\"><a '><a href='#$1'>$2</a></button>"); 
@@ -144,15 +171,25 @@ Polyglot_Fmt.prototype ={
     var tok;
 
     this.html.push( "<blockquote>" );
+
     while( true ){
-      this.untilIn(["\r\n"]);
+      this.eat("");
       tok = this.peekTok();
-      if( !tok.startsWith("\r\n>"))
+      if( tok.startsWith("*")){
+        this.getTok();
+        this.handleToken( "\r\n"+tok );
+      }
+      else 
+        this.untilIn(["\r\n"]);
+      tok = this.peekTok();
+      if( !tok.startsWith("\r\n>")){
         break;
+      }
+      // discard the \r\n> and keep going.`
       this.getTok();
       var prev = this.html[this.html.length-1];
-      if( !prev.startsWith("</h"))
-        this.html.push("<br>");
+      //if( !prev.startsWith("</h"))
+      //  this.html.push("<br>");
     }
     this.html.push("</blockquote>");
   },
@@ -205,17 +242,23 @@ Polyglot_Fmt.prototype ={
     tok = this.peekTok()+this.peekTok(1);
     if( tok.startsWith("bibliography"))
       text = '['+text+']';
+    else if( tok.startsWith("references"))
+      text = '['+text+']';
     else if( tok.startsWith("#figure_")){
       var name = tok.split("#figure_")[1]||"";
-      popbox = ` class='popbox_link' onclick="closeTip();" onmouseover="showTipBoxFromDiv(event,'figure_${name}')"`
+      popbox = ` class='popbox_link' onclick="OnFns.closeTip();" onmouseover="OnFns.showTipBoxFromDiv(event,'figure_${name}')"`
     }
+    else if( tok.startsWith("#footnote_")){
+      var name = tok.split("#footnote_")[1]||"";
+      popbox = ` class='popbox_link' onclick="OnFns.closeTip();" onmouseover="OnFns.showTipBoxFromDiv(event,'footnote_${name}')"`
+    }    
     else if( tok.startsWith("#exercise_")){
       var name = tok.split("#exercise_")[1]||"";
-      popbox = ` class='popbox_link' onclick="closeTip();" onmouseover="showTipBoxFromDiv(event,'content_of_exercise_${name}')"`
+      popbox = ` class='popbox_link' onclick="OnFns.closeTip();" onmouseover="OnFns.showTipBoxFromDiv(event,'content_of_exercise_${name}')"`
     }
     else if( tok.startsWith("#section_")){
       var name = tok.split("#section_")[1]||"";
-      popbox = ` class='popbox_link' onclick="closeTip();" onmouseover="showTipBoxFromDiv(event,'content_of_section_${name}')"`
+      popbox = ` class='popbox_link' onclick="OnFns.closeTip();" onmouseover="OnFns.showTipBoxFromDiv(event,'content_of_section_${name}')"`
     }    
     if( tok.startsWith("#")){
       tok  = `#${Registrar.repo};${Registrar.page}!`;
@@ -259,7 +302,7 @@ Polyglot_Fmt.prototype ={
     this.mayHandle( this.matchURL )
   },
   handleScrollTo(){
-    tok = this.capture( ")" );
+    tok = this.captureAndEat( ")" );
     this.html.push(`<a href="javascript:;" onclick="DomUtils.scrollToDiv('${tok}');">${tok}</a>`);
     return;
     this.html.push(`<a href="#${Registrar.repo};${Registrar.page}!${tok}">${tok}</a>`);
@@ -277,14 +320,20 @@ Polyglot_Fmt.prototype ={
     }
     return;
   },
+  captureAndEat( choice ){
+    var buff = this.capture( choice );
+    this.getTok();
+    return buff;
+  },
   capture( choice ){
     var buff = "";
     while( this.tk < this.tokens.length ){
-      var tok = this.getTok();
+      var tok = this.peekTok();
       if( tok.startsWith( choice )){
         return buff;
       }
       buff = buff + tok;
+      this.getTok();
     }
     return buff;
   },
@@ -309,14 +358,15 @@ Polyglot_Fmt.prototype ={
     return true;
   },
   handleKatex(){
-    var kk = this.capture( "$$");
+    var kk = this.captureAndEat( "$$");
     var id = "";
-    try{ 
+    var Katex = Registrar.modules.Katex;
+    if( Katex ) try{ 
       // \widetilde, \widehat etc...
       //kk = kk.replaceAll( "\\wide", "\\");
-      id = kk.match( /\{\(([0-9\.]+)\)\}/ );
+      id = kk.match( /\\tag\{([0-9\.]+)\}/ );
       id = (id && id[1]) || "";
-      kk = Registrar.modules.Katex.htmlOf( kk );
+      kk = Katex.htmlOf( kk );
     } catch(e) {
       kk = "Bad Katex Block: "+e;
     } 
@@ -327,10 +377,11 @@ Polyglot_Fmt.prototype ={
     this.html.push( kk );
   },
   handleKatexInline(){
-    var kk = this.capture( "$"); 
-    try{ 
+    var kk = this.captureAndEat( "$"); 
+    var Katex = Registrar.modules.Katex;
+    if( Katex ) try{ 
       //kk = kk.replaceAll( "\\wide", "\\");
-      kk = Registrar.modules.Katex.htmlInlineOf( kk );
+      kk = Katex.htmlInlineOf( kk );
     } catch(e) {
       kk = "Bad Katex Inline: "+e;
     } 
@@ -340,7 +391,7 @@ Polyglot_Fmt.prototype ={
   }, 
   // Page for page numbers....
   handlePage(){
-    var kk = this.capture( ")");
+    var kk = this.captureAndEat( ")");
     this.html.push( 
       `<table id="p${kk}" width="100%" style="color:#420c">
         <td><hr style="border-top:1px solid #8868;border-bottom:none;"/></td>
@@ -350,6 +401,8 @@ Polyglot_Fmt.prototype ={
   }, 
   handleUl(n){
     n = n || 1;
+    this.eat("");
+    this.eat(" ");
     for( var i=0;i<n;i++)
       this.html.push("<ul>");
     this.html.push("<li>");
@@ -373,7 +426,7 @@ Polyglot_Fmt.prototype ={
     section = buff.match( /^\s*([0-9\.]+)/);
     section = section ? `section_${section[1]}` : "";
     if( !section ){
-      section = buff.match( /^\s*Exercise\s*([0-9\.]+)/);
+      section = buff.match( /^\s*Exercise\s*([0-9A-Z\.]+)/);
       section = section ? `exercise_${section[1]}` : "";
     }
     //section = section.replaceAll("\.","-");
@@ -420,10 +473,11 @@ Polyglot_Fmt.prototype ={
     var a2=this.getTok();
     var a3=this.getTok();
     var a4=this.getTok();
-    this.html.push( Annotator.prototype.boxText( a2, 15, "", ""));
+    var Ann = RR.classes.Annotator;
+    this.html.push( Ann.prototype.boxText( a2, 15, "", ""));
   },
   handleLittleLogo(){
-    var image = this.capture( ")");
+    var image = this.captureAndEat( ")");
     if( image !== "" ){
       //DomUtils.setAttr( "little_logo_src","src",)
       DomUtils.setVisibility( "little_logo_src", true);
@@ -434,10 +488,47 @@ Polyglot_Fmt.prototype ={
     //alert( image );
   },
   handleBreak(){
+    this.eat("");    
     if( this.section)
       this.html.push("\r\n");
+    else if( this.peekTok().startsWith("#Caption") )
+      ;
+    else if( this.peekTok().startsWith("\\") )
+      ;
     else
       this.html.push("<br>");
+  },
+  formatAsScheme( prog ){
+    prog = prog.trim().split("\r\n").join(" ");
+    prog = prog.split("(");
+    result=prog[0] || "";
+    var indent = 0;
+    // Show what's before first "(" verbatim.
+    var prefix = "";
+    if( result && (prog.length > 1))
+      result += "\r\n"
+    // loop will only get things after the first "("
+    for(var i=1;i<prog.length;i++){
+      var line = (prog[i].trim());
+      var closings = ("XXX"+line+"XXX").split(")").length -1;
+      indent = Math.max( indent + 1 -closings, 0 );
+
+      if( line.length == 1 ) {
+        prefix = prefix + "("+line;
+      } 
+      else if( line ) {
+        result += prefix +"("+line;
+        prefix = "\r\n"+(Array(indent*2+1).join(" "));
+      }
+      else
+        prefix = prefix + "( ";
+    }
+    // Check remote possibility we never showed the last line...
+    // Can happen with unbalanced brackets.
+    if( prefix.trim()){
+      result += prefix;
+    }
+    return result;
   },
   handleSection( ){
     this.section = !this.section || 0;
@@ -446,6 +537,22 @@ Polyglot_Fmt.prototype ={
       var tok=this.peekTok();
       if( tok && !tok.startsWith("\r\n")){
         tok=this.getTok();
+        if( tok == "Scheme"){
+          var name = "nut_"+(this.blobCounter++);
+          var buff = this.capture( ["```"]);
+          var fbuff = this.formatAsScheme( buff );
+          var small = fbuff.split("\r\n").length < 8;
+          var d1 = small ? "none" : "inline";
+          var d2 = small ? "inline" : "none";
+          this.html.push(
+          `<div id="${name}n" style='display:${d1}' onClick='DomUtils.toggleVisibility2("${name}")'><div class='moniker'> ▶ Scheme </div>` );
+          this.html.push(buff);
+          this.html.push('</div>');
+          this.html.push(
+          `<div id="${name}y" style='display:${d2}' onClick='DomUtils.toggleVisibility2("${name}")'><div class='moniker'> ▼ Scheme </div>` );
+          this.html.push(`${fbuff}</div>`);
+          return;
+        }
         this.html.push("<div class='moniker'>"+tok+"</div>");
       }
       this.streamUntilIn( ["```"]);
@@ -496,7 +603,7 @@ Polyglot_Fmt.prototype ={
     var name = "nut_"+(this.blobCounter-1);
     // To end of line or closing brace.
     var line = this.getBraced();
-    line = line.replace(/^(.*),(.*)$/gi, `<span class='popbox_link' onmouseover="showTipBoxFromDiv(event,'${name}')" onclick="location.href='#$1';">$2</span>`); 
+    line = line.replace(/^(.*),(.*)$/gi, `<span class='popbox_link' onmouseover="OnFns.showTipBoxFromDiv(event,'${name}')" onclick="location.href='#$1';">$2</span>`); 
     this.html.push(line);
   }, 
   // also used by Footnote
@@ -509,7 +616,7 @@ Polyglot_Fmt.prototype ={
       name = matches[1];
       line = matches[2];
     }
-    line = `<span class='popbox_link' onmouseover="showTipBoxFromDiv(event,'${name}')">${line}</span>`; 
+    line = `<span class='popbox_link' onmouseover="OnFns.showTipBoxFromDiv(event,'${name}')">${line}</span>`; 
     this.html.push(line);
   }, 
   handleFootnote(  ){
@@ -518,16 +625,16 @@ Polyglot_Fmt.prototype ={
     // Closing the link on click is necessary to get scrolling to
     // complete on Chrome. Without it, the tip closes during scrolling
     // and this disrupts scrolling and scrolling ends.
-    var line = `<sup><a href="#${Registrar.repo};${Registrar.page}!footer_${name}" class='popbox_link' onclick="closeTip();" id='footer_ref${name}' onmouseover="showTipBoxFromDiv(event,'footer_${name}')">${name}</a></sup>`; 
+    var line = `<sup><a href="#${Registrar.repo};${Registrar.page}!footnote_${name}" class='popbox_link' onclick="OnFns.closeTip();" id='footnote_ref${name}' onmouseover="OnFns.showTipBoxFromDiv(event,'footnote_${name}')">${name}</a></sup>`; 
     this.html.push(line);
   }, 
   handleFootnoteRef(  ){
     // To end of line or closing brace.
     var name = this.getBraced();
-    this.html.push(`<a href="#${Registrar.repo};${Registrar.page}!footer_ref${name}"><sup>${name}</sup></a>`);
-    this.html.push(`<span id='footer_${name}'>`);
-    choice = this.untilIn( ["#FootnoteEnd"]);
-    this.getTok();
+    this.html.push(`<a href="#${Registrar.repo};${Registrar.page}!footnote_ref${name}"><sup>${name}</sup></a>`);
+    this.html.push(`<span id='footnote_${name}'>`);
+    choice = this.untilIn( ["#FootnoteEnd","#FootnoteRef"]);
+    //this.getTok();
     this.html.push(`</span>`);
   }, 
   // Very like footnote, but can be to a different page.
@@ -536,7 +643,7 @@ Polyglot_Fmt.prototype ={
     var args = this.getArgs();
     var page = args[0];
     var name = args[1];
-    var line = `<a href="#${Registrar.repo};${page}!${prefix}${name}" class='popbox_link' onclick="closeTip();" onmouseover="showTipBoxFromDiv(event,'${prefix}${name}')">${name}</a>`; 
+    var line = `<a href="#${Registrar.repo};${page}!${prefix}${name}" class='popbox_link' onclick="OnFns.closeTip();" onmouseover="OnFns.showTipBoxFromDiv(event,'${prefix}${name}')">${name}</a>`; 
     this.html.push(line);
   }, 
   handleEqn(){
@@ -615,7 +722,7 @@ Polyglot_Fmt.prototype ={
     var name = "nut_"+(this.blobCounter++);
     var repo = Registrar.repo;
 
-    this.html.push( `<span class='${classname}' onmouseover=\"showTipBoxFromDiv(event,'${name}');\">`);
+    this.html.push( `<span class='${classname}' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\">`);
     this.untilEol();
     this.html.push('</span>');
     this.getTok();
@@ -637,7 +744,7 @@ Polyglot_Fmt.prototype ={
     var repo = Registrar.repo;
     if( !url.match(";"))
       url = repo+';'+url; 
-    this.html.push( `<span class='popbox_link' onmouseover=\"showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
+    this.html.push( `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
     this.untilEol();
     this.html.push( toks.join(" "));
     this.html.push('</span>');
@@ -646,28 +753,40 @@ Polyglot_Fmt.prototype ={
     this.handleGroup();
     this.html.push('</span>');
   }, 
+  handlePop(){
+    var name = "nut_"+(this.blobCounter++);
+    //var toks = this.getTok().trim();
+    this.html.push( `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\">`);
+    this.untilEol();
+    //this.html.push( toks );
+    this.html.push('</span>');
+    //this.getTok();
+    this.html.push(`<span id='${name}' style='display:none'>` );
+    this.handleGroup();
+    this.html.push('</span>');
+  },  
   handleUFO(){
     var name = "nut_"+(this.blobCounter++);
     this.handleFn( 
-      `<span class='popbox_link' onmouseover=\"showTipBoxFromDiv(event,'${name}');\">🛸 `,
+      `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\">🛸 `,
       `</span><span id='${name}' style='display:none'><h1>🛸 UFO</h1>A plan for the far future.</span>` );
   },
   handleRock(){
     var name = "nut_"+(this.blobCounter++);
     this.handleFn( 
-      `<span class='popbox_link' onmouseover=\"showTipBoxFromDiv(event,'${name}');\">🚀 `,
+      `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\">🚀 `,
       `</span><span id='${name}' style='display:none'><h1>🚀 Rocket</h1>A plan for the near future.</span>` );
   },
   handleBoat(){
     var name = "nut_"+(this.blobCounter++);
     this.handleFn( 
-      `<span class='popbox_link' onmouseover=\"showTipBoxFromDiv(event,'${name}');\">⛵ `,
+      `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\">⛵ `,
       `</span><span id='${name}' style='display:none'><h1>⛵ Boat</h1>Code from the past needs updating.</span>` );
   },
   handlePen(){
     var name = "nut_"+(this.blobCounter++);
     this.handleFn( 
-      `<span class='popbox_link' onmouseover=\"showTipBoxFromDiv(event,'${name}');\">🖋️ `,
+      `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\">🖋️ `,
       `</span><span id='${name}' style='display:none'><h1>🖋️Writings (WIP)</h1>Explainer still being written. (Work in Progress)</span>` );
   },
   handleSidebar(){
@@ -705,7 +824,7 @@ Polyglot_Fmt.prototype ={
     else 
       initialState = `<span id=\"${name}y\" style='color:${c1};'>►</span><span id=\"${name}n\" style='display:none;color:${c1};'>▼</span>`;
     var showDiv = plus?"":"display:none;"
-    this.html.push( `<br><div class='dropdown' style='background:${c2};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;' onClick='DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
+    this.html.push( `<div class='dropdown' style='background:${c2};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;' onClick='DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
     var choice = this.untilEol();
     this.html.push(`</div><div id=\"${name}\" style='background:${c3};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:100%;${showDiv}'>`);
     this.getTok();
@@ -723,6 +842,17 @@ Polyglot_Fmt.prototype ={
     this.html.push("</s>");
     this.strike=false;
   },   
+  handleCode( ){
+    this.bold = !this.bold || 0;
+    if( this.bold){
+      this.html.push("<span class='example'>");
+      var choice = this.untilIn( ["\r\n",")","#GetCode("]);
+      if( choice!="\r\n")
+        this.getTok();
+    }
+    this.html.push("</span>");
+    this.bold=false;
+  },
   handleBold( ){
     this.bold = !this.bold || 0;
     if( this.bold){
@@ -765,12 +895,24 @@ Polyglot_Fmt.prototype ={
   handleIgnore( ){
     return ;
   },
-  handleToken( ){
-    var token = this.getTok();
-    var translation = this.fns[token];
-    if( !translation){
-      if( token.startsWith("\r\n"))
-        this.html.push("<br>");
+  handleToken( tok ){
+    var token = tok || this.getTok();
+    var translation = null;
+    // Test using hasOwnProperty, otherwise properties like
+    // fill() which we didn't add to fns are included too.
+    if( this.fns.hasOwnProperty( token ))
+      translation = this.fns[token];
+    else {
+      if( token.startsWith("\r\n")){
+        if( token.startsWith("\r\n#"))
+          ;
+        else if( token.startsWith("\r\n>"))
+          ;
+        if( token.startsWith("\r\n*"))
+          ;
+        else
+          ;//this.html.push("<br>");
+      }
       this.html.push( token );
       return;
     }
@@ -784,14 +926,61 @@ Polyglot_Fmt.prototype ={
     fn.call( this, token);
     return;
   },
+  // This is a hacky fix up for partially org mode docs,
+  // in lieu of properly converting them into markdown first.
+  orgModeFixUpOf( str ){
+    // the italic fix dance...
+    // The voodoo we're doing with $ here is to split the
+    // string into text islands and LaTeX/Other islands.
+    // for both $$ and $ LaTeX blocks and ``` blocks.
+    // The magic we use here is that we will be ignoring 
+    // the odd islands, so we trick $$ into being an odd island.
+    str = str.replace(/\$\$/g, "$$=$$=$$");
+    // protect islands...
+    str = str.replace(/```/g, "$$XXX");
+    // protect marked out /
+    str = str.replace(/#\//g, "$$/$$");
+    str = str.split("\$");
+    // Just transform the even numbered islands.
+    for(var i=0;i<str.length;i+=2){
+      str[i] = str[i].replace( /\//g,"\*");
+      // also fix super and subscripts...
+      str[i] = str[i].replace( /(\^\{\S*?\})/g, "$$$1$$");
+      str[i] = str[i].replace( /(\_\{\S*?\})/g, "$$$1$$");
+    }
+    str=str.join('\$');
+    // restore in reverse order....
+    str = str.replace(/\$\/\$/g, "/");
+    str = str.replace(/\$XXX/g, "```");
+    str = str.replace( /\$=\$=\$/g,"$$$$");
+    // end of italic fix dance
+
+    str = str.replace( /\#\+RESULTS.*/g, "" );
+    str = str.replace( /\r\n: .*/g, "" );
+    str = str.replace( /\r\n\r\n\r\n/g, "\r\n\r\n" );
+    str = str.replace( /\r\n\r\n\r\n/g, "\r\n\r\n" );
+    str = str.replace( /\r\n\r\n\r\n/g, "\r\n\r\n" );
+    str = str.replace( /\r\n\r\n\r\n/g, "\r\n\r\n" );
+    str = str.replace( /```\r\n\r\n/g, "```\r\n" );
+    str = str.replace( /```\r\n\r\n/g, "```\r\n" );
+    str = str.replace( /```\r\n\r\n/g, "```\r\n" );
+    str = str.replace( /\$\$\r\n\r\n/g, "$$$$\r\n" );
+    str = str.replace( /\$\$\r\n\r\n/g, "$$$$\r\n" );
+    return str;
+  },
   htmlOf( str ){
     str = str || "Polyglot!";
     str = "LEADER\r\n"+str;
+
+    // very hacky - detect org mode on pages that say '#page'.
+    if( str.includes('#page('))
+      str = this.orgModeFixUpOf( str );
+
     // This is our complete tokenizer!
     // Our tokens are either the things matched here
     // OR they are the strings between.
     // We discard empty tokens.
-    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#[a-zA-Z0-9]+\(?|\r\n#+ |##+|#\)|# |\)|\(|`+|\+|\-|\r\n\*+|\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
+    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n#+ |##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
     this.tk = 1;
     this.html = [];
     while( this.tk < this.tokens.length )

@@ -1,3 +1,5 @@
+
+
 //Modules register with the registrar.  Once this is all done, the code knows what all the modules are.
 function Registrar(){
   this.modules = {};
@@ -44,5 +46,8 @@ Registrar.prototype ={
   }
 }
 
-Registrar = new Registrar();
+var Registrar = new Registrar();
+var RR = Registrar;
+// These are functions made callable from onclick handlers.
+var OnFns = Registrar;
 

@@ -13,6 +13,7 @@ function setLocalRepo( repo, file ){
 
   file = file || 'index';
   repo = repo || Registrar.repo;
+  var srcUrl = Registrar.urlPrefix +repo+"/"+Registrar.urlSuffix;
 
   file=file.split("!");
 
@@ -23,7 +24,6 @@ function setLocalRepo( repo, file ){
     DomUtils.scrollToDiv(Registrar.anchor);
     return;
   }
-  var srcUrl = '';
   Registrar.page = file;
   Registrar.repo = repo;
   Registrar.wikiSrc = srcUrl +  'wiki/',

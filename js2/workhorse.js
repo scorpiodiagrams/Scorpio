@@ -23,7 +23,7 @@ function Exports(){
   window.antiTransformXy = antiTransformXy;
   window.drawLineLabelAndText = drawLineLabelAndText;
   window.drawWigglyLine = drawWigglyLine;
-  window.drawStraightLabel = drawStraightLabel;
+  window.drawScorpioLabel = drawScorpioLabel;
   // for ruler.
   window.drawRulerMark = drawRulerMark;
   //window.drawDraggers = drawDraggers;
@@ -148,7 +148,7 @@ function drawMindMap( A, obj, d ){
         S.stage = kStageFillAndText;
         if( quad.status == 'arrived' )
           S.imageSource = getImageSource(A,quad,S);
-        drawTexture(A, quad, S);
+        RR.drawTexture(A, quad, S);
       }
     }
 //      drawTexture( A, quad, d );
@@ -266,13 +266,6 @@ function drawLineLabelAndText(A, taper, d){
   //   1 - add extra space right
   //   0.5 - average of the two above.
 
-
-//  extraSpaceLeft = 0;
-//  extraSpaceRight = 0;
-
-  // 0.5 -> * 0.5
-  // 1.0 -> * 0
-  // 0   -> * 0
   // With this adjustment, the text stays rock solid still.
   taper.textAdjust = (align-1)*extraSpaceLeft + align*extraSpaceRight; 
 
@@ -299,20 +292,19 @@ function drawLineLabelAndText(A, taper, d){
   else
     unitVec = Vector2d( 1,0);
 
-
   t = taper.textAt;
   if( !t )
     debugger;
 
   // The alignement of the 'block' of text in the 
   // shield is always central.
-  var leftAdj  = unitVec.mul( ( -0.5 )* textWidth);
-  var rightAdj = unitVec.mul( ( 0.5 )*textWidth)
+  var leftAdj  = unitVec.mul( ( -0.5 ) * textWidth);
+  var rightAdj = unitVec.mul( (  0.5 ) * textWidth);
 
   t.v0 = t.v0.add( leftAdj );
   t.v1 = t.v1.add( rightAdj );
 
-  leftAdj  = unitVec.mul( extraSpaceLeft );
+  leftAdj  = unitVec.mul(  extraSpaceLeft );
   rightAdj = unitVec.mul( -extraSpaceRight )
 
   var reducedHeight = taper.height - 0.4;
@@ -433,14 +425,11 @@ function copyDiagram( A, obj, d ){
 }
 
 function drawSubDiagram( A, obj, d){
-  diagramName = obj.subdiagram;
-  for( var i in AnnotatorList){
-    var AA = AnnotatorList[i];
-    if( AA.SpecName == diagramName ){
-      d.imageSource = AA;
-      copyDiagram( A, obj, d );
-      return;
-    }
+  var AA = RR.getNamedAnnotator( obj.subdiagram );
+  if( AA ){
+    d.imageSource = AA;
+    copyDiagram( A, obj, d );
+    return;
   }
   drawMindMapLabel(A,obj,d);
 }
@@ -678,7 +667,6 @@ function drawEndShapes( ctx, v, perp, along, endSize, lineWidth, codes )
 
 function getEndShape( codes )
 {
-
   if( !codes )
     return "(";
   for( code of codes ){
@@ -737,9 +725,8 @@ function drawWigglyLine( ctx, v0, v1, wiggleCount, bend){
 
 }
 
+// To become subsumed into 'drawTaper'
 function drawStyledLine( A, obj, d){
-//  if( !obj.lineType1 )
-//    return;
 
   if( !obj.lineAt )
     return;
@@ -770,7 +757,6 @@ function drawStyledLine( A, obj, d){
   }
   if( obj.taperIs == 'label' )
     theta = 0;
-
 
   if( /*!obj.label &&*/ d.dddStyle.lineExtend )
   {
@@ -834,9 +820,6 @@ function drawStyledLine( A, obj, d){
   drawEndShapes( ctx, v1, disp.mul(-1).rot(-theta), along.rot(-theta), -endSize, -lineWidth, codes );
 
   ctx.restore();
-
-  //obj.endShape1 = '[';
-  //obj.endShape2 = '[';
 }
 
 function getTaperLoc(A,obj,d){
@@ -845,6 +828,8 @@ function getTaperLoc(A,obj,d){
   return obj.TextLocs;
 }
 
+
+// This is due to engulf 'drawStyledLine'
 function drawTaper(A, obj, d){
 
   var ctx = getCtx( A, obj, d );
@@ -863,10 +848,12 @@ function drawTaper(A, obj, d){
   else if( d.stage == kStageFillAndTextEarly)
     style.outline = null;
   style.colourScheme = d.dddStyle.colourScheme;
-  style.lineWidth = d.dddStyle.lineWidth || 6;
-  style.rgbText = d.dddStyle.rgbText;
+  style.lineWidth    = d.dddStyle.lineWidth || 6;
+  style.rgbText      = d.dddStyle.rgbText;
 
-  var src = (obj.taperIs == 'label') ? obj.textAt:obj.lineAt;
+  var bLabel = obj.taperIs == 'label';
+
+  var src = bLabel ? obj.textAt : obj.lineAt;
   var {v0,v1,r0,r1} = src;
 
   // this disp is an external displacement to a taper.
@@ -881,27 +868,19 @@ function drawTaper(A, obj, d){
   // extending the ends.
   // it's relevant for a taper used as a bond.
   var disp = v1.sub( v0 ).normalized();
-
   var dperp = disp.perp();
 
   // No link width?  Use the radius, so that it is a taper.
   var dperp0 = dperp.mul( r0 );
   var dperp1 = dperp.mul( r1 );
-
   
-  var bend;
   // ends need to take account of bends...
   var theta = 0;
-  if( d.dddStyle.bend )
-    bend = d.dddStyle.bend;
-  if( obj.bend )
-    bend = obj.bend;
+  // no bend if a label.
+  var bend = (!bLabel && (obj.bend || d.dddStyle.bend))||0;
   if( bend ){
     theta = Math.atan( (bend *2)/100 );
   }
-  if( obj.taperIs == 'label' )
-    theta = 0;
-
 
   if( !obj.label && d.dddStyle.lineExtend )
   {
@@ -927,56 +906,48 @@ function drawTaper(A, obj, d){
       obj.rgbCurrentText = "#d0d0d0";
     }
   }
-  style.bevel = d.dddStyle.bevel;
-  style.bend  = bend;
-  if( obj.taperIs == 'label' )  
-    drawStraightLabel( ctx, obj, style, va, vb, vc, vd );
-  else 
-    drawCurvedLabel( ctx, obj, style, va, vb, vc, vd );
+  //style.bevel = d.dddStyle.bevel;
+
+  var proxyObj = {};
+  if( bLabel ){
+    proxyObj.endShape1 = obj.endShape1 || "(";
+    proxyObj.endShape2 = obj.endShape2 || ")";
+  }
+  else {
+    proxyObj.endShape1 = getEndShape( obj.lineEndShape1 );
+    proxyObj.endShape2 = getEndShape( obj.lineEndShape2 );
+  }
+  if( bend ){
+    setInOutBend( "bend",     `C 25 ${bend} 75 ${bend} 100 0` );
+    setInOutBend( "antibend", `C 25 ${-bend} 75 ${-bend} 100 0` );
+    proxyObj.topEdge = "bend";
+    proxyObj.botEdge = "antibend";
+    proxyObj.bevel   = false;
+  }
+  else {
+    proxyObj.topEdge = (obj.inStem  && "InStem")  || "straight";
+    proxyObj.botEdge = (obj.outStem && "OutStem") || "straight";
+    proxyObj.bevel   = d.dddStyle.bevel;
+  }
+
+  drawScorpioLabel( ctx, proxyObj, style, va, vb, vc, vd );
 }
 
-function drawStraightLabel( ctx, obj, style, va, vb, vc, vd )
+function drawScorpioLabel( ctx, obj, style, va, vb, vc, vd )
 {
   var s = new Shape();
   s.addPoints( va, vb, vc, vd );
   var wartList = new Shape();
 
-  // clockwise, from top right.
+  // clockwise, from bottom left
   wartList.addEdges( 
-    obj.endShape1 || "(", 
-    (obj.inStem && "InStem") || "straight", 
-    obj.endShape2 || "(", 
-    (obj.outStem && "OutStem") || "straight" 
+    obj.endShape1, obj.topEdge, 
+    obj.endShape2, obj.botEdge
   );
   s = s.addWarts( wartList );
   s = s.reduce();
-  if( style && style.bevel )
-    s = s.bevelCorners( style.bevel );
-  s.draw( ctx, style );
-}
-
-function drawCurvedLabel( ctx, obj, style, va, vb, vc, vd )
-{
-  var s = new Shape();
-  s.addPoints( va, vb, vc, vd );
-  var wartList = new Shape();
-
-  bbend = (style.bend || 0);
-  setInOutBend( "bend", `C 25 ${bbend} 75 ${bbend} 100 0` );
-  setInOutBend( "antibend", `C 25 ${-bbend} 75 ${-bbend} 100 0` );
-
-  var end1 = getEndShape( obj.lineEndShape1 );
-  var end2 = getEndShape( obj.lineEndShape2 );
-
-  // clockwise, from top right.
-  wartList.addEdges( 
-    end1, 
-    "bend", 
-    end2, 
-    "antibend" 
-  );
-  s = s.addWarts( wartList );
-  s = s.reduce();
+  if( obj.bevel )
+    s = s.bevelCorners( obj.bevel );
   s.draw( ctx, style );
 }
 
@@ -995,9 +966,6 @@ function drawQuad( A, obj, d){
   }
   s.draw( ctx, d.style );
 }
-
-
-
 
 function thetaOfConnection( obj, con){
   var a = obj.atoms[1];
@@ -1277,35 +1245,6 @@ Ruler.prototype = {
 var Ruler = new Ruler();
 
 
-function createIcon(A,obj,d){
-  A.fonty = new Fonty();
-}
-
-function drawIcon(A,obj,d){
-  var f = A.fonty;
-  f.ctx = A.BackingCanvas.ctx;
-  f.x = 30;
-  f.y = 30;
-  f.P.fyMidH = 0.4;
-  f.drawLetter("D");
-  f.drawLetter("U");
-  f.drawLetter("B");
-  f.drawLetter("I");
-  f.drawLetter("O");
-  f.drawLetter("U");
-  f.drawLetter("S");
-  f.x = 60;
-  f.y = 160;
-  f.drawLetter("F");
-  f.drawFace("F");
-  f.P.fyMidH = 0.6;
-  f.drawFace("F");
-  f.drawLetter("A");
-  f.drawLetter("C");
-  f.drawLetter("E");
-  f.drawLetter("S");
-}
-
 function registerWorkhorseMethods()
 {
   var reg = registerMethod; // abbreviation.
@@ -1315,7 +1254,6 @@ function registerWorkhorseMethods()
   reg( "Atom",    0,0, layoutAtom, drawAtom);
   reg( "Bond",    0,0, layoutBond, drawBond);
   reg( "Ruler",   createRuler,0, layoutMargined, drawRuler);
-  reg( "Icon",    createIcon, 0, 0, drawIcon);
 
   reg = registerReadWrite;
   reg( "MindMap",         readMindMap,         writeMindMap);

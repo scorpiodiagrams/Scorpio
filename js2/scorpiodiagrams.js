@@ -1,375 +1,3 @@
-// MDN (Microsoft Developer Network) Polyfill for startsWith
-if( !String.prototype.startsWith ){
-  String.prototype.startsWith = function(searchString, position){
-    position = position || 0;
-    return this.substr(position, searchString.length) === searchString;
-  };
-}
-
-if (!String.prototype.endsWith) {
-  String.prototype.endsWith = function(search, this_len) {
-    if (this_len === undefined || this_len > this.length) {
-      this_len = this.length;
-    }
-    return this.substring(this_len - search.length, this_len) === search;
-  };
-}
-
-// Polyfill 
-if( !String.prototype.trimStart ){
-  String.prototype.trimStart = function(){
-    return this.replace( /^\s+/, '');
-  };
-}
-
-// Polyfill 
-if( !String.prototype.trimEnd ){
-  String.prototype.trimEnd = function(){
-    return this.replace( /\s+^/, '');
-  };
-}
-
-if( !String.prototype.replaceCharAt ){
-  String.prototype.replaceCharAt = function(index,chr) {
-      if(index > this.length-1) return this;
-      return this.substring(0,index) + chr + this.substring(index+1);
-  }
-}
-
-// Now some short generally useful functions...
-
-// Not a polyfill, but useful
-function replaceAll(str, find, replace) {
-  return str.replace(new RegExp(find, 'g'), replace);
-}
-
-function constrain( low, value, high ){
-  return Math.max( low, Math.min( value, high));
-}
-
-// >>>>>>>>>>>>>>>>>>>> Colour utilities...
-function rgbOfColourTuple( v ){
-  return "rgba(" + v[0] + "," + v[1] + "," + v[2] + "," + v[3] + ")";
-}
-
-function rgbOfJsonString(string){
-  var tuple = colourTupleOfJsonString(string);
-  return rgbOfColourTuple( tuple );
-}
-
-function colourTupleOfJsonString(string){
-  return JSON.parse(string);
-}
-
-function colourTupleOfRgb( rgb ){
-  var t = rgb.split( "(" )[1]||"0,0,0";
-  t = t.split(")")[0];
-  t = t.split(",");
-  t = t.map( Number );
-  return t;
-}
-
-// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-// rgbToHex and hexToRgb.
-function rgbToHex(r, g, b) {
-  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-}
-
-function hexToRgb(hex) {
-  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-  var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-  hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-    return r + r + g + g + b + b;
-  });
-
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? {
-    r: parseInt(result[1], 16),
-    g: parseInt(result[2], 16),
-    b: parseInt(result[3], 16)
-  } : null;
-}
-
-function colourBlend( a,b,t){
-  var x = {};
-  a = hexToRgb( a );
-  b = hexToRgb( b );
-  t = firstValid( t, 0.5);
-  x.r = Math.floor( a.r + t*(b.r-a.r) );
-  x.g = Math.floor( a.g + t*(b.g-a.g) );
-  x.b = Math.floor( a.b + t*(b.b-a.b) );
-  x = rgbToHex( x.r, x.g, x.b );
-  return x;
-}
-
-/**
- * Choose a text colour with sufficient contrast to a colour tuple.
- * @param c
- * @returns {string}
- */
-function textColourToContrastWithColourTuple( c ){
-  return ((c[0]+c[1]+c[2])>380) ? 'black':'white';
-}
-
-function textColourToContrastWithRgb( rgb ){
-  var c = colourTupleOfRgb( rgb );
-  return textColourToContrastWithColourTuple( c );
-}
-//----------- end of colour utilities.
-
-
-// format num to fit in n spaces.  We divide by d since some numbers are
-// scaled in various ways.  d is usually 1 though.
-function fmt( num, n, d ){
-  d = d ||1;
-  return ("                          "+Math.floor( num/d)).slice( - n );
-}
-
-// Save space with larger numbers by using K, M, G and T 'multipliers'
-function fmt2( num, d ){
-  d = d ||1;
-  var mul = " ";
-  num = num/d;
-  if( num > 100000 ){
-    num = num/1000;
-    mul = 'K';
-  }
-  if( num > 100000 ){
-    num = num/1000;
-    mul = 'M';
-  }
-  if( num > 100000 ){
-    num = num/1000;
-    mul = 'G';
-  }
-  if( num > 100000 ){
-    num = num/1000;
-    mul = 'T';
-  }
-  var n=6;
-
-  return ("                          "+Math.floor( num)).slice( - n )+mul;
-}
-
-function rand(n){
-  return Math.floor(Math.random() * n);
-}
-
-// float to byte
-function fToB(f){
-  return Math.floor(f*255) & 0xFF;
-}
-
-function isDefined(x){
-  var undef;
-  return x !== undef;
-}
-
-// These are constants for drawing stages.
-const kStageArrowShaft=1;
-const kStageDragging=2;
-const kStageOutlineEarly=3;
-const kStageFillAndTextEarly=4;
-const kStageOutline=5;
-const kStageFillAndText=6;
-const kStageArrowHead=9;
-const kStageHots=10;
-
-
-// Locs is deprecated. 
-// It used to use set locations, when on server.
-
-//---- Paths to various content, all relative to domain.
-function Locs(){
-  var prefix = window.location.protocol + "//" + window.location.hostname + "/";
-
-  this.imagesPath = prefix + "images/";
-  this.editPath = prefix + "edit.htm";
-  this.diagramPath = prefix + "diagrams/";
-  return this;
-}
-
-var Locs = new Locs();
-var LocalPages = [];
-
-
-
-function stringOfCoord( coord, mul ){
-  mul = mul || 1;
-  return "("+Math.floor(coord.x*mul)+","+Math.floor(coord.y*mul)+")";
-}
-
-function getXy( obj ){
-  return { 
-    "x"  : obj.x,
-    "y"  : obj.y,
-  }
-}
-
-function getBox( obj ){
-  return { 
-    "x"  : obj.pos.x,
-    "y"  : obj.pos.y,
-    "xw" : obj.rect.x,
-    "yh" : obj.rect.y
-  }
-}
-
-function makeLabelReplacerFn(obj){
-  var object = obj;
-
-  return function( i, str ){
-    var j;
-    for(j=0;j<object.titles.length;j++){
-      var field = "%"+object.titles[j].toLowerCase();
-      str = replaceAll( str, field, object.values[ i][j]);
-    }
-    return str;
-  };
-}
-
-
-// fudge factors that later will become proper parameters...
-var fudgeLineMargin = 5;// lines outside chart by 5 pixels.
-var fudgeLineDrop = 13;  // drop lines/bars down to contact axis labels.
-var fudgeBarDrop = 12.5;  // drop bars to fit exactly over lines.
-var fudgeStarDrop = 6; // drop stars slightly.
-var fudgeLabelDrop = 4; // line labels lower than lines
-var fudgeLabelMargin = 2; // labels to left
-
-/**
- * Rough and ready date to minutes function...
- * Intended for plotting.
- * NOT accurate (all months have same duration, and no leap years)
- * @param date in the format 07-Nov-2020
- * @returns {number} a time in minutes
- */
-function minutesFromDate(date ){
-  var d = date.split("-");
-  var months = "Jan.Feb.Mar.Apr.May.Jun.Jul.Aug.Sep.Oct.Nov.Dec.";
-  var day = Number(d[0]);
-  var month = months.indexOf( d[1]+".")/4;
-  var year = Number(d[2]);
-  var result = day + (356/12) * month + 356 * year;
-  result = result * 24 * 60 * 60;
-  return result;
-}
-
-function apportionHorizontalSpaceInT(T){
-  var spaceAvailable = T.xw - 2 * T.margin;
-  if( T.width ){
-    // If width of each item is given, then space between is what's left over
-    // Reduce by space for the drawn columns.
-    spaceAvailable -= T.width * T.rows * T.drawnCols;
-    T.spacer = spaceAvailable / (T.rows - 1);
-  } else {
-    // otherwise width of each item is determined by the spacing between.
-    T.spacer = T.spacer || 4;
-    // Reduce by the space used for the spacers.
-    // n groups with n-1 spacers between the groups.
-    spaceAvailable -= (T.rows - 1) * T.spacer;
-    T.width = spaceAvailable / (T.rows * T.drawnCols);
-  }
-  T.xScaler = (T.width * T.drawnCols + T.spacer);
-}
-
-function apportionVerticalSpaceInT(A, T){
-  // yScale when fully grown (also used for lines behind the graph)
-  T.yScalerMax = T.yh / (T.maxY - T.minY);
-  // yScale reduced, so that items grow.
-  T.yScaler = (Math.min(20, A.Status.time) / 20) * T.yScalerMax;
-  T.yh += T.margin - 10;
-}
-
-/**
- * The spacing is computed for barchart bars.
- *
- * @param A
- * @param T
- */
-function apportionSpaceInT(A, T){
-
-  T.rows = T.rows || T.values.length;
-
-  if( T.obj.display )
-    T.cols = T.cols || T.obj.display.length;
-  T.cols = T.cols || T.values[0].length;
-  T.drawnCols = (T.obj.display) ? T.obj.display.length - 1 : 1;
-
-  T.margin = 30;
-
-  apportionVerticalSpaceInT(A, T);
-  apportionHorizontalSpaceInT(T);
-}
-
-function xyOfIndexSnakey(i, T){
-  var row = Math.floor(i / T.n);
-  var col = i - row * T.n;
-  if( row % 2 ) col = T.n - col - 1;
-  var x = T.x0 + col * T.xSpacing;
-  var y = T.y0 + row * T.ySpacing;
-  if( T.isPath ){
-    T.theta = undefined;
-    if( i === 0 )
-      x -= T.xSpacing *0.75;
-    else if( i % T.n === 0 ){
-      T.theta = (3 * Math.PI / 2);
-      y -= T.ySpacing / 2;
-      T.thetaDirection = (row % 2) === 0;
-    }
-    // whether we extend or reduce depends on odd or even row.
-    // but code disabled as we want a snake's head.
-    //else if( i === T.maxv - 1 )
-    //  x += (1-2*( row % 2 ))*T.xSpacing*0.75;
-
-  }
-  return { "x": x, "y": y, "row":row , "theta": (row%2===0)?0:Math.PI };
-}
-
-/**
- * Uses current item to (optionally) update the style number
- * @param item - typically an item on a snake
- * @param style - a number representing a style for an item
- * @param A
- * @returns {number} - possibly updated style
- */
-function mayUpdateSpotStyle(item, style, A){
-  if( isDefined(item.snakeStyle) ){
-    style = item.snakeStyle;
-    if( isDefined(A.BrightObjects) ){
-      if( item.category !== A.BrightObjects ){
-        style = 0;
-      }
-    }
-  }
-  return style;
-}
-
-/**
- * Uses current item to (optionally) update the shape number
- * @param item
- * @param shape
- * @returns {number} - possibly updated shape
- */
-function mayUpdateSpotShape(item, shape){
-  if( isDefined(item.snakeShape) ){
-    shape = item.snakeShape;
-  }
-  return shape;
-}
-
-/**
- * returns first defined value.
- */
-function firstValid( a, b ){
-  if( isDefined( a ) )
-    return a;
-  return b;
-}
-
-// ^^ Above here, polyfiller and similar
-//------------------------------------------------
-// vv Below here, the actual code...
 
 
 Registrar.js.scorpiodiagrams_js = function( Registrar ){
@@ -384,6 +12,9 @@ var metaData =
 // Imports
 // var Vector2d = Registrar.classes.Vecotr2d
 
+var Annotator = Registrar.classes.Annotator;
+
+
 function Exports(){
   // Namespaced  formats classes and verbs
   // These are all for export.
@@ -391,11 +22,14 @@ function Exports(){
 //  Registrar.registerClass( Box );
   // Global Exports
   // These pollute the main namespace
+  RR.animateForOneDiagram = animateForOneDiagram;
+  RR.loadDiagram = loadDiagram;
+  RR.handleNewData = handleNewData;  
+
   window.registerMethod = registerMethod;
   window.registerReadWrite = registerReadWrite;
   window.layoutMargined = layoutMargined;
 
-  window.initContent = initContent;
   window.handleNewData = handleNewData;
   window.sanitiseHtml = sanitiseHtml;
   window.formatClassNames = formatClassNames;
@@ -428,8 +62,6 @@ function Exports(){
 
 //  window.transformXy = transformXy;
 //  window.drawLineLabelAndText = drawLineLabelAndText;
-//  window.drawWigglyLine = drawWigglyLine;
-//  window.drawStraightLabel = drawStraightLabel;
 }
 
 
@@ -571,7 +203,7 @@ function setCentreDraggerY(ruler, y){
     mid.yCentre = y;
 }
 
-function zoom( ruler, delta ){
+function zoom( A, ruler, delta ){
   if( !ruler )
     return;
   var itemsPerPixel = (ruler.atEnd-ruler.atStart)/ruler.rect.x;
@@ -935,17 +567,6 @@ function animateForOneDiagram(A){
   if( !A.Status.drawing )
     drawDiagram(A, A.RootObject, {});
 }
-
-function timerCallback(){
-  infoCardTimerCallback();
-  // Iterate through all the diagrams in the document.
-  for(var i=0;i<AnnotatorList.length;i++){
-    A = AnnotatorList[i];
-    //A.timeoutsForOneDiagram();
-    animateForOneDiagram(A);
-  }
-}
-
 
 /**
  * Where an object contains styling information, update the style from it.
@@ -1317,7 +938,7 @@ function rulerIndexFromX(x, ruler){
 function scaledYofItem(i, obj ){
   var {x,y,xw,yh} = getBox( obj );
 
-  var y1 = y + (graphFn( i, obj.perturb )*yh/2)+yh/2;
+  var y1 = y + (RR.graphFn( i, obj.perturb )*yh/2)+yh/2;
   return y1;
 }
 
@@ -1382,7 +1003,7 @@ function configureObject( object, T ){
 
 var spacedDrawFunctions = {
   "bar" : drawBar,
-  "label" : drawLabel,
+  "label" : drawGraphLabel,
   "pie" : drawDonut,
   "spot" : drawPlottedRect,
   "event" : drawEvent,
@@ -1423,7 +1044,7 @@ function drawDiagram(A, obj, d){
 
   // We're forcing diagrams to have an info hotspot
   // And we're placing it on top of any other hotspots.
-  drawInfoButtonHotspot(A);
+  A.drawInfoButtonHotspot();
   A.Status.drawing = false;
 }
 
@@ -1792,7 +1413,7 @@ function drawLabelHotspot(A, label, u){
   ctx2.restore();
 }
 
-function drawLabel(A,obj, T){
+function drawGraphLabel(A,obj, T){
   var i = T.i;
   var ix = T.ix;
 
@@ -2243,16 +1864,16 @@ function drawBugle(A, obj, d){
     t = i/k;
     s = t*t*(3-2*t);
     //s=t;
-    b = bulge(obj.bulge,obj.bulgeX,t);
-    a = tBlend(ala[0],ala[1],t);
+    b = RR.bulge(obj.bulge,obj.bulgeX,t);
+    a = RR.tBlend(ala[0],ala[1],t);
     ctx.lineTo(x + xw*t, y + dy0 + (dy1-dy0)*s-b*a);
   }
   for(i=k;i>=0;i--){
     t = i/k;
     s = t*t*(3-2*t);
     //s=t;
-    b = bulge(obj.bulge,obj.bulgeX,t);
-    a = tBlend(ala[0],ala[1],t);
+    b = RR.bulge(obj.bulge,obj.bulgeX,t);
+    a = RR.tBlend(ala[0],ala[1],t);
     ctx.lineTo(x + xw*t, y + dy0 + obj.widths[0] + (dy1-dy0+ obj.widths[1]-obj.widths[0])*s+b*(1-a));
   }
   ctx.closePath();
@@ -2577,21 +2198,21 @@ function drawSplineSegment( A, obj, d ){
     return;
 
   var t0 = 0;
-  var t1 = catmulLength( P0, P1 );
-  var d  = catmulLength( P1, P2 );
+  var t1 = RR.catmulLength( P0, P1 );
+  var d  = RR.catmulLength( P1, P2 );
   var t2 = t1+d;
-  var t3 = t2+catmulLength( P2, P3 );
+  var t3 = t2+RR.catmulLength( P2, P3 );
 
   var i;
   var lipid = {};
   var d2 = {}
-  d2.getCoordinate = getPCoord;
+  d2.getCoordinate = RR.getPCoord;
   lipid.scale = obj.scale;
   var k = Math.ceil((d*d)/(18*Math.abs(lipid.scale))); // every 18 px.
   for( i=0;i<k;i++){
     var t = t1 + d * ( 2*i+1)/(2*k);
-    lipid.P = catEval( t, t0,t1,t2,t3,P0,P1,P2,P3 );
-    var Pd = catEval( t+0.0001, t0,t1,t2,t3,P0,P1,P2,P3 );
+    lipid.P = RR.catEval( t, t0,t1,t2,t3,P0,P1,P2,P3 );
+    var Pd = RR.catEval( t+0.0001, t0,t1,t2,t3,P0,P1,P2,P3 );
 
     lipid.theta = Math.atan2( Pd.y-lipid.P.y, Pd.x-lipid.P.x);
     drawLipid( A, lipid, d2 );
@@ -2608,7 +2229,7 @@ function drawSpline(A,obj,d){
   A.Styles.head         = obj.head;
 
   d.sequence = arrows;
-  d.getCoordinate = getNextSequenceCoord;
+  d.getCoordinate = RR.getNextSequenceCoord;
 
   var segment = {};
   segment.scale = obj.scale ||1;
@@ -2780,7 +2401,7 @@ function drawImage(A, obj, d){
       S.isHotspot = false;
       S.stage = kStageFillAndText;
       S.imageSource = getImageSource(A,obj,S);
-      drawTexture(A, obj, S);
+      RR.drawTexture(A, obj, S);
     }
     return;
   }
@@ -3824,7 +3445,7 @@ function obeyCode(A,code){
     }
     else if( command === "zoom" ){
       activeObject = getObjectByName(A, code[i++]);
-      zoom(activeObject, A.zoom);
+      zoom(A, activeObject, A.zoom);
       drawDiagramAgain(A);
     }
     else if( command === "highlight" ){
@@ -4498,76 +4119,11 @@ Nozone.Zone = 0;
 
 var Message;
 var Message2;
-var timer = 0;
-
-function initContent( classes ){
-  if( classes ){
-  }
-  else {
-    classes = "atkContentDiv";
-    AnnotatorList = [];
-    if( typeof Scorpio_Fmt ){
-      Scorpio_Fmt.instance = 0;
-    }
-  }
-  var base = AnnotatorList.length;
-  var contentDivs = document.getElementsByClassName( classes );
-  for(var i=0;i<contentDivs.length;i++){
-    var A = new Annotator();
-    A.index = i+base;
-    A.page = DomUtils.getArg('page' + (i + base)) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
-    A.inner = contentDivs[i].innerHTML;
-
-    // Make the divs etc for the display.
-    A.createDomElement( contentDivs[i] );
-
-    // If it's an existing spec, update it with new data.
-    if( (base > 0 ) && (A.page === DomUtils.getArg('page0')) ){
-      var spec = Editors[0].MainDiv.value;
-      console.log( 'page0 handleNewData');
-      handleNewData( A, spec );
-    }
-    // else load it with new data.
-    else if( typeof LocalPages[ A.page ] !== 'undefined'){
-      console.log( `[${A.index}] LocalPages handleNewData`);
-      handleNewData( A, LocalPages[ A.page ] );
-    }
-    else {
-      loadDiagram(A, A.page, 'no', 1);
-    }
-  }
-  if( timer )
-    clearInterval( timer );
-  // Timer is for animation such as rotating earth.
-  timer = setInterval(timerCallback, 30);
-
-}
-
-function initEditors(){
-  regs();
-
-  var contentDivs = document.getElementsByClassName( "atkEditorDiv" );
-  for(var i=0;i<contentDivs.length;i++){
-    var A = {};
-    A.index = i;
-    A.page = DomUtils.getArg('page' + i) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
-    A.tab = DomUtils.getArg('action');
-
-    populateEditorElement( A, contentDivs[i] );
-    requestSpec(A,A.page, 'remote',1,handleEditorData);
-    Editors.push( A );
-
-    //loadDiagram( A, A.page, 'no',1);
-  }
-  initContent();
-  // Timer is for animation such as rotating earth.
-  //setInterval(timerCallback, 30);
-}
 
 function addPreview(){
   AnnotatorList.splice(1);
   console.log( "Removing annotator instance. "+AnnotatorList.length + " remain" );
-  initContent("atkContentDiv2");
+  RR.initContent("atkContentDiv2");
 }
 
 function populateEditorElement(A, contentHere){

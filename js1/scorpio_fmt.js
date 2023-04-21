@@ -81,7 +81,7 @@ Scorpio_Fmt.prototype ={
   },
 
   afterLoading(){
-    initContent();
+    RR.initContent();
     return;
   }
 

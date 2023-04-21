@@ -1,4 +1,36 @@
 
+
+
+Registrar.js.details_panel_js = function( Registrar ){
+
+var metaData = 
+{ 
+  version: "2023-04",
+  docString: "Details Panel (below the diagrams)"
+};
+
+// Imports
+var Annotators = RR.Annotators;
+
+function Exports(){
+  RR.appendDetailsPanelDivs = function(A){
+    return DetailsPanel.appendDivs(A);};
+
+  var DD = DetailsPanel;
+  // These are for the DOM elements we create.
+  // They are not used more widely.
+  OnFns.updateSize = DD.updateSize; 
+  OnFns.updateRotate = DD.updateRotate; 
+  OnFns.updateAnimate = DD.updateAnimate; 
+  OnFns.downloadImage = DD.downloadImage; 
+  OnFns.removeBackground = DD.removeBackground; 
+  OnFns.uploadImageTrampoline = DD.uploadImageTrampoline; 
+  OnFns.uploadSourceTrampoline = DD.uploadSourceTrampoline; 
+  OnFns.acceptImage = DD.acceptImage; 
+  OnFns.acceptInternalImage = DD.acceptInternalImage; 
+  OnFns.acceptSource = DD.acceptSource; 
+}
+
 /*
 Intention:
 Move all the hard coded strings into one section.
@@ -33,11 +65,11 @@ DetailsPanel.prototype ={
     <p>Here be mighty fine controllers for diverse things</p>
   <div class="slidecontainer">
     <span style="width:70px;display:inline-block;">Size:</span>
-    <input type="range" min="35" max="250" value="100" class="slider" style="width:200px" id="size${index}" oninput="DetailsPanel.updateSize(${index},this.value)"><br>
+    <input type="range" min="35" max="250" value="100" class="slider" style="width:200px" id="size${index}" oninput="OnFns.updateSize(${index},this.value)"><br>
     <span style="width:70px;display:inline-block;">Rotate:</span>
-    <input type="range" min="-36" max="36" value="0" class="slider" style="width:200px" id="rotate${index}" oninput="DetailsPanel.updateRotate(${index},this.value)"><br>
+    <input type="range" min="-36" max="36" value="0" class="slider" style="width:200px" id="rotate${index}" oninput="OnFns.updateRotate(${index},this.value)"><br>
     <span style="width:70px;display:inline-block;">Animate:</span>
-    <input type="range" min="0" max="100" value="0" class="slider" style="width:200px" id="animate${index}" oninput="DetailsPanel.updateAnimate(${index},this.value)">
+    <input type="range" min="0" max="100" value="0" class="slider" style="width:200px" id="animate${index}" oninput="OnFns.updateAnimate(${index},this.value)">
   </div>`  
   },
   tabEdit( index ){
@@ -52,9 +84,9 @@ DetailsPanel.prototype ={
     <h3 style='margin-top:10px;'>Download</h3>
     <p>Download a copy of the diagram.
     </p>
-    <button onclick='DetailsPanel.downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.<br>
-    <button onclick='DetailsPanel.downloadImage(${index},1)'>Diagram Spec</button> - Download a text version of the diagram.<br>
-    <button onclick='DetailsPanel.downloadImage(${index})'>Image</button> - Download a .png of the diagram.
+    <button onclick='OnFns.downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.<br>
+    <button onclick='OnFns.downloadImage(${index},1)'>Diagram Spec</button> - Download a text version of the diagram.<br>
+    <button onclick='OnFns.downloadImage(${index})'>Image</button> - Download a .png of the diagram.
     `
   },
   tabUpload( index ){
@@ -62,19 +94,19 @@ DetailsPanel.prototype ={
     <h3 style='margin-top:10px;'>Upload</h3>
     Upload an image to use as a background for your diagram.<br><br>
     <div>
-    <button id='noBackground${index}' onclick='DetailsPanel.removeBackground(${index})' disabled>No Background</button>
+    <button id='noBackground${index}' onclick='OnFns.removeBackground(${index})' disabled>No Background</button>
     <label for="fileUpload${index}" class="fileUpload">
-      <button onclick='DetailsPanel.uploadImageTrampoline(${index})'>New Background</button>
+      <button onclick='OnFns.uploadImageTrampoline(${index})'>New Background</button>
     </label>
     <span id='fileName${index}'>No File Uploaded yet.</span>
     </div><br>
     Upload a diagram spec to replace this diagram.<br><br>
-    <button onclick='DetailsPanel.uploadSourceTrampoline(${index})'>Load Spec</button> - Use a Scorpio spec you made earlier.
+    <button onclick='OnFns.uploadSourceTrampoline(${index})'>Load Spec</button> - Use a Scorpio spec you made earlier.
     <div style='display:none'>
-    <input id='imageUpload${index}' type='file' onChange="acceptImage(this,${index})"/>
+    <input id='imageUpload${index}' type='file' onChange="OnFns.acceptImage(this,${index})"/>
     <br><img id="uploadedImg${index}" src="#"></img>
-    <img id="internalImg${index}" onload="DetailsPanel.acceptInternalImage(${index})" src="#"></img>
-    <input id='sourceUpload${index}' type='file' onChange="DetailsPanel.acceptSource(this,${index})"/>
+    <img id="internalImg${index}" onload="OnFns.acceptInternalImage(${index})" src="#"></img>
+    <input id='sourceUpload${index}' type='file' onChange="OnFns.acceptSource(this,${index})"/>
     </div>
     `
   },
@@ -91,7 +123,7 @@ DetailsPanel.prototype ={
   // Panel functions....
   updateSize( index, value ){
     //console.log( "Size ", value);
-    var A = AnnotatorList[ index ];
+    var A = Annotators.AOfIndex(index);
     var obj = A.RootObject;
     obj.content[1].size = value;
     Editor.updateSource( index )
@@ -99,14 +131,16 @@ DetailsPanel.prototype ={
   },
   updateRotate( index, value ){
     //console.log( "Rotate ", value * 5);
-    var A = AnnotatorList[ index ];
+    var A = Annotators.AOfIndex(index);
     var obj = A.RootObject;
     obj.content[1].rotate = value * 5;
     Editor.updateSource( index )
     drawDiagramAgain(A);
   },
   updateAnimate( index, value ){
-    var A = AnnotatorList[ index ];
+    var A = Annotators.AOfIndex(index);
+    if( !A.pagesLoaded )
+      return;
     var obj = A.RootObject;
     obj.content[1].animate = value;
 
@@ -123,42 +157,44 @@ DetailsPanel.prototype ={
     drawDiagramAgain(A);
   },
   downloadImage( index, mode ){
+    // Don't use 'this' since we may be called without one.
+    var DP = DetailsPanel;
     if( mode == 1)
-      this.doDownloadSource(index);
+      DP.doDownloadSource(index);
     else if( mode == 2)
-      this.doDownloadSnippet(index);
+      DP.doDownloadSnippet(index);
     else if( mode == 3)
-      this.doDownloadJavascript(index);
+      DP.doDownloadJson(index);
     else
-      this.doDownloadImage(index);
+      DP.doDownloadImage(index);
   },
   doDownloadImage(index){
-    var A = AnnotatorList[index];
+    var A = Annotators.AOfIndex(index);
     if( !A.Status.isAppReady ) return;
     var dataUrl = A.BackingCanvas.toDataURL("image/png");
     //alert( "Download! "+dataUrl);
     Loader.downloadDurl( A.SpecName + ".png" , dataUrl );
   },
   doDownloadSource( index ){
-    var A = AnnotatorList[index];
+    var A = Annotators.AOfIndex(index);
     if( !A.Status.isAppReady ) return;
-    var str = getTextVersion( index );
+    var str = RR.getTextVersion( index );
     var dataUrl = Loader.durlOfText( str );
     //alert( "Download! "+dataUrl);
     Loader.downloadDurl( A.SpecName + ".txt" , dataUrl );
     console.log( str );
   },
   doDownloadSnippet( index ){
-    var A = AnnotatorList[index];
+    var A = Annotators.AOfIndex(index);
     if( !A.Status.isAppReady ) return;
-    var str = getTextVersion( index );
+    var str = RR.getTextVersion( index );
     str = str.replace(/\\/g,"\\\\");
     str =
   `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="utf-8">
-      <script data-cfasync="false" src="http://www.scorpiodiagrams.com/scorpio/jsloader.js"></script>
+      <script data-cfasync="false" src="http://www.scorpiodiagrams.com/js2/jsloader.js"></script>
       <script type="text/javascript">
 
         // Load the modules you'll be using...
@@ -191,10 +227,10 @@ DetailsPanel.prototype ={
     Loader.downloadDurl( A.SpecName + ".html" , dataUrl );
     console.log( str );
   },
-  doDownloadJavascript( index ){
-    var A = AnnotatorList[index];
+  doDownloadJson( index ){
+    var A = Annotators.AOfIndex(index);
     if( !A.Status.isAppReady ) return;
-    var str = getJavascriptVersion( index );
+    var str = RR.getJsonVersion( index );
     var dataUrl = Loader.durlOfText( str );
     //alert( "Download! "+dataUrl);
     Loader.downloadDurl( A.SpecName + ".json" , dataUrl );
@@ -206,7 +242,7 @@ DetailsPanel.prototype ={
       img.onload = () => {
         //alert( `revoked image ${index} object ${img.src}`);
         URL.revokeObjectURL(img.src);  // 
-        var A = AnnotatorList[index];
+        var A = Annotators.AOfIndex(index);
         A.backgroundImg = img;
         drawDiagramAgain(A);
       }
@@ -222,6 +258,7 @@ DetailsPanel.prototype ={
     if (fileTag.files && fileTag.files[0]) {
 
       var fileName = fileTag.files[0].name;
+      // Uploaded file name... we kind of normalise the name.
       var matches;
       matches = fileName.match( /^.*(\/|\\)(.*?)$/);
       if( matches )
@@ -235,10 +272,10 @@ DetailsPanel.prototype ={
       const reader = new FileReader()
       reader.addEventListener('load', () => {
         console.log( reader.result);
-        var A = AnnotatorList[index];
+        var A = Annotators.AOfIndex(index);
         A.SpecName = fileName;
-        setTextVersion( index, "!!Scorpio"+reader.result );
-  //      var A = AnnotatorList[index];
+        RR.setTextVersion( index, "!!Scorpio"+reader.result );
+  //      var A = Annotators.AOfIndex(index);
   //      A.backgroundImg = img;
   //      drawDiagramAgain(A);
       })
@@ -246,7 +283,7 @@ DetailsPanel.prototype ={
     }  
   },
   acceptInternalImage( index ){
-    var A = AnnotatorList[index];
+    var A = Annotators.AOfIndex(index);
     A.internalImg = document.getElementById(`internalImg${index}`);
     A.receivedBackground = A.requestedBackground;
     drawDiagramAgain( A );
@@ -254,7 +291,7 @@ DetailsPanel.prototype ={
   removeBackground(index){
     var noBackground = document.getElementById(`noBackground${index}`);
     noBackground.disabled=true;
-    var A = AnnotatorList[index];
+    var A = Annotators.AOfIndex(index);
     A.backgroundImg = null;
     var name = document.getElementById(`fileName${index}`);
     name.innerHTML = "No File Uploaded";
@@ -304,6 +341,7 @@ DetailsPanel.prototype ={
     A.ToolHotspotsDiv.style.display = 'block';
   },
   appendDivs( A ){
+    this.makeDivs(A);
     var p = A.MainDiv;    
     p.appendChild(A.ToolsDiv);
     p = A.ToolsDiv;
@@ -321,3 +359,9 @@ DetailsPanel.prototype ={
 }
 
 DetailsPanel = new DetailsPanel();
+
+
+Exports();
+
+return metaData;
+}( Registrar );// end of details_panel_js

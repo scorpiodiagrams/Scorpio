@@ -94,7 +94,7 @@ function sidebarArrives(A, url, text)
   var str = module.htmlOfBlock( 'Polyglot', text );
 //  str = "<div class='outer'><div class='nut_content'>" + str +"</div></div>";
 //  var str = module.htmlOf( text );
-  showSidebar( str );
+  RR.showSidebar( str );
   // sets value, if the div is present.
   //DomUtils.setValue( "raw_output", text );
   //module.afterLoading( {"fmt_init":true});

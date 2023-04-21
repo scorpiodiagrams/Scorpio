@@ -1,3 +1,27 @@
+
+Registrar.js.curves_js = function( Registrar ){
+
+var metaData = 
+{ 
+  version: "2023-04",
+  docString: "Curves. A rough and ready graph function using Catmul blending. This file has two features. One is the catmul curve. The other is a cobbled together bulgy graph."
+};
+
+// Imports
+// var Vector2d = Registrar.classes.Vector2d
+// var Box = Registrar.classes.Box;
+
+function Exports(){
+  RR.graphFn = graphFn;
+  RR.bulge = bulge;
+  RR.tBlend = tBlend;
+
+  RR.getPCoord = getPCoord;
+  RR.getNextSequenceCoord = getNextSequenceCoord;
+  RR.catmulLength = catmulLength;
+  RR.catEval = catEval;
+}
+
 function getNextSequenceCoord( A, obj, d){
   return getCoordinateOffsetPlusLayout( A, d.sequence[ d.index++]);
 }
@@ -21,8 +45,6 @@ function getCoordinateOffsetPlusLayout( A, id ){
 
 }
 
-
-
 function catmulBlend(t, t0, t1, P0, P1 ){
   var b0 = (t1-t)/(t1-t0);
   var b1 = (t0-t)/(t0-t1);
@@ -43,12 +65,10 @@ function catmulBlendd2(t, t0, t1, P0, P1, P0d, P1d ){
   return {x:b0d*P0.x+b1d*P1.x+b0*P0d.x+b1*P1d.x,y:b0d*P0.y+b1d*P1.y+b0*P0d.y+b1*P1d.y};
 }
 
-
 function catmulLength( P0, P1 ){
   var x = (P1.x-P0.x);
   var y = (P1.y-P0.y);
   return Math.pow(((x*x)+(y*y)),0.25 );
-
 }
 
 function catEval( t, t0,t1,t2,t3,P0,P1,P2,P3 ){
@@ -202,3 +222,7 @@ function graphFn( x, perturb ){
   return hermiteBlend( y0, y1, t );
 }
 
+Exports();
+
+return metaData;
+}( Registrar );// end of curves_js

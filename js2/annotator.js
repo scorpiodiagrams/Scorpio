@@ -1,200 +1,58 @@
+
+
+Registrar.js.annotator_js = function( Registrar ){
+
+var metaData = 
+{ 
+  version: "2023-04",
+  docString: "Annotator Boxen. This is the Info Card box which has formatted markdown in it. Does a lot of the hotspot handling. Does the Focus layer of the diagram. Also has code to show the sidebar and the editor box. "
+};
+
+// Imports
+// var Vector2d = Registrar.classes.Vector2d
+// var Box = Registrar.classes.Box;
+
+function Exports(){
+  // Namespaced  formats classes and verbs
+  Registrar.registerClass( Annotator );
+  // These are all for export.
+  // Global Exports 
+  // These pollute the main namespace
+  RR.Annotators = Annotators;
+
+  Annotators.AOfIndex = function(index){
+    return AnnotatorList[index];}
+  OnFns.drawHotShape = drawHotShape;
+  OnFns.onMouseMove = onMouseMove;
+  OnFns.closeTip = closeTip;
+  OnFns.toggleToolsVisibility = toggleToolsVisibility;
+
+  RR.showSidebar = showSidebar;
+  RR.showTipBoxFromDiv = showTipBoxFromDiv;
+  RR.headingForDiv = headingForDiv;
+  RR.infoCardMove = infoCardMove;
+  RR.infoCardPos = infoCardPos;
+  RR.changeTipText = changeTipText;
+  RR.infoCardTimerCallback = infoCardTimerCallback;
+  RR.annotatorsTimerCallback = annotatorsTimerCallback;
+  RR.setTextVersion = setTextVersion;
+  RR.getTextVersion = getTextVersion;
+  RR.getJsonVersion = getJsonVersion;
+
+  RR.getNamedAnnotator = getNamedAnnotator;
+  RR.initContent = initContent;
+  RR.initEditors = initEditors;
+
+
+//  window.Jatex = Jatex;
+}
+
+// we export the annotator function AOfIndex via this variable.
+// We don't export anything else via it. Maybe we should and make
+// it clearer where the functions come from.
+var Annotators={};
+
 var AnnotatorList = [];
-
-
-
-function drawFocusSpot(A,x, y){
-
-  var ctx = A.FocusCanvas.ctx;
-
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
-
-  ctx.fillStyle = "rgba( 5,5,5,0.2)";
-  ctx.fillStyle = "#ffffff40";
-
-  // Bigger circle
-  ctx.beginPath();
-  ctx.arc(x, y, A.Focus.radius+15, 0, Math.PI * 2.0, true);
-  ctx.arc(x, y, A.Focus.radius, 0, Math.PI * 2.0, false);
-  ctx.closePath();
-  ctx.fill();
-}
-
-function drawInfoButtonHotspot(A){
-  var xw = 25;
-  var yh = 25;
-  var x = 5;
-  var y = 5;
-  var ctx2 = A.HotspotsCanvas.ctx;
-  ctx2.lineWidth = 0;
-  ctx2.beginPath();
-  ctx2.fillStyle = "rgba(0,0,5,1.0)";
-  //ctx2.rect(x, y, xw, yh);
-  ctx2.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
-  ctx2.fill();
-}
-
-function drawInfoButton(A){
-  var xw = 25;
-  var yh = 25;
-  var x = 5;
-  var y = 5;
-  var ctx = A.FocusCanvas.ctx;
-  ctx.lineWidth = 3;
-  ctx.font = "20px Times New Roman";
-  ctx.strokeStyle = "rgba( 55, 55,155,1.0)";
-  ctx.globalCompositeOperation = 'source-over';
-
-  ctx.beginPath();
-  ctx.fillStyle = "rgba(255,255,255,1.0)";
-
-  ctx.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = "rgba(0,0,0,1.0)";
-  ctx.fillText("i", x + 9, y + 19);
-}
-
-function drawFilledArrow(A, obj, S){
-  var ctx = A.FocusCanvas.ctx;
-
-  ctx.save();
-  ctx.beginPath();
-
-  ctx.translate(S.x, S.y);
-  ctx.rotate(S.theta);
-  ctx.translate( S.shaftWidth/2, 0 );
-
-  ctx.moveTo(0,S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, S.headWidth/2 );
-  ctx.lineTo( S.shaftLength+S.headLength, 0 );
-  ctx.lineTo( S.shaftLength, -S.headWidth/2 );
-  ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
-  ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
-  ctx.lineTo(0,-S.shaftWidth/2 );
-
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.restore();
-}
-
-// Draws arrows pointing North, South East and West
-// as an overlay.
-function drawFocusDragger(A,x, y){
-
-  var ctx = A.FocusCanvas.ctx;
-
-  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
-
-
-//  ctx.fillStyle = "rgba( 5,5,5,0.2)";
-  ctx.fillStyle = "#ffffff40";
-
-  var S={};
-  S.shaftWidth = 10;
-  S.shaftLength = 20;
-  S.headWidth = 30;
-  S.headLength = 25;
-  S.theta = 0;
-  S.x = x;
-  S.y = y;
-  S.style = "pointed";
-
-  drawFilledArrow(A, S, S);
-  S.theta = Math.PI/2;
-  drawFilledArrow(A, S, S);
-  S.theta = Math.PI;
-  drawFilledArrow(A, S, S);
-  S.theta = Math.PI*1.5;
-  drawFilledArrow(A, S, S);
-
-  ctx.beginPath();
-  var w = S.shaftWidth;
-  ctx.rect( x-w/2,y-w/2,w,w );
-  ctx.closePath();
-  ctx.fill();
-}
-
-/**
- * Recolours the hotspot image onto the focus layer.
- * Used from on-mouse events relating to the zones list.
- *
- * When we hover over the stripy all box or the individual colour
- * boxes, the related part of the image lights up.
- *
- * @param ix
- * @param action
- * @param colourMatch
- * @returns {number}
- */
-function drawHotShape(ix, action, colourMatch){
-  var A = AnnotatorList[ ix ];
-  var ctx = A.FocusCanvas.ctx;
-
-  if( !A.HotspotsCanvas.ctx ) return -1;
-
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
-
-  if( action === "clear" ){
-    A.Hotspots.lastHot = action;
-    return;
-  }
-
-  var drawAll = action === "drawAll";
-
-  var colourString;
-  if( drawAll )
-    colourString = "all";
-  else
-    colourString = rgbOfColourTuple(colourMatch);
-
-  // We'll cache the picked-out shape.
-  if( A.Hotspots.lastHot !== colourString ){
-    var c = colourMatch;
-
-
-    // colourWith is slightly faded so we can see image underneath.
-    var colourWith   = drawAll ? [255,255,255,200] : [ c[0],c[1],c[2],200];
-    var colourAbsent = [ 255,255,255, 200];
-    var drawAllOpacity = 230;
-    var w = A.Porthole.width;
-    var h = A.Porthole.height;
-    var pixels = A.HotspotsCanvas.ctx.getImageData(0, 0, w, h);
-    var d = pixels.data;
-    for( var i = 0; i < w * h * 4; i += 4 ){
-      if( drawAll  && d[i+3]<50){
-        d[i    ] = colourWith[0];
-        d[i + 1] = colourWith[1];
-        d[i + 2] = colourWith[2];
-        d[i + 3] = colourWith[3];
-      }
-      else if( drawAll ){
-        d[i + 3] = drawAllOpacity;
-      }
-      else if( d[i] === c[0] && d[i + 1] === c[1] && d[i + 2] === c[2] &&
-        d[i + 3] === c[3] ){
-        d[i    ] = colourWith[0];
-        d[i + 1] = colourWith[1];
-        d[i + 2] = colourWith[2];
-        d[i + 3] = colourWith[3];
-      } else if( colourAbsent[3] > 50) {
-        d[i    ] = colourAbsent[0];
-        d[i + 1] = colourAbsent[1];
-        d[i + 2] = colourAbsent[2];
-        d[i + 3] = colourAbsent[3];
-      }
-    }
-    A.Hotspots.lastHot = colourString;
-    A.Hotspots.pixels = pixels;
-  }
-
-  ctx.putImageData( A.Hotspots.pixels, 0, 0);
-}
-
 
 // Constructs an Annotator object
 // An Annotator object deals with one diagram on one canvas.
@@ -239,6 +97,125 @@ class Annotator{
     A.Styles.autolink = false;
     A.iter = 0;// For force directed layout.
     return this;
+  }
+
+  drawFocusSpot(x, y){
+    var A = this;
+    var ctx = A.FocusCanvas.ctx;
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
+
+    ctx.fillStyle = "rgba( 5,5,5,0.2)";
+    ctx.fillStyle = "#ffffff40";
+
+    // Bigger circle
+    ctx.beginPath();
+    ctx.arc(x, y, A.Focus.radius+15, 0, Math.PI * 2.0, true);
+    ctx.arc(x, y, A.Focus.radius, 0, Math.PI * 2.0, false);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawInfoButtonHotspot(){
+    var A = this;
+    var xw = 25;
+    var yh = 25;
+    var x = 5;
+    var y = 5;
+    var ctx2 = A.HotspotsCanvas.ctx;
+    ctx2.lineWidth = 0;
+    ctx2.beginPath();
+    ctx2.fillStyle = "rgba(0,0,5,1.0)";
+    //ctx2.rect(x, y, xw, yh);
+    ctx2.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
+    ctx2.fill();
+  }
+
+  drawInfoButton(){
+    var A = this;
+    var xw = 25;
+    var yh = 25;
+    var x = 5;
+    var y = 5;
+    var ctx = A.FocusCanvas.ctx;
+    ctx.lineWidth = 3;
+    ctx.font = "20px Times New Roman";
+    ctx.strokeStyle = "rgba( 55, 55,155,1.0)";
+    ctx.globalCompositeOperation = 'source-over';
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255,255,255,1.0)";
+
+    ctx.arc(x + xw / 2, y + yh / 2, xw / 2, 0, Math.PI * 2.0, true);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(0,0,0,1.0)";
+    ctx.fillText("i", x + 9, y + 19);
+  }
+
+  drawFilledArrow( obj, S){
+    var A = this;
+    var ctx = A.FocusCanvas.ctx;
+
+    ctx.save();
+    ctx.beginPath();
+
+    ctx.translate(S.x, S.y);
+    ctx.rotate(S.theta);
+    ctx.translate( S.shaftWidth/2, 0 );
+
+    ctx.moveTo(0,S.shaftWidth/2 );
+    ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
+    ctx.lineTo( S.shaftLength, S.shaftWidth/2 );
+    ctx.lineTo( S.shaftLength, S.headWidth/2 );
+    ctx.lineTo( S.shaftLength+S.headLength, 0 );
+    ctx.lineTo( S.shaftLength, -S.headWidth/2 );
+    ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
+    ctx.lineTo( S.shaftLength, -S.shaftWidth/2 );
+    ctx.lineTo(0,-S.shaftWidth/2 );
+
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Draws arrows pointing North, South East and West
+  // as an overlay.
+  drawFocusDragger(x, y){
+    var A = this;
+    var ctx = A.FocusCanvas.ctx;
+
+    ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
+
+
+  //  ctx.fillStyle = "rgba( 5,5,5,0.2)";
+    ctx.fillStyle = "#ffffff40";
+
+    var S={};
+    S.shaftWidth = 10;
+    S.shaftLength = 20;
+    S.headWidth = 30;
+    S.headLength = 25;
+    S.theta = 0;
+    S.x = x;
+    S.y = y;
+    S.style = "pointed";
+
+    A.drawFilledArrow(S, S);
+    S.theta = Math.PI/2;
+    A.drawFilledArrow(S, S);
+    S.theta = Math.PI;
+    A.drawFilledArrow(S, S);
+    S.theta = Math.PI*1.5;
+    A.drawFilledArrow(S, S);
+
+    ctx.beginPath();
+    var w = S.shaftWidth;
+    ctx.rect( x-w/2,y-w/2,w,w );
+    ctx.closePath();
+    ctx.fill();
   }
 
   // Sets the elements of the hotspots up, but does not 
@@ -363,8 +340,6 @@ class Annotator{
 
     A.CaptionDiv = document.createElement("div");
 
-    DetailsPanel.makeDivs( A );
-
     // InfoCard div floats above the white-out
     A.InfoCardDiv = document.createElement("div");
 
@@ -409,7 +384,7 @@ class Annotator{
     p.appendChild(A.FocusCanvas);
     p.appendChild(A.InfoCardDiv);
     p.appendChild(A.CaptionDiv);
-    DetailsPanel.appendDivs( A );
+    RR.appendDetailsPanelDivs( A );
 
     // Hotspot canvas and context do not need to be attached.
     A.resizeDivs();
@@ -556,11 +531,11 @@ class Annotator{
   drawFocusLayer( x, y){
     var A = this;
     if( A.Cursor === "dragger" ){
-      drawFocusDragger(A, x, y);
+      A.drawFocusDragger( x, y);
     } else {
-      drawFocusSpot(A, x, y);
+      A.drawFocusSpot( x, y);
     }
-    drawInfoButton(A);
+    A.drawInfoButton();
   }
 
   actionsFromCursorPos(x,y){
@@ -631,8 +606,8 @@ class Annotator{
     var A = this;
     var card = 
     "<h3>Hotspots</h3>This panel lists all the hotspot text for this diagram. The coloured boxes on the left will reveal where on the diagram the hotspots are, when you hover over them.<br clear='all'";
-    var clicker = "onmouseover='drawHotShape("+A.index+",\"drawAll\")'" +
-      " onmouseout='drawHotShape("+A.index+",\"clear\")' ";
+    var clicker = "onmouseover='OnFns.drawHotShape("+A.index+",\"drawAll\")'" +
+      " onmouseout='OnFns.drawHotShape("+A.index+",\"clear\")' ";
 
     var str = "<table>";
     str += `
@@ -670,8 +645,8 @@ class Annotator{
         continue;
       card = Markdown_Fmt.htmlOf(card);
       // White text for numbers on dark backgrounds, black when light.
-      var clicker = "onmouseover='drawHotShape("+A.index+",\"draw\","+c+")'" +
-        " onmouseout='drawHotShape("+A.index+",\"clear\")'";
+      var clicker = "onmouseover='OnFns.drawHotShape("+A.index+",\"draw\","+c+")'" +
+        " onmouseout='OnFns.drawHotShape("+A.index+",\"clear\")'";
       var c2 = colourTupleOfJsonString(c);
 
       str += "<tr><td style='vertical-align:top;padding:5px;padding-left:0px'>" +
@@ -735,10 +710,24 @@ class Annotator{
       str +=
         " &nbsp; <span class='nutshell-button' id='zoneToggler"+
         A.index+"' "+
-        "onclick='toggleToolsVisibility("+A.index+")'>+ details</span>";
+        "onclick='OnFns.toggleToolsVisibility("+A.index+")'>+ details</span>";
     captionDiv.innerHTML = sanitiseHtml(str);
   }
 
+  enterNewZone(v){
+    var A = this;
+    var actions = A.latestActions;
+    A.Highlight = "%none";
+    // Update the detail div
+    showOrHideTip( v, actions);
+
+    // Do any additional hover action
+    if( actions.Hover ){
+      obeyCode( A,actions.Hover );
+    }
+    if( actions.Zoom )
+      A.MainDiv.style.cursor = "zoom-in";
+  }  
 }
 
 // >>>>>>>>>>>>> Stand alone 
@@ -823,7 +812,7 @@ function autoColourOfIndex(a){
  */
 function onMouseOver(e){
   var index = e.target.toolkitIndex;
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   A.InfoCardUpdateDelay = 10; 
 }
 
@@ -834,7 +823,7 @@ function onMouseOver(e){
  */
 function onMouseOut(e){
   var index = e.target.toolkitIndex;
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   A.Status.isFocus = false;
   A.Highlight = "%none";
   window.getSelection().empty();
@@ -865,7 +854,7 @@ function onMouseOut(e){
 
 function onMouseUp( e ){
   var index = e.target.toolkitIndex;
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   window.getSelection().empty();
 
   //e.target.style.cursor = 'auto';
@@ -891,7 +880,7 @@ function onMouseDown( e ){
   window.getSelection().empty();
 
   var index = e.target.toolkitIndex;
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
 
   A.Status.move = {x:0,y:0};
   A.Status.click = undefined;
@@ -932,7 +921,6 @@ function onFocusDoubleClick(e){
   window.getSelection().empty();
 }
 
-
 function onFocusClicked(e){
   var index = e.target.toolkitIndex;
   // EasterEgg - Shift-Click on info button downloads the image.
@@ -940,7 +928,7 @@ function onFocusClicked(e){
     doDownloadImage(index);
   }
 
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
 
   if( !A.Status.isAppReady ) return;
   window.getSelection().empty();
@@ -957,7 +945,7 @@ function onFocusClicked(e){
 
 function onMouseWheel(e) {
   var index = e.target.toolkitIndex;
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   A.zoom = Math.sign(e.deltaY);
 
   if( !A.latestActions )
@@ -973,23 +961,9 @@ function onMouseWheel(e) {
   console.log(A.zoom);
 };
 
-function enterNewZone(v,A){
-  var actions = A.latestActions;
-  A.Highlight = "%none";
-  // Update the detail div
-  showOrHideTip( v, actions);
-
-  // Do any additional hover action
-  if( actions.Hover ){
-    obeyCode( A,actions.Hover );
-  }
-  if( actions.Zoom )
-    A.MainDiv.style.cursor = "zoom-in";
-}
-
 function onMouseMove(e){
   var index = e.target.toolkitIndex;
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   if( e.shiftKey ) return;
 
   if( !A.Status.isAppReady ) return;
@@ -1031,7 +1005,7 @@ function onMouseMove(e){
     A.Status.Zone = actions.Zone;
     A.MainDiv.style.cursor = actions.Zone ? "move" : "auto";
     var v = Vector2d( e.clientX, e.clientY );
-    enterNewZone(v,A);
+    A.enterNewZone(v);
     //if( !actions.Down )
     //  e.target.style.cursor = actions.Click ? 'pointer' : 'move';
     //drawDiagramAgain(A);
@@ -1051,15 +1025,92 @@ function onMouseMove(e){
   }
 }
 
+/**
+ * Recolours the hotspot image onto the focus layer.
+ * Used from on-mouse events relating to the zones list.
+ *
+ * When we hover over the stripy all box or the individual colour
+ * boxes, the related part of the image lights up.
+ *
+ * @param ix
+ * @param action
+ * @param colourMatch
+ * @returns {number}
+ */
+function drawHotShape(ix, action, colourMatch){
+  var A = AnnotatorList[ ix ];
+  var ctx = A.FocusCanvas.ctx;
+
+  if( !A.HotspotsCanvas.ctx ) return -1;
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
+
+  if( action === "clear" ){
+    A.Hotspots.lastHot = action;
+    return;
+  }
+
+  var drawAll = action === "drawAll";
+
+  var colourString;
+  if( drawAll )
+    colourString = "all";
+  else
+    colourString = rgbOfColourTuple(colourMatch);
+
+  // We'll cache the picked-out shape.
+  if( A.Hotspots.lastHot !== colourString ){
+    var c = colourMatch;
+
+
+    // colourWith is slightly faded so we can see image underneath.
+    var colourWith   = drawAll ? [255,255,255,200] : [ c[0],c[1],c[2],200];
+    var colourAbsent = [ 255,255,255, 200];
+    var drawAllOpacity = 230;
+    var w = A.Porthole.width;
+    var h = A.Porthole.height;
+    var pixels = A.HotspotsCanvas.ctx.getImageData(0, 0, w, h);
+    var d = pixels.data;
+    for( var i = 0; i < w * h * 4; i += 4 ){
+      if( drawAll  && d[i+3]<50){
+        d[i    ] = colourWith[0];
+        d[i + 1] = colourWith[1];
+        d[i + 2] = colourWith[2];
+        d[i + 3] = colourWith[3];
+      }
+      else if( drawAll ){
+        d[i + 3] = drawAllOpacity;
+      }
+      else if( d[i] === c[0] && d[i + 1] === c[1] && d[i + 2] === c[2] &&
+        d[i + 3] === c[3] ){
+        d[i    ] = colourWith[0];
+        d[i + 1] = colourWith[1];
+        d[i + 2] = colourWith[2];
+        d[i + 3] = colourWith[3];
+      } else if( colourAbsent[3] > 50) {
+        d[i    ] = colourAbsent[0];
+        d[i + 1] = colourAbsent[1];
+        d[i + 2] = colourAbsent[2];
+        d[i + 3] = colourAbsent[3];
+      }
+    }
+    A.Hotspots.lastHot = colourString;
+    A.Hotspots.pixels = pixels;
+  }
+
+  ctx.putImageData( A.Hotspots.pixels, 0, 0);
+}
+
 function setTextVersion( index, spec ){
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   if( !A )
     return;
   handleNewData( A, spec );  
 }
 
 function getTextVersion( index ){
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   var str = "No diagram, no instructions for drawing";
   if( A ) for( var obj of A.RootObject.content ){
     if( writeThing[ obj.type ] ){
@@ -1070,22 +1121,28 @@ function getTextVersion( index ){
   return str;
 }
 
-function getJavascriptVersion( index ){
-  var A = AnnotatorList[index];
+function getJsonVersion( index ){
+  var A = Annotators.AOfIndex(index);
   var str = JSON.stringify( A.RootObject.content, null, 2 );
   return str;
 }
 
-
 function toggleToolsVisibility(index){
-  var A = AnnotatorList[index];
+  var A = Annotators.AOfIndex(index);
   A.TocShown = !(A.TocShown || false);
   A.setToc( A.TocShown );
   return false;
 }
 
-
-
+function annotatorsTimerCallback(){
+  var A;
+  // Iterate through all the diagrams in the document.
+  for(var i=0;i<AnnotatorList.length;i++){
+    A = Annotators.AOfIndex(i);
+    //A.timeoutsForOneDiagram();
+    RR.animateForOneDiagram(A);
+  }
+}
 
 function infoCardMove(e) {
   e = e || window.event;
@@ -1096,7 +1153,6 @@ function infoCardMove(e) {
   updateInfoCardFromMouse( v );
   mayExitHotspot( v );
 }
-
 
 // Consumes the UpdateDelay.
 function infoCardTimerCallback()
@@ -1280,11 +1336,10 @@ function updateInfoCardFromMouse(v){
   div.style.top  = (p*h) + "px";
 }
 
-function showTipBoxFromDiv( e, divName ){
-  var v = Vector2d( e.clientX, e.clientY );
+function headingForDiv( divName ){
   var header = "";
-  if( divName.startsWith("footer_")){
-    header = "<h4>Footnote "+divName.split("footer_")[1]+"</h4>";
+  if( divName.startsWith("footnote_")){
+    header = "<h4>Footnote "+divName.split("footnote_")[1]+"</h4>";
   }
   else if( divName.startsWith("equation_")){
     header = "<h4>Equation "+divName.split("equation_")[1]+"</h4>";
@@ -1298,8 +1353,14 @@ function showTipBoxFromDiv( e, divName ){
   else if( divName.startsWith("content_of_exercise_")){
     header = "<h4>Exercise "+divName.split("content_of_exercise_")[1]+"</h4>";
   }  
+  return header;
+}
+
+function showTipBoxFromDiv( e, divName ){
+  var v = Vector2d( e.clientX, e.clientY );
+  var header = headingForDiv( divName );
   var div=document.getElementById( divName );
-  var text = div ? div.innerHTML : `No preview available. Did not find "${divName}" in this document. I plan to fix this in a future version.<br><br>Haven't yet decided whether to load the page in the background, or to make a digest of the links in the entire document, and load that.`;
+  var text = div ? div.innerHTML : `No preview available. "${divName}" may be in a different document.<br><br>I plan to search the other docs in a future version. I haven't yet decided whether to load just the missing document in the background, or to make a digest of the links in the entire collection and load that.`;
   changeTipText( v, header+text );
 }
 
@@ -1367,3 +1428,90 @@ function showSidebarFromDiv( divName ){
   showSidebar( div.innerHTML );
 }
 
+var timer = 0;
+
+
+
+function timerCallback(){
+  RR.infoCardTimerCallback();
+  RR.annotatorsTimerCallback();
+}
+
+function getNamedAnnotator( diagramName ){
+  for( var i in AnnotatorList){
+    var AA = AnnotatorList[i];
+    if( AA.SpecName == diagramName ){
+      return AA;
+    }
+  }
+  return null;
+}
+
+function initContent( classes ){
+  if( classes ){
+  }
+  else {
+    classes = "atkContentDiv";
+    AnnotatorList = [];
+    if( typeof Scorpio_Fmt ){
+      Scorpio_Fmt.instance = 0;
+    }
+  }
+  var base = AnnotatorList.length;
+  var contentDivs = document.getElementsByClassName( classes );
+  for(var i=0;i<contentDivs.length;i++){
+    var A = new Annotator();
+    A.index = i+base;
+    A.page = DomUtils.getArg('page' + (i + base)) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
+    A.inner = contentDivs[i].innerHTML;
+
+    // Make the divs etc for the display.
+    A.createDomElement( contentDivs[i] );
+
+    // If it's an existing spec, update it with new data.
+    if( (base > 0 ) && (A.page === DomUtils.getArg('page0')) ){
+      var spec = Editors[0].MainDiv.value;
+      console.log( 'page0 handleNewData');
+      handleNewData( A, spec );
+    }
+    // else load it with new data.
+    else if( typeof LocalPages[ A.page ] !== 'undefined'){
+      console.log( `[${A.index}] LocalPages handleNewData`);
+      handleNewData( A, LocalPages[ A.page ] );
+    }
+    else {
+      RR.loadDiagram(A, A.page, 'no', 1);
+    }
+  }
+  if( timer )
+    clearInterval( timer );
+  // Timer is for animation such as rotating earth.
+  timer = setInterval(timerCallback, 30);
+
+}
+
+function initEditors(){
+  regs();
+
+  var contentDivs = document.getElementsByClassName( "atkEditorDiv" );
+  for(var i=0;i<contentDivs.length;i++){
+    var A = {};
+    A.index = i;
+    A.page = DomUtils.getArg('page' + i) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
+    A.tab = DomUtils.getArg('action');
+
+    populateEditorElement( A, contentDivs[i] );
+    requestSpec(A,A.page, 'remote',1,handleEditorData);
+    Editors.push( A );
+
+    //loadDiagram( A, A.page, 'no',1);
+  }
+  initContent();
+  // Timer is for animation such as rotating earth.
+  //setInterval(timerCallback, 30);
+}
+
+Exports();
+
+return metaData;
+}( Registrar );// end of annotator_js

@@ -37,7 +37,7 @@ DomUtils.prototype ={
     // stop moving when mouse button is released:
     elmnt = null;
     document.onmouseup = null;
-    document.onmousemove = infoCardMove;
+    document.onmousemove = RR.infoCardMove;
   },
   escapeEmoji( str ){
     // italics for non unicode characters.    
@@ -99,7 +99,7 @@ DomUtils.prototype ={
       // Alternative code that tells you about a missing link..
       var text = `### ${name} not found
         May need information from a different document`
-      changeTipText( infoCardPos(), Markdown_Fmt.htmlOf(text) );
+      RR.changeTipText( RR.infoCardPos(), Markdown_Fmt.htmlOf(text) );
       return;
     }
     div.scrollIntoView({behavior:'smooth',block:"center"});
@@ -132,10 +132,14 @@ DomUtils.prototype ={
   },
   toggleVisibility2( what ){
     var div = document.getElementById(what);
-    var show = (div.style.display==='none');
-    div.style.display = show ? 'block':'none';
+    var show;
+    if( div ){
+      show = (div.style.display==='none');
+      div.style.display = show ? 'block':'none';
+    }
     
     div = document.getElementById(what+'y');
+    show = (div.style.display!=='none');
     div.style.display = !show ? 'inline':'none';
     div = document.getElementById(what+'n');
     div.style.display = show ? 'inline':'none';

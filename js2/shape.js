@@ -247,12 +247,7 @@ function getBondData( bond, d, r ){
    return [ v0,v1, r0, r1, l1, l2];
 }
 
-//Uses a taper for the connection.
-//Doesn't have a label.
-//can't be crinkly.
-function drawWideLineTrampoline(A, obj, d){
-   //d.stage = kStageFillAndTextEarly;
-
+function makeTaper( A, obj, d ){
    var taper = parseLabelString( obj.value || '--' );
    taper.extensionLength = firstValid( d.lineStyle.lineExtend, -12);
 
@@ -280,43 +275,22 @@ function drawWideLineTrampoline(A, obj, d){
    taper.taperIs = 'link';
 
    d.dddStyle = d.lineStyle;
+   return taper;   
+}
+
+//Uses a taper for the connection.
+//Doesn't have a label.
+//can't be crinkly.
+function drawWideLineTrampoline(A, obj, d){
+   var taper = makeTaper( A, obj, d );
    drawLineLabelAndText( A, taper, d);
-//   drawTaper(A, taper, d);
 }
 
 //Uses a line for the connection.
 //can have a label.
 //can be crinkly
 function drawNarrowLineTrampoline(A, obj, d){
-
-   var taper = parseLabelString( obj.value || '--' );
-   taper.extensionLength = firstValid( d.lineStyle.lineExtend, -12);
-
-   var r0, r1;
-   [taper.v0, taper.v1, r0, r1, l1, l2 ] = getBondData( obj, d );
-
-   var r = obj.linkWidth || d.lineStyle.linkWidth;
-   taper.lineAt =
-      { v0: taper.v0, v1: taper.v1, r0: r || r0, r1: r || r1};
-
-   var mid = taper.v0.add( taper.v1).mul( 0.5 );
-   taper.textAt = 
-      { v0: mid, v1: mid, r0: 2, r1: 2};
-
-   taper.l1 = l1;
-   taper.l2 = l2;
-   taper.styled = obj.styled;
-
-   taper.label = false;
-   taper.bend = obj.bend;
-   taper.multiplicity = obj.multiplicity;
-   taper.hotspotColour = obj.hotspotColour;
-
-   taper.taperIs = 'link';
-
-   d.dddStyle = d.lineStyle;
-   // draws the line behind, the text and the 'Taper' as
-   // an equal dimensioned thing.
+   var taper = makeTaper( A, obj, d );
    drawLineLabelAndText( A, taper, d);
 }
 
@@ -326,7 +300,7 @@ function setLinkMaker( name, makerFn){
 }
 
 function makeLinkStyles(){
-   setLinkMaker( "Wide",        drawWideLineTrampoline );
+   setLinkMaker( "Wide",        drawNarrowLineTrampoline );
    setLinkMaker( "Narrow",      drawNarrowLineTrampoline );
 }
 
@@ -367,7 +341,7 @@ Shape.prototype={
    },
    addEdges( ...codes ){
       for( item of codes){
-         this.addEdge( item );
+         this.addEdge( item || "straight" );
       }
    },
    dropLastPoint(){

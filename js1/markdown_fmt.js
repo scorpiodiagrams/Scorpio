@@ -25,7 +25,7 @@ Markdown_Fmt.prototype ={
     //DomUtils.setFavicon( './scorpio.ico');
     Markdown_Fmt.hasBigLogo = true;
     // We're showing a big logo, so hide the small one.
-    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Scorpion](./content/scorpio/images/Scorpion.svg =250x)\r\n\r\n#BackAgain`);
+    return Markdown_Fmt.htmlOf(`#NoBack\r\n#${title}\r\n![Scorpion](${Registrar.imageSrc}Scorpion.svg =250x)\r\n\r\n#BackAgain`);
   },
   inlineKatex(match,formula){
     return Katex_Fmt.htmlInlineOf( "\\small "+formula );
@@ -62,6 +62,9 @@ Markdown_Fmt.prototype ={
     var bubble = 0;
     //this.bubblesMade = 0;
     //this.bubblesRequested =0;
+    var that = Markdown_Fmt;
+    that.bubblesRequested = 0;
+    this.bubblesMade = 0;
 
     var state = {};
     state.heroHeading = this.heroHeading;
@@ -98,6 +101,8 @@ Markdown_Fmt.prototype ={
       // Stuff at start of line for bulleted list
       new_bullets = line.match( /^(\**)/ )[0];
       new_length = new_bullets.length;
+      // remove extra space, if present.
+      line = line.replace( /^\*\** /gi, '<li>' );
       line = line.replace( /^\*\**/gi, '<li>' );
       while( new_length > indent){
         line = "<ul>\n" +line;

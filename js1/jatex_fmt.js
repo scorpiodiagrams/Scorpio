@@ -27,6 +27,7 @@ function Exports(){
   Registrar.registerVerbs( Transform );
   // Global Exports 
   // These pollute the main namespace
+  RR.Jatex = Jatex;
   window.Jatex = Jatex;
 }
 
@@ -831,6 +832,8 @@ Tile.prototype = {
       var spare = ast.box.width()-node.box.width();
       this.P.positionSubtree( parent, node, vv.add( spare/2,0) );
     }
+    if( ast.jref )
+      this.P.mayPositionJref( ast.jref, ast.box );
   },
   outTile( ctx, ast, color){
     color = "#000";
@@ -869,7 +872,7 @@ Tile.prototype = {
       style = { fill: "#0002" };
     }
 
-    drawStraightLabel( ctx, ast, style, va, vd, vc, vb );
+    drawScorpioLabel( ctx, ast, style, va, vd, vc, vb );
     if( !isHot && ast.subtree && ast.subtree[0])
       this.P.outSubtree( ctx, ast.subtree[0], color);
     this.P.outBox( ctx, ast.box);
@@ -2294,7 +2297,28 @@ Jatex.prototype ={
     // jRefs.
 //    for( atomIx of obj.jrefAtom || [] ){
 //    }
-  }
+  },
+  listSymbols(){
+    var cmds = Object.keys( Symbol.JatexDict ).sort();
+    var result = [];
+    for(var i=0;i<cmds.length;i++){
+      var name = cmds[i];
+      var translation = Symbol.JatexDict[cmds[i]];
+        result.push(`${name} - ${translation}`);
+    }
+    return result;
+  },
+  listCommands(){
+    var cmds = Object.keys( this.fns ).sort();
+    var proto = Object.getPrototypeOf(this);
+    var result = [];
+    for(var i=0;i<cmds.length;i++){
+      var name = cmds[i];
+      var obj = this.fns[cmds[i]];
+        result.push(`${name} - ${obj.name}`);
+    }
+    return result;
+  },
 }
 
 var Jatex = new Jatex();
