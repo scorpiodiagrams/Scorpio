@@ -629,12 +629,15 @@ Polyglot_Fmt.prototype ={
     this.html.push(line);
   }, 
   handleFootnoteRef(  ){
+
     // To end of line or closing brace.
     var name = this.getBraced();
     this.html.push(`<a href="#${Registrar.repo};${Registrar.page}!footnote_ref${name}"><sup>${name}</sup></a>`);
     this.html.push(`<span id='footnote_${name}'>`);
     choice = this.untilIn( ["#FootnoteEnd","#FootnoteRef"]);
     //this.getTok();
+    if( this.html.slice(-1)=="<br>")
+      this.html.pop();    
     this.html.push(`</span>`);
   }, 
   // Very like footnote, but can be to a different page.
