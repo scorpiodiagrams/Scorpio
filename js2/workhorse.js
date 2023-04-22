@@ -828,6 +828,23 @@ function getTaperLoc(A,obj,d){
   return obj.TextLocs;
 }
 
+function svgWigglyLine( n, d, bend){
+  var str="";
+  for(var i=0;i<n;i++){
+
+    var phase = (((i+2)%3)-1);
+    var t = (i+1+0.6*phase)/n;
+    var b = 2.5*t*(1-t) * bend;
+
+    str += (i%3==0) ?" C ":" ";
+    str += 100*t;
+    str += " ";
+    str += d*phase+b;
+  }
+  str = str.trim();
+  return str;
+}
+
 
 // This is due to engulf 'drawStyledLine'
 function drawTaper(A, obj, d){
@@ -884,9 +901,9 @@ function drawTaper(A, obj, d){
 
   if( !obj.label && d.dddStyle.lineExtend )
   {
-    var l = d.dddStyle.lineExtend * 0.5;
-    v0 = v0.sub( disp.mul( l ).rot(theta));
-    v1 = v1.add( disp.mul( l ).rot(-theta));
+    var le = d.dddStyle.lineExtend * 0.5;
+    v0 = v0.sub( disp.mul( le ).rot(theta));
+    v1 = v1.add( disp.mul( le ).rot(-theta));
   }
 
   var va = v0.add( dperp0.rot( theta) );
@@ -910,6 +927,7 @@ function drawTaper(A, obj, d){
 
   var proxyObj = {};
   var multiplicity = 1;
+  var wiggleSize = 0;
   if( bLabel ){
     proxyObj.endShape1 = obj.endShape1 || "(";
     proxyObj.endShape2 = obj.endShape2 || ")";
@@ -920,8 +938,24 @@ function drawTaper(A, obj, d){
     multiplicity = obj.multiplicity || 1;
     if( obj.lineType1 == "==" )
       multiplicity = 2;
+    if( obj.lineType1 == "~~" )
+      wiggleSize = 1;    
   }
-  if( bend ){
+
+  var along = v1.sub(v0);
+  var l = along.length();
+  var wiggleCount = wiggleSize ? (Math.floor( l/(15*wiggleSize) )):0;
+
+  if( wiggleCount ){
+    var n = 3*wiggleCount;
+    var d = 1000/l;
+    setInOutBend( "bend",     svgWigglyLine( n, d,  bend));
+    setInOutBend( "antibend", svgWigglyLine( n, d, -bend));
+    proxyObj.topEdge = "bend";
+    proxyObj.botEdge = "antibend";
+    proxyObj.bevel   = false;
+  }
+  else if( bend ){
     setInOutBend( "bend",     `C 25 ${bend} 75 ${bend} 100 0` );
     setInOutBend( "antibend", `C 25 ${-bend} 75 ${-bend} 100 0` );
     proxyObj.topEdge = "bend";
