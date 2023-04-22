@@ -82,6 +82,7 @@ function Polyglot_Fmt(){
   this.fns[ "\r\n****** " ]="Ul6";
   this.fns[ "\r\n******* " ]="Ul7";
   this.fns[ "\r\n> [!" ]="Dropdown";
+  this.fns[ "\r\n### %Footnote(" ]="FootnoteRef";
   this.blobCounter = 0;
   return this;
 }
@@ -208,6 +209,8 @@ Polyglot_Fmt.prototype ={
   peekTok(n){
     n = n||0;
     if( (this.tk+n)>= this.tokens.length )
+      return "";
+    if( (this.tk+n)<0)
       return "";
     return this.tokens[this.tk+n];
   },
@@ -630,11 +633,15 @@ Polyglot_Fmt.prototype ={
   }, 
   handleFootnoteRef(  ){
 
+    if( this.peekTok(-1).startsWith("\r\n"))
+      this.html.push( "<br>");
     // To end of line or closing brace.
     var name = this.getBraced();
+    this.eat("");
+    this.eat("\r\n");
     this.html.push(`<a href="#${Registrar.repo};${Registrar.page}!footnote_ref${name}"><sup>${name}</sup></a>`);
     this.html.push(`<span id='footnote_${name}'>`);
-    choice = this.untilIn( ["#FootnoteEnd","#FootnoteRef"]);
+    choice = this.untilIn( ["#FootnoteEnd","#FootnoteRef","\r\n### %"]);
     //this.getTok();
     if( this.html.slice(-1)=="<br>")
       this.html.pop();    
@@ -983,7 +990,7 @@ Polyglot_Fmt.prototype ={
     // Our tokens are either the things matched here
     // OR they are the strings between.
     // We discard empty tokens.
-    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n#+ |##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
+    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
     this.tk = 1;
     this.html = [];
     while( this.tk < this.tokens.length )
