@@ -57,7 +57,7 @@ function Exports(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Image( Image2 #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
+  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
   this.fns[ "\r\n# " ]="H1";
@@ -67,13 +67,13 @@ function Polyglot_Fmt(){
   this.fns[ "\r\n##### " ]="H5";
   this.fns[ "\r\n###### " ]="H6";
   this.fns[ "\r\n####### " ]="H7";
-  this.fns[ "# " ]="H1";
-  this.fns[ "##" ]="H2";
-  this.fns[ "###" ]="H3";
-  this.fns[ "####" ]="H4";
-  this.fns[ "#####" ]="H5";
-  this.fns[ "######" ]="H6";
-  this.fns[ "#######" ]="H7";
+//  this.fns[ "\r\n#" ]="H1";
+  this.fns[ "\r\n##" ]="H2";
+  this.fns[ "\r\n###" ]="H3";
+  this.fns[ "\r\n####" ]="H4";
+  this.fns[ "\r\n#####" ]="H5";
+  this.fns[ "\r\n######" ]="H6";
+  this.fns[ "\r\n#######" ]="H7";
   this.fns[ "\r\n* " ]="Ul1";
   this.fns[ "\r\n** " ]="Ul2";
   this.fns[ "\r\n*** " ]="Ul3";
@@ -448,7 +448,7 @@ Polyglot_Fmt.prototype ={
   handleH5(){ return this.handleHn( "h5");},
   handleH6(){ return this.handleHn( "h6");},
   handleH7(){ return this.handleHn( "h7");},
-  handleImage(){
+  handleImage(c){
     var image = this.getTok();
     var close = this.getTok();
     var match;
@@ -460,9 +460,13 @@ Polyglot_Fmt.prototype ={
       size = `width=${match[2]} `;
       image = match[1];
     }
-    this.html.push(`<img ${size}src='${image}'></img>`);
+    c = (c==1)? "class='coloured' " : "";
+    this.html.push(`<img ${size}${c}src='${image}'></img>`);
     this.eat( "");
     this.eat( "]");
+  },
+  handleImageColoured(){
+    this.handleImage(1);
   },
   handleImage2(){
     var args = this.getArgs();
@@ -990,7 +994,7 @@ Polyglot_Fmt.prototype ={
     // Our tokens are either the things matched here
     // OR they are the strings between.
     // We discard empty tokens.
-    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
+    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
     this.tk = 1;
     this.html = [];
     while( this.tk < this.tokens.length )
