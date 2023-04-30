@@ -1461,6 +1461,7 @@ function initContent( classes ){
   var contentDivs = document.getElementsByClassName( classes );
   for(var i=0;i<contentDivs.length;i++){
     var A = new Annotator();
+    A.SpecName = Registrar.page + "Figure"+i;
     A.index = i+base;
     A.page = DomUtils.getArg('page' + (i + base)) || contentDivs[i].getAttribute("data-page") || "SmallCrowd";
     A.inner = contentDivs[i].innerHTML;

@@ -45,14 +45,9 @@ function DetailsPanel(){
 DetailsPanel.prototype ={
 
   tabbedHeader( index ){
-    return `
-  <div class="tab">
-    <button class="tablinks active" id="HeaderHotspots${index}" onclick="DomUtils.openTab(event, 'Hotspots${index}')">Hotspots</button>
-    <button class="tablinks" id="HeaderController${index}" onclick="DomUtils.openTab(event, 'Controller${index}')">Controller</button>
-    <button class="tablinks" id="HeaderEdit${index}" onclick="DomUtils.openTab(event, 'Edit${index}')">Edit</button>
-    <button class="tablinks" id="HeaderDownload${index}" onclick="DomUtils.openTab(event, 'Download${index}')">Download</button>
-    <button class="tablinks" id="HeaderUpload${index}" onclick="DomUtils.openTab(event, 'Upload${index}')">Upload</button>
-  </div>`
+    return RR.PolyHelper.htmlOf2( 
+`#Tabs( ${index}, Hotspots, Controller, Edit, Download, Upload )`
+    );
   },
   tabHotspots( index ){
     return `
@@ -73,28 +68,24 @@ DetailsPanel.prototype ={
   </div>`  
   },
   tabEdit( index ){
-    var Extras = RR.PolyHelper.htmlOf2( 
-`> [!cinfo]- *Some title or other*
-This is what is in the block.
-Loadsa text)
+    return RR.PolyHelper.htmlOf2( 
+`----
+### Edit
+Edit ye the stuff
+#Action( Edit!, Editor.editSource, ${index})
 `
-      )
-    return `
-    <h3 style='margin-top:10px;'>Edit</h3>
-    ${Extras}
-    <p>Edit ye the stuff</p>
-  <button onclick='Editor.editSource(${index})'>Edit!</button>
-  `
+    );
   },
   tabDownload( index ){
-    return `
-    <h3 style='margin-top:10px;'>Download</h3>
-    <p>Download a copy of the diagram.
-    </p>
-    <button onclick='OnFns.downloadImage(${index},2)'>HTML Snippet</button> - Download an .html file you can open in a browser.<br>
-    <button onclick='OnFns.downloadImage(${index},1)'>Diagram Spec</button> - Download a text version of the diagram.<br>
-    <button onclick='OnFns.downloadImage(${index})'>Image</button> - Download a .png of the diagram.
-    `
+    return RR.PolyHelper.htmlOf2( 
+`----
+### Downloads
+Download a copy of the diagram.
+#Action( HTML Snippet, Editor.editSource, ${index}, 2) - Download an .html file you can open in a browser.
+#Action( Diagram Spec, OnFns.downloadImage, ${index},1) - Download a text version of the diagram.
+#Action( Image, OnFns.downloadImage, ${index}) - Download a .png of the diagram.
+`
+    );
   },
   tabUpload( index ){
     return `
