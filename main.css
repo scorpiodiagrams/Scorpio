@@ -205,7 +205,7 @@ span.example{
 .popbox_link {
   /*background-color: #aa03;*/
   text-decoration: underline;
-  text-decoration-style: dashed;
+  text-decoration-style: dotted;
   text-decoration-color: blue;
   cursor: pointer;
 }
