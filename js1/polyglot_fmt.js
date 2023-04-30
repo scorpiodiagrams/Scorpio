@@ -90,7 +90,7 @@ function Polyglot_Fmt(){
 Polyglot_Fmt.prototype ={
   name : "Polyglot",
   fns : [],
-
+  // lists all the commands in a raw div
   handleCommandList(){
     this.html.push(`<div class='raw'>`);
     var cmds = Object.keys( this.fns ).sort();
@@ -109,6 +109,7 @@ Polyglot_Fmt.prototype ={
     }
     this.html.push(`</div>`);
   },
+  // lists all the JaTeX in a raw div
   handleJatexList(){
     this.html.push(`<div class='raw'>`);
     var cmds;
@@ -128,6 +129,7 @@ Polyglot_Fmt.prototype ={
     line = line.replace(/^(.*),(.*)$/gi, "<button onclick=\"setLocalRepo('$1');\"><a '><a href='#index'>$2</a></button>"); 
     this.html.push(line);
   },
+  // draws a four arrowed thing using svg
   handleCursor4(){
     this.html.push(
 `<button class="smallbutton" style='float:right'><svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -291,15 +293,18 @@ Polyglot_Fmt.prototype ={
     this.html.push("</a>");
     return "OK";
   },
+  // a wrapper to allow match something that may roll back.
+  // this looks suspiciously like parsing...
   mayHandle( fn ){
     var tk = this.tk;
     var hx = this.html.length;
     if( fn.call(this) != "")
-      return;
+      return false;
     this.tk = tk-1;
     this.html.length = hx;
-    // Output the token that we failed ot match.
+    // Output the token that we failed to match.
     this.html.push( this.getTok());
+    return true;
   },
   handleURL(){
     this.mayHandle( this.matchURL )
@@ -823,11 +828,15 @@ Polyglot_Fmt.prototype ={
     var plus = this.eat("+");
     if( !plus )
       plus = !this.eat("-");
-
-//    var c1 = "#282";// dark surround
-//    var c2 = "#8c8";// medium heading
-//    var c3 = "#efe";// light panel
-
+    var preload = this.peekTok();
+    preload = preload.match(/Toc(\d+)/);
+    if( preload ){
+      // discard TocNNN 
+      this.getTok();
+      preload = `OnFns.refreshToc(${preload[1]});`
+    }
+    else 
+      preload = "";
     cinfo = cinfo?"text-align:center;" :"";
     var c1 = "#651";// dark surround
     var c2 = "#dca";// medium heading
@@ -841,9 +850,9 @@ Polyglot_Fmt.prototype ={
     else 
       initialState = `<span id=\"${name}y\" style='color:${c1};'>►</span><span id=\"${name}n\" style='display:none;color:${c1};'>▼</span>`;
     var showDiv = plus?"":"display:none;"
-    this.html.push( `<div class='dropdown' style='background:${c2};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;${cinfo}' onClick='DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
+    this.html.push( `<div class='dropdown' style='background:${c2};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;${cinfo}' onClick='${preload}DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
     var choice = this.untilEol();
-    this.html.push(`</div><div id=\"${name}\" style='background:${c3};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:100%;${showDiv}'>`);
+    this.html.push(`</div><div id=\"${name}\" style='background:${c3};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:100%;text-align:left;${showDiv}'>`);
     this.getTok();
     this.handleGroup();
     this.html.push("</div>");

@@ -15,8 +15,9 @@ var Annotators = RR.Annotators;
 function Exports(){
   RR.appendDetailsPanelDivs = function(A){
     return DetailsPanel.appendDivs(A);};
-
   var DD = DetailsPanel;
+  RR.toolboxString = DD.toolboxString;
+  RR.tabHotspots = DD.tabHotspots;
   // These are for the DOM elements we create.
   // They are not used more widely.
   OnFns.updateSize = DD.updateSize; 
@@ -44,12 +45,21 @@ function DetailsPanel(){
 
 DetailsPanel.prototype ={
 
-  tabbedHeader( index ){
+  tabHeader( index ){
     return RR.PolyHelper.htmlOf2( 
 `#Tabs( ${index}, Hotspots, Controller, Edit, Download, Upload )`
     );
   },
   tabHotspots( index ){
+    var A = Annotators.AOfIndex(index);
+    if( A.Caption ){
+      var contents = A.makeToc();
+      var text = A.makeRainbowBox() +
+        "<hr>" +
+        contents;
+      return text;
+    }
+
     return `
     <h3 style='margin-top:10px;'>Hotspots</h3>
     <p>A list of all the what's that comments</p>`
@@ -110,11 +120,11 @@ Download a copy of the diagram.
   },
   tabbedContent( index ){
     str = "";
-    str += tabHotspots( index );
-    str += tabController( index );
-    str += tabUpload( index );
-    str += tabEdit( index );
-    str += tabDownload( index );
+    str += this.tabHotspots( index );
+    str += this.tabController( index );
+    str += this.tabUpload( index );
+    str += this.tabEdit( index );
+    str += this.tabDownload( index );
     return str;
   },
 
@@ -304,60 +314,60 @@ Download a copy of the diagram.
     fileInput.click();
   },
   // End of panel functions
+  divString( name, index, flag ){
+    var content = this[ "tab"+name ]( index );
+    var active = flag ? " active":""
+    var display = flag ? "block":"none"
+    return`
+<div id='${name}${index}' class='tabcontent${active}' style='display:${display}'>
+${content}
+</div>
+`
+  },
+  toolboxPanels(A){
+    var index = A.index;
+    var DD = DetailsPanel;
+    var str = 
+      DD.divString( "Hotspots", index, 1 ) +
+      DD.divString( "Controller", index, 0 ) +
+      DD.divString( "Edit", index, 0 ) +
+      DD.divString( "Download", index, 0 ) +
+      DD.divString( "Upload", index, 0 );
+    return str;
+  },
+  toolboxString(A ){
+    var index = A.index;
+    var DD = DetailsPanel;
+    var panels = DD.toolboxPanels( A );
+    var header = DD.tabHeader( index );
+    // can add class DarkDiv    
+    str =`
+<div id='Header${index}' style='height:400px'>
+  ${header}
+  <div class='Scroller'>
+    ${panels}
+  </div>
+</div>
+`   
+    return str;
+  },
 
   makeDivs( A ){
     A.ToolsDiv = document.createElement("div");
-    A.ToolHeaderDiv = document.createElement("div");
-    A.ToolHotspotsDiv = document.createElement("div");
-    A.ToolControllerDiv = document.createElement("div");
-    A.ToolEditDiv = document.createElement("div");
-    A.ToolDownloadDiv = document.createElement("div");
-    A.ToolUploadDiv = document.createElement("div");
-
     var index = A.index;
     A.ToolsDiv.className="ToolsDiv DarkDiv"
-    A.ToolHeaderDiv.innerHTML = this.tabbedHeader( index );
-    A.ToolHotspotsDiv.innerHTML = this.tabHotspots( index );
-    A.ToolControllerDiv.innerHTML = this.tabController( index );
-    A.ToolEditDiv.innerHTML = this.tabEdit( index );
-    A.ToolDownloadDiv.innerHTML = this.tabDownload( index );
-    A.ToolUploadDiv.innerHTML = this.tabUpload( index );
-
-    A.ToolHeaderDiv.id = "Header"+index;
-    A.ToolHotspotsDiv.id = "Hotspots"+index;
-    A.ToolControllerDiv.id = "Controller"+index;
-    A.ToolEditDiv.id = "Edit"+index;
-    A.ToolDownloadDiv.id = "Download"+index;
-    A.ToolUploadDiv.id = "Upload"+index;
-
-    //A.ToolHeaderDiv.className = "tabcontent";
-    A.ToolHotspotsDiv.className = "tabcontent active";
-    A.ToolControllerDiv.className = "tabcontent";
-    A.ToolEditDiv.className = "tabcontent";
-    A.ToolDownloadDiv.className = "tabcontent";
-    A.ToolUploadDiv.className = "tabcontent";
-    A.ToolHotspotsDiv.style.display = 'block';
   },
   appendDivs( A ){
     this.makeDivs(A);
     var p = A.MainDiv;    
     p.appendChild(A.ToolsDiv);
     p = A.ToolsDiv;
-    p.appendChild(A.ToolHeaderDiv);
-    var q = document.createElement("div");  
-    q.className="Scroller DarkDiv"
-    p.appendChild(q);
-    p = q;
-    p.appendChild(A.ToolHotspotsDiv);
-    p.appendChild(A.ToolControllerDiv);
-    p.appendChild(A.ToolEditDiv);
-    p.appendChild(A.ToolDownloadDiv);
-    p.appendChild(A.ToolUploadDiv);
+    p.innerHTML = this.toolboxString(A);
+    return;
   }
 }
 
 DetailsPanel = new DetailsPanel();
-
 
 Exports();
 

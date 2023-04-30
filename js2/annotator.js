@@ -22,6 +22,7 @@ function Exports(){
 
   Annotators.AOfIndex = function(index){
     return AnnotatorList[index];}
+  OnFns.refreshToc = refreshToc;
   OnFns.drawHotShape = drawHotShape;
   OnFns.onMouseMove = onMouseMove;
   OnFns.closeTip = closeTip;
@@ -669,7 +670,7 @@ class Annotator{
       var text = A.makeRainbowBox() +
         "<hr>" +
         contents;
-      A.ToolHotspotsDiv.innerHTML = text;
+      //A.ToolHotspotsDiv.innerHTML = text;
     }
 
     div.style.display = bShow? 'block':'none';
@@ -684,7 +685,6 @@ class Annotator{
 
     var indicator = bShow ? "━":"╋"
     toggler.innerHTML=`<span class='boxed'>${indicator}</span>details`;
-    
   }
 
   setCaption(caption, page, fromWiki){
@@ -700,17 +700,17 @@ class Annotator{
       return;
 
     caption = DomUtils.escapeEmoji( caption );
-    var str = "<em>"+caption+"</em>";
-    if( page ){
+    var index = A.index;
 
+    var str = RR.PolyHelper.htmlOf2( 
+`> [!cinfo]-Toc${index} *${caption}*
+XX-REPLACE-ME-XX
+)`
+    );
 
-    }
+    var str2 = RR.toolboxString( A );
 
-    if( A.Hotspots.colourOfZone && A.Hotspots.colourOfZone.length > 0)
-      str +=
-        " &nbsp; <span class='nutshell-button' id='zoneToggler"+
-        A.index+"' "+
-        "onclick='OnFns.toggleToolsVisibility("+A.index+")'>+ details</span>";
+    str = str.replace( /XX-REPLACE-ME-XX/, str2);
     captionDiv.innerHTML = sanitiseHtml(str);
   }
 
@@ -730,7 +730,17 @@ class Annotator{
   }  
 }
 
+
+
 // >>>>>>>>>>>>> Stand alone 
+
+function refreshToc( index ){
+  //var A = Annotators.AOfIndex(index);
+  var toc = RR.tabHotspots( index );
+  var id=`Hotspots${index}`;
+  DomUtils.set( id, toc );
+  //alert( "REFRESH"+index );
+}
 
 // These generates one new hotspot colour. 
 // With a hotspot image, the colours are provided.
