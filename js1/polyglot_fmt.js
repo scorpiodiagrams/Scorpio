@@ -817,6 +817,7 @@ Polyglot_Fmt.prototype ={
   },  
   handleDropdown(){
     var info = this.eat("info");
+    var cinfo = this.eat("cinfo");
     this.eat("]");
     this.eat("");
     var plus = this.eat("+");
@@ -827,9 +828,11 @@ Polyglot_Fmt.prototype ={
 //    var c2 = "#8c8";// medium heading
 //    var c3 = "#efe";// light panel
 
+    cinfo = cinfo?"text-align:center;" :"";
     var c1 = "#651";// dark surround
     var c2 = "#dca";// medium heading
     var c3 = "#fed";// light panel
+    var c4 = "#002";// almost black
 
     var name = "nut_"+(this.blobCounter++);
     var initialState;
@@ -838,9 +841,9 @@ Polyglot_Fmt.prototype ={
     else 
       initialState = `<span id=\"${name}y\" style='color:${c1};'>►</span><span id=\"${name}n\" style='display:none;color:${c1};'>▼</span>`;
     var showDiv = plus?"":"display:none;"
-    this.html.push( `<div class='dropdown' style='background:${c2};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;' onClick='DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
+    this.html.push( `<div class='dropdown' style='background:${c2};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;${cinfo}' onClick='DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
     var choice = this.untilEol();
-    this.html.push(`</div><div id=\"${name}\" style='background:${c3};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:100%;${showDiv}'>`);
+    this.html.push(`</div><div id=\"${name}\" style='background:${c3};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:100%;${showDiv}'>`);
     this.getTok();
     this.handleGroup();
     this.html.push("</div>");
@@ -982,6 +985,11 @@ Polyglot_Fmt.prototype ={
     str = str.replace( /\$\$\r\n\r\n/g, "$$$$\r\n" );
     return str;
   },
+  htmlOf2( str ){
+    str = str.split( /\r?\n/g);
+    str = str.join( "\r\n");
+    return this.htmlOf(str );
+  },
   htmlOf( str ){
     str = str || "Polyglot!";
     str = "LEADER\r\n"+str;
@@ -1009,8 +1017,10 @@ Polyglot_Fmt.prototype ={
   },
 }
 
+PolyHelper   = new Polyglot_Fmt();
 Polyglot_Fmt = new Polyglot_Fmt();
 Registrar.register( Polyglot_Fmt );
+RR.PolyHelper = PolyHelper;
 
 Exports();
 

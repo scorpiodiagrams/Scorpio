@@ -73,8 +73,15 @@ DetailsPanel.prototype ={
   </div>`  
   },
   tabEdit( index ){
+    var Extras = RR.PolyHelper.htmlOf2( 
+`> [!cinfo]- *Some title or other*
+This is what is in the block.
+Loadsa text)
+`
+      )
     return `
     <h3 style='margin-top:10px;'>Edit</h3>
+    ${Extras}
     <p>Edit ye the stuff</p>
   <button onclick='Editor.editSource(${index})'>Edit!</button>
   `
