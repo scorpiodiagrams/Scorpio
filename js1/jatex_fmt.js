@@ -1515,13 +1515,17 @@ Graph.prototype = {
   fns : "\\graph \\half-graph \\shalf-graph \\quarter-graph",
   name: "Graph",
   astOfGraph(ast, node, tokens, i, len){
+    i = this.P.astMayEatSize( node, tokens, i);
+    i = this.P.astMayEatColour( node, tokens, i );
     i = this.P.getSimpleArg( node, tokens, 'spec', '0/1/', i);
 
     return i;
   },
   measureGraph( ctx, parent, ast ){
-    var box = new Box(70,70);
-    ast.box = box;
+    ast.box = new Box(70,70);
+    if( ast.hasSizing ){
+      ast.box = new Box( ast.hasSizing );
+    }
     return ast.box;
   },
   measureGraph_half_graph( ctx, parent, ast ){

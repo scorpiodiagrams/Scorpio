@@ -850,9 +850,9 @@ Polyglot_Fmt.prototype ={
     else 
       initialState = `<span id=\"${name}y\" style='color:${c1};'>►</span><span id=\"${name}n\" style='display:none;color:${c1};'>▼</span>`;
     var showDiv = plus?"":"display:none;"
-    this.html.push( `<div class='dropdown' style='background:${c2};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:100%;${cinfo}' onClick='${preload}DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
+    this.html.push( `<div class='dropdown' style='background:${c2};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:6px 6px 0 0;width:auto;${cinfo}' onClick='${preload}DomUtils.toggleVisibility2(\"${name}\")'>${initialState}` );
     var choice = this.untilEol();
-    this.html.push(`</div><div id=\"${name}\" style='background:${c3};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:100%;text-align:left;${showDiv}'>`);
+    this.html.push(`</div><div id=\"${name}\" style='background:${c3};color:${c4};padding:6px;border:0.5px solid ${c1};border-radius:0 0 6px 6px;border-top-style:none;width:auto;text-align:left;${showDiv}'>`);
     this.getTok();
     this.handleGroup();
     this.html.push("</div>");
@@ -928,6 +928,7 @@ Polyglot_Fmt.prototype ={
   handleTabs(){
     var args = this.getArgs();
     var index = args.shift();
+    this.html.pop(); // remove br.
     this.html.push( `<div class="tab">`)
     for( var arg of args){
       var name = `${arg}${index}`.replace(/\s/g,"");
