@@ -68,12 +68,21 @@ Is the document where it should be??
     '/images/Scorpion.svg';
   DomUtils.set( "div_output", str );
   DomUtils.setAttr( "little_logo_src", 'src', logo );
+  var git = DomUtils.getArg("git");
+  if( git ){
+    git=git.split("/");
+    Registrar.urlPrefix ='https://raw.githubusercontent.com/' + git[0]+'/';
+    Registrar.urlSuffix = '/'+(git[2] || 'master')+'/';
+    Registrar.repo = git[1]||'scorpio';
+    Registrar.firstFile = 'index';
+  }
   onpopstate( null );
 }
 
 window.onpopstate = function(event)
 {
   var afterHash = (""+document.location).split('#')[1] || "";
+  afterHash = afterHash.split('?')[0];// remove ? args.
   afterHash = afterHash.split(';');
   var repo  = afterHash[1]?afterHash[0]:"";
   afterHash = afterHash[1]||afterHash[0]||"";
