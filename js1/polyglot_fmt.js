@@ -178,7 +178,7 @@ Polyglot_Fmt.prototype ={
     while( true ){
       this.eat("");
       tok = this.peekTok();
-      if( tok.startsWith("*")){
+      if( tok.startsWith("*") || tok.startsWith("##") ){
         this.getTok();
         this.handleToken( "\r\n"+tok );
       }
