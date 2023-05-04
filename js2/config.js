@@ -11,7 +11,7 @@ function getGitContent( repo ){
 
 function setLocalRepo( repo, file ){
 
-  file = file || 'index';
+  file = file || Registrar.firstFile;
   repo = repo || Registrar.repo;
   var srcUrl = Registrar.urlPrefix +repo+"/"+Registrar.urlSuffix;
 

@@ -68,21 +68,16 @@ Is the document where it should be??
     '/images/Scorpion.svg';
   DomUtils.set( "div_output", str );
   DomUtils.setAttr( "little_logo_src", 'src', logo );
-  var page = Registrar.firstFile;
-  if( page ){
-    setPage( page );
-  }
+  onpopstate( null );
 }
 
 window.onpopstate = function(event)
 {
-  var afterHash = (""+document.location).split('#')[1];
+  var afterHash = (""+document.location).split('#')[1] || "";
   afterHash = afterHash.split(';');
   var repo  = afterHash[1]?afterHash[0]:"";
-  afterHash = afterHash[1]||afterHash[0];
-//  console.log( "IN popstate")
+  afterHash = afterHash[1]||afterHash[0]||"";
   setLocalRepo( repo, afterHash );
-  //loadSource( afterHash+'.md' );
 };
 
 // index.htm: When you make a subdirectory, ./content/ and have repos there...
@@ -95,20 +90,14 @@ window.onpopstate = function(event)
 // This is very handy for development.
 Registrar.urlPrefix = '../../Scorpios/';
 Registrar.urlSuffix = '';
-Registrar.repo = 'sampler';
-Registrar.firstFile = 'index';
-
-// index2.htm: Like index, but different start page.
-//Registrar.urlPrefix = './content/';
-//Registrar.urlSuffix = '';
-//Registrar.repo = 'sampler2';
-//Registrar.firstFile = 'index2';
+Registrar.repo = 'scorpio_docs';
+Registrar.firstFile = 'scorpio_diagrams';
 
 // gitwrapped.html: When your content is served from github
 //Registrar.urlPrefix ='https://raw.githubusercontent.com/scorpiodiagrams/'
 //Registrar.urlSuffix = '/master/';
-//Registrar.repo = 'sampler';
-//Registrar.firstFile = 'index';//'diagram_forge';
+//Registrar.repo = 'scorpio_docs';
+//Registrar.firstFile = 'scorpio_diagrams';//'diagram_forge';
 </script>
 
 </head>

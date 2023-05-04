@@ -5,58 +5,101 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="./katex/katex.min.css">
+  <link rel="icon" href="./scorpio.ico" type="image/x-icon" />
   <link rel="stylesheet" href="main.css">
 
 
     <script data-cfasync="false" src="./katex/katex.min.js"></script>
-    <script data-cfasync="false" src="./js/registrar.js"></script>
-    <script data-cfasync="false" src="./scorpio/nurb.js"></script>
+    <script data-cfasync="false" src="./js1/registrar.js"></script>
 
-    <script data-cfasync="false" src="./scorpio/scorpiodiagrams.js"></script>
-    <script data-cfasync="false" src="./scorpio/getters.js"></script>
-    <script data-cfasync="false" src="./scorpio/details_panel.js"></script>
-    <script data-cfasync="false" src="./scorpio/annotator.js"></script>
-    <script data-cfasync="false" src="./scorpio/curves.js"></script>
-    <script data-cfasync="false" src="./scorpio/vector2d.js"></script>
-    <script data-cfasync="false" src="./scorpio/shape.js"></script>
-    <script data-cfasync="false" src="./scorpio/readers.js"></script>
-    <script data-cfasync="false" src="./scorpio/writers.js"></script>
-    <script data-cfasync="false" src="./scorpio/smiles.js"></script>
+    <script data-cfasync="false" src="./js2/utils.js"></script>
+    <script data-cfasync="false" src="./js2/nurb.js"></script>
+    <script data-cfasync="false" src="./js2/annotator.js"></script>
+    <script data-cfasync="false" src="./js2/scorpiodiagrams.js"></script>
+    <script data-cfasync="false" src="./js2/getters.js"></script>
+    <script data-cfasync="false" src="./js2/details_panel.js"></script>
+    <script data-cfasync="false" src="./js2/curves.js"></script>
+    <script data-cfasync="false" src="./js2/vector2d.js"></script>
+    <script data-cfasync="false" src="./js2/vector3d.js"></script>
+    <script data-cfasync="false" src="./js2/shape.js"></script>
+    <script data-cfasync="false" src="./js2/kwic.js"></script>
+    <script data-cfasync="false" src="./js2/fonty.js"></script>
+    <script data-cfasync="false" src="./js2/readers.js"></script>
+    <script data-cfasync="false" src="./js2/writers.js"></script>
+    <script data-cfasync="false" src="./js2/smiles.js"></script>
 
-    <script data-cfasync="false" src="./scorpio/workhorse.js"></script>
-    <script data-cfasync="false" src="./scorpio/config.js"></script>
+    <script data-cfasync="false" src="./js2/workhorse.js"></script>
+    <script data-cfasync="false" src="./js2/config.js"></script>
 
-    <script data-cfasync="false" src="./js/loader.js"></script>
-    <script data-cfasync="false" src="./js/dom_utils.js"></script>
+    <script data-cfasync="false" src="./js1/loader.js"></script>
+    <script data-cfasync="false" src="./js1/dom_utils.js"></script>
 
-    <script data-cfasync="false" src="./js/katex_fmt.js"></script>
-    <script data-cfasync="false" src="./js/markdown_fmt.js"></script>
-    <script data-cfasync="false" src="./js/omnia_fmt.js"></script>
-    <script data-cfasync="false" src="./js/raw_fmt.js"></script>
-    <script data-cfasync="false" src="./js/scorpio_fmt.js"></script>
-    <script data-cfasync="false" src="./js/editor_fmt.js"></script>
-    <script data-cfasync="false" src="./js/hide_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/jatex_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/katex_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/markdown_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/mediawiki_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/omnia_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/raw_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/anki_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/wordlist_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/scorpio_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/editor_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/hide_fmt.js"></script>
+    <script data-cfasync="false" src="./js1/polyglot_fmt.js"></script>
 <style>
 html {
   scroll-behavior: smooth;
-  background: #743b20;
+  background: #202060;
 }
 </style>
 
-    <script>
-      window.onload = function(){
-      //  initContent();
-      }
+<script>
+window.onload = function(){
+  Registrar.doInits();
+  var str = Omnia_Fmt.htmlOf( 
+`\r\n!!Markdown\r
+## Document not found
+Is the document where it should be??
+` );
+  var logo = 
+    Registrar.urlPrefix + 
+    Registrar.repo + 
+    Registrar.urlSuffix + 
+    '/images/Scorpion.svg';
+  DomUtils.set( "div_output", str );
+  DomUtils.setAttr( "little_logo_src", 'src', logo );
+  onpopstate( null );
+}
 
+window.onpopstate = function(event)
+{
+  var afterHash = (""+document.location).split('#')[1] || "";
+  afterHash = afterHash.split(';');
+  var repo  = afterHash[1]?afterHash[0]:"";
+  afterHash = afterHash[1]||afterHash[0]||"";
+  setLocalRepo( repo, afterHash );
+};
 
-Registrar.wikiSrc = './wiki/';
-Registrar.firstFile = 'index';//'diagram_forge';
-Registrar.useUrlChecklist = false;
+// index.htm: When you make a subdirectory, ./content/ and have repos there...
+//Registrar.urlPrefix = './content/';
+//Registrar.urlSuffix = '';
+//Registrar.repo = 'scorpio_docs';
+//Registrar.firstFile = 'scorpio_diagrams';
 
-Registrar.enableGitWraping = true;
-setFromConfig( 'gitwrapped.html' );
+// local.htm: When you place your repos alongside this distro
+// This is very handy for development.
+//Registrar.urlPrefix = '../../Scorpios/';
+//Registrar.urlSuffix = '';
+//Registrar.repo = 'sampler';
+//Registrar.firstFile = 'index';
 
+// gitwrapped.html: When your content is served from github
+Registrar.urlPrefix ='https://raw.githubusercontent.com/scorpiodiagrams/'
+Registrar.urlSuffix = '/master/';
+Registrar.repo = 'scorpio_docs';
+Registrar.firstFile = 'scorpio_diagrams';//'diagram_forge';
 </script>
+
 </head>
 <body>
 
@@ -66,44 +109,14 @@ setFromConfig( 'gitwrapped.html' );
 <br>-->
 
 <div id="little_logo" style="position: absolute;right: 50%;margin-right:-285px;top:30px;">
-<img src="./scorpiorepo/images/Scorpion.svg" style="width:100px;height:100px;"></img></div>
-
+<img id="little_logo_src" style="width:100px;height:100px;"></img></div>
 
 <!--Output div contents will be replaced-->
 <div id="div_output">
 <div class="outer"><div class="main" style="height:600px;"><br>
 <h2>Scorpio Diagrams</h2>
-<h3>With gitwrapped option</h3>
+<h3>Without gitwrapped option</h3>
 <br>
 </div></div>
 </div>
-
-
-<script>
-  Registrar.doInits();
-  var str = Omnia_Fmt.htmlOf( 
-`\r\n!!Markdown\r
-## Document not found
-Is the document where it should be??
-` );
-  DomUtils.set( "div_output", str );
-  var page = DomUtils.getAnchor() || DomUtils.getArg('page') || Registrar.firstFile;
-  if( page ){
-    loadSource( page + '.md');
-  }
-
-window.onpopstate = function(event)
-{
-  var afterHash = (""+document.location).split('#')[1];
-
-  if( window.afterHash == afterHash )
-    return;
-  window.afterHash = afterHash;
-//  console.log( "IN popstate")
-  loadSource( afterHash+'.md' );
-};
-
-</script>
-
-
 </body>
