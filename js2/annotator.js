@@ -1093,6 +1093,10 @@ function mayCreateInfoCard(T){
   T.InfoCardDiv.style.display = "block";
   if( isDefined( T.InfoCardPos.x ))
     T.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+  T.InfoCardDiv.addEventListener('mousedown', function (event) {
+    // Use currentTarget to get the listener div (i.e. this div)
+    DomUtils.dragMouseDown(event.currentTarget);
+  });
   //T.InfoCardUpdateDelay = -1;
   //window.TipBox = T;
   //positionInfoCard( Vector2d( 10,50 ));
