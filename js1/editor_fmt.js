@@ -1,6 +1,3 @@
-
-var elmnt = null;
-
 // Editor format allows LaTeX embedded in a markdown doc.
 function Editor_Fmt(){
   return this;
@@ -67,7 +64,7 @@ Editor_Fmt.prototype ={
     str = '<textarea id="editor_box" spellcheck="false" oninput="Editor.textChanged(this);" style="margin:5px;min-width:200px;min-height:300px;'
       +'width:29em;height:45.2em;">' 
       + str + '</textarea>';
-    str = "<div class='popup' id='editor' style='text-align:left;top:10px;left:800px;display:none;'><div class='grab_bar' id='editor_grab_bar' onmousedown='DomUtils.dragMouseDown(this)'><span class='title_bar' id='editor_title_bar'>Title</span>"+this.closeButtonHtml()+ "</div>" + str + "</div>";
+    str = "<div class='popup' id='editor' style='text-align:left;top:10px;left:800px;display:none;'><div class='grab_bar' id='editor_grab_bar' onmousedown='DomUtils.dragMouseDown(this.parentElement)'><span class='title_bar' id='editor_title_bar'>Title</span>"+this.closeButtonHtml()+ "</div>" + str + "</div>";
     return str    
   },
   htmlOf( str ){

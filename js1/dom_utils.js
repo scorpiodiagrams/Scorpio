@@ -4,6 +4,7 @@ function DomUtils(){
   // It hides most of the html specific stuff.
   // It keeps a list of surfaces (Diagram Canvases).
   this.surfaces = {};
+  this.elmnt = null; // nothing being dragged (yet)
   return this;
 }
 
@@ -16,7 +17,7 @@ DomUtils.prototype ={
     // get the mouse cursor position at startup:
     pos3 = e.clientX;
     pos4 = e.clientY;
-    elmnt = elt.parentElement;
+    DomUtils.elmnt = elt;
     document.onmouseup = DomUtils.closeDragElement;
     // call a function whenever the cursor moves:
     document.onmousemove = DomUtils.elementDrag;
@@ -30,12 +31,12 @@ DomUtils.prototype ={
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    DomUtils.elmnt.style.top = (DomUtils.elmnt.offsetTop - pos2) + "px";
+    DomUtils.elmnt.style.left = (DomUtils.elmnt.offsetLeft - pos1) + "px";
   },
   closeDragElement() {
     // stop moving when mouse button is released:
-    elmnt = null;
+    DomUtils.elmnt = null;
     document.onmouseup = null;
     document.onmousemove = RR.infoCardMove;
   },

@@ -90,8 +90,6 @@ class Annotator{
     A.Hotspots.imageSrc = './images/AudacityAu19HS.png';
     A.Focus = {};
     A.Focus.radius = 35;
-    A.InfoCard = {};
-    A.setInfoCardSize();
     A.Styles = {};
     A.Styles.current = 0;
     A.Styles.dict = [];
@@ -261,12 +259,6 @@ class Annotator{
     A.Porthole.height = 400;
   }
 
-  setInfoCardSize(){
-    var A = this;
-    A.InfoCard.width = A.Porthole.width / 2 - 10;
-    A.InfoCard.height = Math.max(350, A.Porthole.height - 100);
-  }
-
   // This isn't a pure data play.  It may update a div.
   resetCaption(){
     var A = this;
@@ -290,16 +282,11 @@ class Annotator{
     if( !A.BackingCanvas )
       return;
     A.MainDiv.style.width = A.Porthole.width + 'px';
-//    A.MainDiv.style.height = A.Porthole.height + 'px';
-    A.SidePanelDiv.style.height = A.Porthole.height + 'px';
-    A.SidePanelDiv.style.marginLeft = (A.Porthole.width+15) + 'px';
 
     A.BackingCanvas.width = A.Porthole.width;
     A.BackingCanvas.height = A.Porthole.height;
     A.FocusCanvas.width = A.Porthole.width;
     A.FocusCanvas.height = A.Porthole.height;
-    A.InfoCardDiv.style.width = A.InfoCard.width + 'px';
-    A.InfoCardDiv.style.height = A.InfoCard.height + 'px';
     A.HotspotsCanvas.width = A.Porthole.width;
     A.HotspotsCanvas.height = A.Porthole.height;
 
@@ -337,15 +324,7 @@ class Annotator{
     // Hotspots canvas has colour coded imagemap drawn on it.
     A.HotspotsCanvas = document.createElement('canvas');
 
-    A.SidePanelDiv = document.createElement("div");
-
     A.CaptionDiv = document.createElement("div");
-
-    // InfoCard div floats above the white-out
-    A.InfoCardDiv = document.createElement("div");
-
-    A.SidePanelDiv.className = "SidePanelDiv";
-    //A.SidePanelDiv.innerHTML = tabbedContent();//"Nothing here yet, folks.";
 
     A.CaptionDiv.className = "CaptionDiv";
     A.CaptionDiv.innerHTML = "<em>No Hotspot Zones Loaded (Yet)</em>";
@@ -369,21 +348,12 @@ class Annotator{
     p.onmousedown = onMouseDown;
     p.ondblclick = onFocusDoubleClick;
 
-    //A.InfoCardDiv.innerHTML = "Some Text";
-
-    A.InfoCardDiv.className="InfoCardDiv DarkDiv";
-
-    A.InfoCardUpdateDelay = 0;
-    A.InfoCardPos = Vector2d(0,0);
-
     p = contentHere;
     p.appendChild(A.MainDiv);
-//    p.appendChild(A.SidePanelDiv);
 
     p = A.MainDiv;
     p.appendChild(A.BackingCanvas);
     p.appendChild(A.FocusCanvas);
-    p.appendChild(A.InfoCardDiv);
     p.appendChild(A.CaptionDiv);
     RR.appendDetailsPanelDivs( A );
 
@@ -495,40 +465,6 @@ class Annotator{
     return txt;
   }
 
-  detailPosFromCursorPos(x, y ){
-    var A = this;
-    var pt = Vector2d(0,0);
-    // get position as somewhere in range -1..+1
-    var tx = x / A.Porthole.width;
-    var ty = y / A.Porthole.height;
-
-    // InfoCard panel will be hard right or hard left.
-    tx = (tx > 0.5) ? 0 : 1; // other side...
-
-    // desired min overlap for rich window.
-    var kOverlap=50;
-    var portholeLoc = A.MainDiv.getBoundingClientRect();
-    //getOffset( A.MainDiv );
-    
-    // porthole edge positions.
-    var xLeft   = portholeLoc.left;
-    var xRight  = portholeLoc.left + A.Porthole.width;
-    var yTop    = portholeLoc.top;
-    var yBottom = portholeLoc.top + A.Porthole.height;
-
-
-    var fullWidth = Math.min(window.innerWidth, document.documentElement.clientWidth || window.innerWidth);
-    // convert to positions for card.
-    xLeft   = Math.max(0, xLeft+kOverlap- A.InfoCard.width);
-    xRight  = Math.min(xRight-kOverlap, fullWidth - A.InfoCard.width);
-    yBottom = yBottom - A.InfoCard.height;
-
-    pt.x = xLeft + tx*( xRight-xLeft);
-    pt.y = yTop  + ty*( yBottom-yTop);
-
-    return pt;
-  }
-
   drawFocusLayer( x, y){
     var A = this;
     if( A.Cursor === "dragger" ){
@@ -567,39 +503,6 @@ class Annotator{
       //obj.img.src = urlOfFilename( obj.file );
       obj.src = file;
       A.mayRequestDisplayableImage( obj)
-    }
-  }
-
-  // this eventually happens.
-  // It either posts the delayed information
-  // and possibly repositions.
-  // OR it hides the cards.
-  delayedInfoCardUpdate(){
-    var A = this;
-    var inTheDetail = A.InfoCardDiv.matches(':hover');
-    if( inTheDetail ){
-      return;
-    }
-    if( A.RichToolTipContent ){
-      A.InfoCardDiv.innerHTML = A.RichToolTipContent;
-      A.InfoCardDiv.style.display = "block";
-      if( isDefined( A.InfoCardPos.x ))
-        A.InfoCardDiv.style.left = A.InfoCardPos.x + "px";
-    }
-    else
-    {
-      A.InfoCardDiv.style.display = "none";
-    }
-  }
-
-  // called on a timer tick...
-  timeoutsForOneDiagram(){
-    var A = this;
-    if( A.InfoCardUpdateDelay > 0){
-      A.InfoCardUpdateDelay--;
-      if( A.InfoCardUpdateDelay <= 0 ){
-        A.delayedInfoCardUpdate();
-      }
     }
   }
 
@@ -816,14 +719,10 @@ function autoColourOfIndex(a){
 // >>>>>>>>>>>>>>>>>>>> Clicking or moving
 
 /*
- * This gets rid of the info card when we move back onto the
- * diagram.  Maybe instead this should be keyed to moving off
- * the info card?
+ * enter annotation area.
+ * Seems like nothing to do as we do things on a timer?
  */
 function onMouseOver(e){
-  var index = e.target.toolkitIndex;
-  var A = Annotators.AOfIndex(index);
-  A.InfoCardUpdateDelay = 10; 
 }
 
 
@@ -844,19 +743,8 @@ function onMouseOut(e){
   ctx.globalCompositeOperation = 'source-over';
   ctx.clearRect(0, 0, A.Porthole.width, A.Porthole.height);
   
-  var inTheDetail = A.InfoCardDiv.matches(':hover');
-  if( inTheDetail ){
-    // Cancel hide timer.
-    // They made it into the div before timeout.
-    A.InfoCardUpdateDelay = 0; 
-    // State that we are showing something.
-    A.Status.Zone = 10000;
-  }
-  else{
-    A.InfoCardDiv.style.display = "none";
-    A.InfoCardUpdateDelay = 10; 
-    A.Status.Zone = -1;
-  }
+  A.Status.Zone = -1;
+
   A.Cursor = "spot";
   A.dragObj = undefined;
   //e.target.style.cursor = 'auto';
@@ -904,7 +792,6 @@ function onMouseDown( e ){
   A.Status.click = { x: x, y: y };
   console.log( "Down at "+ stringOfCoord(A.Status.click ) );
 
-
   var actions = A.actionsFromCursorPos(x, y, "log");
   if( actions.Down ){
     obeyCode( A, actions.Down);
@@ -912,13 +799,11 @@ function onMouseDown( e ){
     A.Cursor="dragger";
     A.drawFocusLayer(x, y);
   } else {
-    //A.InfoCardDivFrozen = true;
     var v = Vector2d( e.clientX, e.clientY );
     showOrHideTip( v, actions );
   }
 
   drawDiagramAgain(A);
-
 }
 
 /**
@@ -988,8 +873,6 @@ function onMouseMove(e){
   var actions = A.actionsFromCursorPos( x, y);
   A.latestActions = actions;
   if( Message ) Message.innerHTML = coordinates;
-  var pt = A.detailPosFromCursorPos( x, y);
-  A.InfoCardPos.x = pt.x;
 
 
 // Test cases:
@@ -1005,12 +888,6 @@ function onMouseMove(e){
 // to move to a label on the right without the card 
 // flipping.
 
-  var flipsNow = e.buttons;
-
-  if( flipsNow ){
-    A.InfoCardDiv.style.left = pt.x + "px";
-  }
-
   if( (A.Status.Zone !== actions.Zone) && !e.buttons  ){
     A.Status.Zone = actions.Zone;
     A.MainDiv.style.cursor = actions.Zone ? "move" : "auto";
@@ -1020,10 +897,6 @@ function onMouseMove(e){
     //  e.target.style.cursor = actions.Click ? 'pointer' : 'move';
     //drawDiagramAgain(A);
   }
-
-  //A.InfoCardDiv.style.left = pt.x + "px";
-  A.InfoCardPos.y = pt.y;
-  A.InfoCardDiv.style.top = pt.y + "px";
 
   A.drawFocusLayer( x, y);
 
@@ -1149,7 +1022,6 @@ function annotatorsTimerCallback(){
   // Iterate through all the diagrams in the document.
   for(var i=0;i<AnnotatorList.length;i++){
     A = Annotators.AOfIndex(i);
-    //A.timeoutsForOneDiagram();
     RR.animateForOneDiagram(A);
   }
 }
@@ -1167,62 +1039,62 @@ function infoCardMove(e) {
 // Consumes the UpdateDelay.
 function infoCardTimerCallback()
 {
-  var A=window.TipBox || {};
-  if( !A.InfoCardDiv )
+  var T=window.TipBox || {};
+  if( !T.InfoCardDiv )
     return;
-  if( A.InfoCardUpdateDelay > 0){
-    A.InfoCardUpdateDelay--;
-    if( A.InfoCardUpdateDelay > 0 )
+  if( T.InfoCardUpdateDelay > 0){
+    T.InfoCardUpdateDelay--;
+    if( T.InfoCardUpdateDelay > 0 )
       return;
   }
-  var inTheDetail = A.InfoCardDiv.matches(':hover');
-  if( inTheDetail && (A.InfoCardUpdateDelay==0)){
+  var inTheDetail = T.InfoCardDiv.matches(':hover');
+  if( inTheDetail && (T.InfoCardUpdateDelay==0)){
     return;
   }
-  A.InfoCardUpdateDelay = 10;
+  T.InfoCardUpdateDelay = 10;
 
-  if( A.ShownContent == A.RichToolTipContent)
+  if( T.ShownContent == T.RichToolTipContent)
     return;
-  A.ShownContent = A.RichToolTipContent;
+  T.ShownContent = T.RichToolTipContent;
 
-  if( A.RichToolTipContent ){
-    A.InfoCardDiv.innerHTML = A.RichToolTipContent;
-    A.InfoCardDiv.style.display = "block";
-    A.InfoCardDiv.scrollTo( 0, 0);
-    if( isDefined( A.InfoCardPos.x ))
-      A.InfoCardDiv.style.left = A.InfoCardPos.x + "px";
+  if( T.RichToolTipContent ){
+    T.InfoCardDiv.innerHTML = T.RichToolTipContent;
+    T.InfoCardDiv.style.display = "block";
+    T.InfoCardDiv.scrollTo( 0, 0);
+    if( isDefined( T.InfoCardPos.x ))
+      T.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
   }
   else
   {
-    A.InfoCardDiv.style.display = "none";
+    T.InfoCardDiv.style.display = "none";
   }
 }
 
-function mayCreateInfoCard(A){
-  if( A.InfoCardDiv )
+function mayCreateInfoCard(T){
+  if( T.InfoCardDiv )
     return;
-  A.InfoCard = {};
-  A.InfoCard.width = 390;
-  A.InfoCard.height = 300;
+  T.InfoCard = {};
+  T.InfoCard.width = 390;
+  T.InfoCard.height = 300;
 
   // InfoCard div floats above the white-out
-  A.InfoCardDiv = document.createElement("div");
+  T.InfoCardDiv = document.createElement("div");
 
-  A.InfoCardDiv.style.width = '390px';
-  A.InfoCardDiv.style.height = '300px';
+  T.InfoCardDiv.style.width = '390px';
+  T.InfoCardDiv.style.height = '300px';
 
-  A.InfoCardDiv.className="InfoCardDiv DarkDiv";
-  A.InfoCardPos = A.InfoCardPos || Vector2d(0,0);
+  T.InfoCardDiv.className="InfoCardDiv DarkDiv";
+  T.InfoCardPos = T.InfoCardPos || Vector2d(0,0);
   var box = document.body;
-  box.appendChild(A.InfoCardDiv);
-  A.InfoCardUpdateDelay = -1;// force immediate...
+  box.appendChild(T.InfoCardDiv);
+  T.InfoCardUpdateDelay = -1;// force immediate...
 
-  A.InfoCardDiv.innerHTML = A.RichToolTipContent;
-  A.InfoCardDiv.style.display = "block";
-  if( isDefined( A.InfoCardPos.x ))
-    A.InfoCardDiv.style.left = A.InfoCardPos.x + "px";
-  //A.InfoCardUpdateDelay = -1;
-  //window.TipBox = A;
+  T.InfoCardDiv.innerHTML = T.RichToolTipContent;
+  T.InfoCardDiv.style.display = "block";
+  if( isDefined( T.InfoCardPos.x ))
+    T.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+  //T.InfoCardUpdateDelay = -1;
+  //window.TipBox = T;
   //positionInfoCard( Vector2d( 10,50 ));
   document.onmousemove = infoCardMove;
 }
@@ -1257,56 +1129,56 @@ function mayCreateInfoCard(A){
 
 // Tooltip showing == timer not zero.
 function changeTipText( v, text ){
-  var A=window.TipBox || {};
-  window.TipBox = A;
+  var TipBox=window.TipBox || {};
+  window.TipBox = TipBox;
 
-  A.InfoCardPos = A.InfoCardPos || {};
+  TipBox.InfoCardPos = TipBox.InfoCardPos || {};
 
-  var div = A && A.InfoCardDiv;
+  var div = TipBox && TipBox.InfoCardDiv;
   var inTheDetail = div && div.matches(':hover') && div.style.display=='block';
 
   var newContent = text;//Markdown_Fmt.htmlOf( text );
-  mayCreateInfoCard( A );
+  mayCreateInfoCard( TipBox );
 
   // No text update? return.  
-  if( A.RichToolTipContent == newContent)
+  if( TipBox.RichToolTipContent == newContent)
     return;
-  A.RichToolTipContent = newContent;
+  TipBox.RichToolTipContent = newContent;
   // The guard is for the special case where the info card 
   // itself triggers a change in text.
   if( inTheDetail ){
-    A.InfoCardDiv.innerHTML = A.RichToolTipContent;    
-    //A.InfoCardUpdateDelay = 200;
+    TipBox.InfoCardDiv.innerHTML = TipBox.RichToolTipContent;    
     return;
   }
   updateInfoCardFromMouse( v ); // handles S2.
-  if( A.InfoCardUpdateDelay > 0)
+  if( TipBox.InfoCardUpdateDelay > 0)
     return; // S3 text to show was updated.
   // S1. Immediate update.
-  A.InfoCardUpdateDelay = -1;
+  TipBox.InfoCardUpdateDelay = -1;
   infoCardTimerCallback();
 }
 
 function mayExitHotspot( v ){
-  //return;
-  var A = window.TipBox;
   var hover = document.elementFromPoint( v.x, v.y);
   // When debugging, and maybe when scrolling, there may be no element.
   if( !hover )
     return;
+  // If on link that makes a tip, do not dismiss the tip 
   if( hover.className == 'popbox_link' )
     return;
   if( hover.className == 'popbox_link2' )
     return;
+  // If on a canvas (which makes tips) the canvas is responsible 
+  // for dismissing the tip.
   if ( hover.className == 'ScorpioCanvas' )
     return;
   changeTipText( v, "");
 }
 
 function infoCardPos(){
-  var A=window.TipBox ||{};
-  A.InfoCardPos = A.InfoCardPos || {};
-  return Vector2d( A.InfoCardPos.x ||0, A.InfoCardPos.y||0);
+  var T=window.TipBox ||{};
+  T.InfoCardPos = T.InfoCardPos || {};
+  return Vector2d( T.InfoCardPos.x ||0, T.InfoCardPos.y||0);
 }
 
 // v is the mouse position, not the card position.
@@ -1314,34 +1186,33 @@ function updateInfoCardFromMouse(v){
   var h = window.innerHeight;
   var w = document.body.clientWidth;
 
-  var A=window.TipBox ||{};
-  window.TipBox = A;
-  A.InfoCardPos = A.InfoCardPos || {};
+  var T=window.TipBox ||{};
+  window.TipBox = T;
+  T.InfoCardPos = T.InfoCardPos || {};
 
   if( v.x >= 0)
-    A.InfoCardPos.x = v.x;
-  A.InfoCardPos.y = v.y;
+    T.InfoCardPos.x = v.x;
+  T.InfoCardPos.y = v.y;
 
-  var div = A && A.InfoCardDiv;
+  var div = T && T.InfoCardDiv;
   if(!div)
     return;
 
-
-  var p = A.InfoCardPos.y/h;
-  h = h-A.InfoCard.height;
-  var q = A.InfoCardPos.x/w;
+  var p = T.InfoCardPos.y/h;
+  h = h-T.InfoCard.height;
+  var q = T.InfoCardPos.x/w;
   q = (q>0.5)?0:1;
-  w = w-A.InfoCard.width;
-  A.InfoCardPos.x = q*w; // delayed
-  A.InfoCardPos.y = p*h; // delayed
+  w = w-T.InfoCard.width;
+  T.InfoCardPos.x = q*w; // delayed
+  T.InfoCardPos.y = p*h; // delayed
   // No delay on y.
   // But don't move if in the info card.
   var inTheDetail = div.matches(':hover') && div.style.display=='block';
-  if( inTheDetail && (A.InfoCardUpdateDelay==0)){
-    A.RichToolTipContent=0;
+  if( inTheDetail && (T.InfoCardUpdateDelay==0)){
+    T.RichToolTipContent=0;
     return;
   }
-  if( A.RichToolTipContent===0 )
+  if( T.RichToolTipContent===0 )
     return;
   div.style.top  = (p*h) + "px";
 }
@@ -1375,13 +1246,13 @@ function showTipBoxFromDiv( e, divName ){
 }
 
 function closeTip(){
-  var A=window.TipBox ||{};
-  if( !A.InfoCardDiv )
+  var T=window.TipBox ||{};
+  if( !T.InfoCardDiv )
     return;  
-  A.InfoCardDiv.style.display='none';
-  A.RichToolTipContent = ""; 
-  A.ShownContent = "";  
-  A.InfoCardUpdateDelay = 0;
+  T.InfoCardDiv.style.display='none';
+  T.RichToolTipContent = ""; 
+  T.ShownContent = "";  
+  T.InfoCardUpdateDelay = 0;
 }
 
 // This function is called without any preceeding delay.
@@ -1409,9 +1280,7 @@ function showSidebar( text ){
     A.SidebarContent = newContent;
 
     if( !A.SidebarDiv ){
-      // InfoCard div floats above the white-out
       A.SidebarDiv = document.createElement("div");
-
       A.SidebarDiv.style.width = '160px';
       A.SidebarDiv.style.height = '100%';
   
@@ -1420,7 +1289,6 @@ function showSidebar( text ){
       var box = document.body;
       box.appendChild(A.SidebarDiv);
     }
-
 
     A.SidebarDiv.innerHTML = A.SidebarContent;
     A.SidebarDiv.style.display = "block";

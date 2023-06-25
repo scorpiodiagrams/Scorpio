@@ -533,7 +533,6 @@ function sizeLayoutAndDrawDiagram(A, obj, d){
 
 function setupAndDrawDiagramDiv(A){
   console.log(`[${A.index}] now setupAndDrawDiagram`);
-  A.setInfoCardSize();
   A.resizeDivs();
   var d = {};
   var obj = A.RootObject;
@@ -2965,55 +2964,6 @@ function drawGraph( A, obj, d ){
   }
 */
 }
-
-
-// >>>>>>>>>>>>>>>>>>>> Draw on focus layer
-
-
-function drawFocusGuide(A,x, y, bVis){
-  var ctx = A.FocusCanvas.ctx;
-//  ctx.fillStyle = "rgba(5,5,5,0.2)";
-  ctx.fillStyle = "#ffffff40";
-
-  ctx.globalCompositeOperation = 'source-over';
-  var x0=A.InfoCardPos.x;
-  var y0=A.InfoCardPos.y+60;
-  if( x0 < 100)
-    x0+=A.InfoCard.width;
-  var dx = x-x0;
-  var dy = y-y0;
-  var l = Math.sqrt( dx*dx+dy*dy)+0.001;
-  dx = dx/l;
-  dy = dy/l;
-
-  var spacing = 20;
-  var spot = 2;
-  var spot2 =10;
-
-  var i;
-
-  var xx;
-  var yy;
-  for(i=spot/2;i<l;i+=spacing){
-    xx = x0+i*dx;
-    yy = y0+i*dy;
-
-    ctx.beginPath();
-    ctx.arc(xx,yy, spot, 0, Math.PI * 2.0, true);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(xx-dy*spot2,yy+dx*spot2);
-    ctx.lineTo(xx-dx*spot2*2,yy-dy*spot2*2);
-    ctx.lineTo(xx+dy*spot2,yy-dx*spot2);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-}
-
-
 
 // finds field value to first ; or </pre>
 function fieldValue(field, line){

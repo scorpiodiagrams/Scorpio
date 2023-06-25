@@ -757,7 +757,9 @@ Polyglot_Fmt.prototype ={
     this.handlePopBoxInner('popbox_link2');
   },
   handleJump(){
-    var name = "nut_"+(this.blobCounter++);
+    // HACK: nutj_1 avoids collision with nut_1 but real problem is using a new
+    // counter
+    var name = "nutj_"+(this.blobCounter++);
     var toks = this.getTok().trim().split(" ");
     var url = toks.shift()||"missing";
     var repo = Registrar.repo;
