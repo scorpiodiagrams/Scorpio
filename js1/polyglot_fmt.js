@@ -765,10 +765,13 @@ Polyglot_Fmt.prototype ={
     var repo = Registrar.repo;
     if( !url.match(";"))
       url = repo+';'+url; 
-    this.html.push( `<span class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
+    // Hack: no <br>
+    if( this.html.slice(-1)=="<br>")
+      this.html.pop();        
+    this.html.push( `<div class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
     this.untilEol();
     this.html.push( toks.join(" "));
-    this.html.push('</span>');
+    this.html.push('</div>');
     //this.getTok();
     this.html.push(`<span id='${name}' style='display:none'>` );
     this.handleGroup();

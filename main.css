@@ -208,9 +208,17 @@ span.example{
   text-decoration-style: dotted;
   text-decoration-color: blue;
   cursor: pointer;
+  width:100%;
 }
 .popbox_link2 {
   cursor: pointer;
+}
+.popbox_link:hover{
+  /*background-color: #443;*/
+  background-color: #443;
+  border-radius: 4px;
+  border: solid #776 1px;
+  color:#ddf;
 }
 /*
 .MainDiv::before{
@@ -565,16 +573,16 @@ blockquote + .caption{
 }
 
 .DarkDiv {
-  color: #c8c8c8;
+  color: #aa9;
   /*background-color: #272b30;*/
-  background-color : rgba(40,40,30,0.9);
+  background-color : #332e;
 }
 
 .InfoCardDiv
 {
   color: #c8c8c8;
   /*background-color: #272b30;*/
-  background-color : rgba(40,40,30,0.9);
+  background-color : #332e;
   position : fixed;
   left : 0px;
   top : 0px;
