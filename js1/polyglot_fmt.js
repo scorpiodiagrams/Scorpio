@@ -766,9 +766,12 @@ Polyglot_Fmt.prototype ={
     if( !url.match(";"))
       url = repo+';'+url; 
     // Hack: no <br>
+
+    var sel = url == ( `${Registrar.repo};${Registrar.page}` ) ? 
+      " selected_box" : "";
     if( this.html.slice(-1)=="<br>")
       this.html.pop();        
-    this.html.push( `<div class='popbox_link' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
+    this.html.push( `<div class='popbox_link${sel}' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
     this.untilEol();
     this.html.push( toks.join(" "));
     this.html.push('</div>');

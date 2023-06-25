@@ -209,6 +209,7 @@ span.example{
   text-decoration-color: blue;
   cursor: pointer;
   width:100%;
+  border: solid transparent 1px;
 }
 .popbox_link2 {
   cursor: pointer;
@@ -220,6 +221,15 @@ span.example{
   border: solid #776 1px;
   color:#ddf;
 }
+
+.selected_box{
+  /*background-color: #443;*/
+  background-color: #447;
+  border-radius: 4px;
+  border: solid #779 1px;
+  color:#ddf;
+}
+
 /*
 .MainDiv::before{
   content: '';

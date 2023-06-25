@@ -1168,9 +1168,7 @@ function mayExitHotspot( v ){
   if( !hover )
     return;
   // If on link that makes a tip, do not dismiss the tip 
-  if( hover.className == 'popbox_link' )
-    return;
-  if( hover.className == 'popbox_link2' )
+  if( hover.className.includes( 'popbox_link' ))
     return;
   // If on a canvas (which makes tips) the canvas is responsible 
   // for dismissing the tip.
