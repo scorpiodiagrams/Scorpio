@@ -28,6 +28,8 @@ function Exports(){
   OnFns.closeTip = closeTip;
   OnFns.toggleToolsVisibility = toggleToolsVisibility;
 
+  RR.makeInfoCard = makeInfoCard;
+
   RR.showSidebar = showSidebar;
   RR.showTipBoxFromDiv = showTipBoxFromDiv;
   RR.headingForDiv = headingForDiv;
@@ -1056,23 +1058,51 @@ function infoCardTimerCallback()
   if( T.ShownContent == T.RichToolTipContent)
     return;
   T.ShownContent = T.RichToolTipContent;
+  updateCardDiv( T );
+}
 
+function updateCardFollowersFromMouse(  ){
+  var T=window.TipBox ||{};
+  var Divs = RR.MultiscrollerDivs;
+  var m = -5;
+  for( var i=0;i<10;i++){
+    if( (i+m) == 0 )
+      m++;
+    S = Divs[i];
+    S.InfoCardPos.y = T.InfoCardPos.y + (i+m)*T.InfoCard.height;
+    S.InfoCardDiv.style.top = S.InfoCardPos.y + "px";
+  }
+}
+
+function updateCardFollowersFromCard(){
+  var T=window.TipBox ||{};
+  var Divs = RR.MultiscrollerDivs;
+  for( var i=0;i<10;i++){
+    S = Divs[i];
+    if( isDefined( T.InfoCardPos.x ) ){
+      S.InfoCardPos.x = T.InfoCardPos.x;
+      S.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+    }
+    S.InfoCardDiv.style.display = T.RichToolTipContent ? 'block':'none';
+  }
+}
+
+function updateCardDiv( T ) {
   if( T.RichToolTipContent ){
     T.InfoCardDiv.innerHTML = T.RichToolTipContent;
-    T.InfoCardDiv.style.display = "block";
     T.InfoCardDiv.scrollTo( 0, 0);
     if( isDefined( T.InfoCardPos.x ))
       T.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+    T.InfoCardDiv.style.display = "block";
   }
   else
   {
     T.InfoCardDiv.style.display = "none";
   }
+  updateCardFollowersFromCard();
 }
 
-function mayCreateInfoCard(T){
-  if( T.InfoCardDiv )
-    return;
+function makeInfoCard( T ){
   T.InfoCard = {};
   T.InfoCard.width = 390;
   T.InfoCard.height = 300;
@@ -1085,14 +1115,17 @@ function mayCreateInfoCard(T){
 
   T.InfoCardDiv.className="InfoCardDiv DarkDiv";
   T.InfoCardPos = T.InfoCardPos || Vector2d(0,0);
+  T.InfoCardDiv.style.display = "none";
   var box = document.body;
   box.appendChild(T.InfoCardDiv);
-  T.InfoCardUpdateDelay = -1;// force immediate...
+}
 
-  T.InfoCardDiv.innerHTML = T.RichToolTipContent;
-  T.InfoCardDiv.style.display = "block";
-  if( isDefined( T.InfoCardPos.x ))
-    T.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+function mayCreateInfoCard(T){
+  if( T.InfoCardDiv )
+    return;
+  makeInfoCard( T );
+  T.InfoCardUpdateDelay = -1;// force immediate...
+  updateCardDiv( T );
   T.InfoCardDiv.addEventListener('mousedown', function (event) {
     // Use currentTarget to get the listener div (i.e. this div)
     DomUtils.dragMouseDown(event.currentTarget);
@@ -1217,6 +1250,7 @@ function updateInfoCardFromMouse(v){
   if( T.RichToolTipContent===0 )
     return;
   div.style.top  = (p*h) + "px";
+  updateCardFollowersFromMouse( );
 }
 
 function headingForDiv( divName ){
@@ -1364,6 +1398,7 @@ function initContent( classes ){
       RR.loadDiagram(A, A.page, 'no', 1);
     }
   }
+  RR.Multiscroller = new RR.classes.Multiscroller;
   if( timer )
     clearInterval( timer );
   // Timer is for animation such as rotating earth.
