@@ -1064,6 +1064,7 @@ function infoCardTimerCallback()
 function updateCardText( card, divName, i){
   if( !divName )
     return;
+  card.InfoCardDiv.style['opacity'] = 0.8;  
   if( !divName.startsWith("nutj_"))
     return;
   var x = +(divName.split( "nutj_")[1]);
