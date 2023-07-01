@@ -1061,16 +1061,42 @@ function infoCardTimerCallback()
   updateCardDiv( T );
 }
 
-function updateCardFollowersFromMouse(  ){
+function updateCardText( card, divName, i){
+  if( !divName )
+    return;
+  if( !divName.startsWith("nutj_"))
+    return;
+  var x = +(divName.split( "nutj_")[1]);
+
+  divName = `nutj_${x+i}`;
+  var header = headingForDiv( divName );
+  var div=document.getElementById( divName );
+  if( !div )
+    return;
+  card.RichToolTipContent = div.innerHTML
+}
+
+function updateCardFollowersFromMouse( divName  ){
   var T=window.TipBox ||{};
   var Divs = RR.MultiscrollerDivs;
-  var m = -5;
-  for( var i=0;i<10;i++){
-    if( (i+m) == 0 )
-      m++;
+  var yStart;
+  yStart = T.InfoCardPos.y;
+  for( var i=4;i>=0;i--){
     S = Divs[i];
-    S.InfoCardPos.y = T.InfoCardPos.y + (i+m)*T.InfoCard.height;
-    S.InfoCardDiv.style.top = S.InfoCardPos.y + "px";
+    //yStart -= S.InfoCard.height;
+    updateCardText( S, divName, i-5);
+    yStart -= S.InfoCardDiv.offsetHeight;
+    S.InfoCardPos.y = yStart;
+    S.InfoCardDiv.style.top = yStart + "px";
+  }
+  yStart = T.InfoCardPos.y+T.InfoCard.height;
+  for( var i=5;i<10;i++){
+    S = Divs[i];
+    updateCardText( S, divName, i-4);
+    S.InfoCardPos.y = yStart;
+    S.InfoCardDiv.style.top = yStart + "px";
+    yStart += S.InfoCardDiv.offsetHeight;
+    //yStart += S.InfoCard.height;
   }
 }
 
@@ -1082,6 +1108,10 @@ function updateCardFollowersFromCard(){
     if( isDefined( T.InfoCardPos.x ) ){
       S.InfoCardPos.x = T.InfoCardPos.x;
       S.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+      if( !T.RichToolTipContent )
+        S.RichToolTipContent = "Card";
+      else if( S.RichToolTipContent )
+        S.InfoCardDiv.innerHTML = S.RichToolTipContent;    
     }
     S.InfoCardDiv.style.display = T.RichToolTipContent ? 'block':'none';
   }
@@ -1165,7 +1195,7 @@ function mayCreateInfoCard(T){
 
 
 // Tooltip showing == timer not zero.
-function changeTipText( v, text ){
+function changeTipText( v, text, divName ){
   var TipBox=window.TipBox || {};
   window.TipBox = TipBox;
 
@@ -1187,7 +1217,7 @@ function changeTipText( v, text ){
     TipBox.InfoCardDiv.innerHTML = TipBox.RichToolTipContent;    
     return;
   }
-  updateInfoCardFromMouse( v ); // handles S2.
+  updateInfoCardFromMouse( v, divName ); // handles S2.
   if( TipBox.InfoCardUpdateDelay > 0)
     return; // S3 text to show was updated.
   // S1. Immediate update.
@@ -1217,7 +1247,7 @@ function infoCardPos(){
 }
 
 // v is the mouse position, not the card position.
-function updateInfoCardFromMouse(v){
+function updateInfoCardFromMouse(v, divName){
   var h = window.innerHeight;
   var w = document.body.clientWidth;
 
@@ -1250,7 +1280,7 @@ function updateInfoCardFromMouse(v){
   if( T.RichToolTipContent===0 )
     return;
   div.style.top  = (p*h) + "px";
-  updateCardFollowersFromMouse( );
+  updateCardFollowersFromMouse( divName );
 }
 
 function headingForDiv( divName ){
@@ -1278,7 +1308,7 @@ function showTipBoxFromDiv( e, divName ){
   var header = headingForDiv( divName );
   var div=document.getElementById( divName );
   var text = div ? div.innerHTML : `No preview available. "${divName}" may be in a different document.<br><br>I plan to search the other docs in a future version. I haven't yet decided whether to load just the missing document in the background, or to make a digest of the links in the entire collection and load that.`;
-  changeTipText( v, header+text );
+  changeTipText( v, header+text, divName );
 }
 
 function closeTip(){

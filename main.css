@@ -604,7 +604,7 @@ blockquote + .caption{
   -moz-border-radius : 5px;
   text-align : left;
   margin : 0px;
-  overflow: auto;
+  overflow: hidden;
   z-index:3;
 }
 

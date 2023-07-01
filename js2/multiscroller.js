@@ -36,6 +36,11 @@ class Multiscroller{
     for( var i=0;i<M.nDivs;i++){
       var T = {};
       RR.makeInfoCard( T );
+      T.InfoCardDiv.innerHTML = `<h3>Card ${i}</h3>`;
+      T.InfoCard.height = 30;
+      T.InfoCardDiv.style.height = "auto";
+      T.InfoCardDiv.style.min_height = T.InfoCard.height + 'px';
+      T.InfoCardDiv.style.overflow = 'hidden';
       //T.InfoCardDiv.style.display = "block";
       MultiscrollerDivs.push( T );
     }

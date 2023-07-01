@@ -1037,6 +1037,11 @@ Polyglot_Fmt.prototype ={
     this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
     this.tk = 1;
     this.html = [];
+
+    //this.measureSubtree( ctx, null, ast);
+    //this.positionSubtree( null, ast, v );
+    //this.outSubtree( ctx, ast );
+
     while( this.tk < this.tokens.length )
     {
       this.handleToken();
