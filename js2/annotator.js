@@ -1077,7 +1077,7 @@ function updateCardText( card, divName, i){
   card.RichToolTipContent = div.innerHTML
 }
 
-function updateCardFollowersFromMouse( divName  ){
+function updateCardFollowerPositions( ){
   var T=window.TipBox ||{};
   var Divs = RR.MultiscrollerDivs;
   var yStart;
@@ -1085,7 +1085,6 @@ function updateCardFollowersFromMouse( divName  ){
   for( var i=4;i>=0;i--){
     S = Divs[i];
     //yStart -= S.InfoCard.height;
-    updateCardText( S, divName, i-5);
     yStart -= S.InfoCardDiv.offsetHeight;
     S.InfoCardPos.y = yStart;
     S.InfoCardDiv.style.top = yStart + "px";
@@ -1093,13 +1092,31 @@ function updateCardFollowersFromMouse( divName  ){
   yStart = T.InfoCardPos.y+T.InfoCard.height;
   for( var i=5;i<10;i++){
     S = Divs[i];
-    updateCardText( S, divName, i-4);
     S.InfoCardPos.y = yStart;
     S.InfoCardDiv.style.top = yStart + "px";
     yStart += S.InfoCardDiv.offsetHeight;
     //yStart += S.InfoCard.height;
   }
 }
+
+function updateCardFollowerText( divName  ){
+  var T=window.TipBox ||{};
+  var Divs = RR.MultiscrollerDivs;
+  for( var i=4;i>=0;i--){
+    S = Divs[i];
+    updateCardText( S, divName, i-5);
+  }
+  for( var i=5;i<10;i++){
+    S = Divs[i];
+    updateCardText( S, divName, i-4);
+  }
+}
+
+function updateCardFollowersFromMouse( divName  ){
+  updateCardFollowerText( divName  );
+  updateCardFollowerPositions( );
+}
+
 
 function updateCardFollowersFromCard(){
   var T=window.TipBox ||{};
@@ -1116,6 +1133,7 @@ function updateCardFollowersFromCard(){
     }
     S.InfoCardDiv.style.display = T.RichToolTipContent ? 'block':'none';
   }
+  updateCardFollowerPositions( );
 }
 
 function updateCardDiv( T ) {
@@ -1136,13 +1154,16 @@ function updateCardDiv( T ) {
 function makeInfoCard( T ){
   T.InfoCard = {};
   T.InfoCard.width = 390;
-  T.InfoCard.height = 300;
+  T.InfoCard.height = 30;
 
   // InfoCard div floats above the white-out
   T.InfoCardDiv = document.createElement("div");
 
   T.InfoCardDiv.style.width = '390px';
-  T.InfoCardDiv.style.height = '300px';
+  T.InfoCardDiv.style.height = 'auto';
+  T.InfoCardDiv.style.minHeight = T.InfoCard.height + 'px';
+  T.InfoCardDiv.style.maxHeight = '300px';
+  T.InfoCardDiv.style.overflow = 'auto';
 
   T.InfoCardDiv.className="InfoCardDiv DarkDiv";
   T.InfoCardPos = T.InfoCardPos || Vector2d(0,0);
@@ -1265,6 +1286,7 @@ function updateInfoCardFromMouse(v, divName){
     return;
 
   var p = T.InfoCardPos.y/h;
+  T.InfoCard.height = div.offsetHeight;
   h = h-T.InfoCard.height;
   var q = T.InfoCardPos.x/w;
   q = (q>0.5)?0:1;
