@@ -1072,9 +1072,7 @@ function updateCardText( card, divName, i){
   divName = `nutj_${x+i}`;
   var header = headingForDiv( divName );
   var div=document.getElementById( divName );
-  if( !div )
-    return;
-  card.RichToolTipContent = div.innerHTML
+  card.RichToolTipContent = div ? div.innerHTML : " ";
 }
 
 function updateCardFollowerPositions( ){
@@ -1089,7 +1087,7 @@ function updateCardFollowerPositions( ){
     S.InfoCardPos.y = yStart;
     S.InfoCardDiv.style.top = yStart + "px";
   }
-  yStart = T.InfoCardPos.y+T.InfoCard.height;
+  yStart = T.InfoCardPos.y+T.InfoCardDiv.offsetHeight;
   for( var i=5;i<10;i++){
     S = Divs[i];
     S.InfoCardPos.y = yStart;
