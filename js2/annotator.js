@@ -1257,6 +1257,14 @@ function mayExitHotspot( v ){
   // for dismissing the tip.
   if ( hover.className == 'ScorpioCanvas' )
     return;
+  
+  // If we're on the info card div, then we don't change the text either.
+  // We make the list of elements, since we may actually land on something 
+  // inside thge InfoCardDiv
+  var T=window.TipBox || {};
+  if( document.elementsFromPoint( v.x, v.y).includes(T.InfoCardDiv))
+    return;
+
   changeTipText( v, "");
 }
 
