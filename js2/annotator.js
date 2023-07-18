@@ -1112,6 +1112,7 @@ function updateCardFollowerText( divName  ){
 
 function updateCardFollowersFromMouse( divName  ){
   updateCardFollowerText( divName  );
+  //updateCardFollowersFromCard();
   updateCardFollowerPositions( );
 }
 
@@ -1231,6 +1232,7 @@ function changeTipText( v, text, divName ){
   if( TipBox.RichToolTipContent == newContent)
     return;
   TipBox.RichToolTipContent = newContent;
+  TipBox.InfoCardUpdateDelay = 10;  
   // The guard is for the special case where the info card 
   // itself triggers a change in text.
   if( inTheDetail ){
@@ -1241,8 +1243,8 @@ function changeTipText( v, text, divName ){
   if( TipBox.InfoCardUpdateDelay > 0)
     return; // S3 text to show was updated.
   // S1. Immediate update.
-  TipBox.InfoCardUpdateDelay = -1;
-  infoCardTimerCallback();
+  //TipBox.InfoCardUpdateDelay = -1;
+  //infoCardTimerCallback();
 }
 
 function mayExitHotspot( v ){
@@ -1308,6 +1310,8 @@ function updateInfoCardFromMouse(v, divName){
   }
   if( T.RichToolTipContent===0 )
     return;
+  //if( T.InfoCardUpdateDelay > 0 )
+  //  T.InfoCardUpdateDelay = 10;  
   div.style.top  = (p*h) + "px";
   updateCardFollowersFromMouse( divName );
 }
