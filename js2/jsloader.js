@@ -36,6 +36,7 @@ scorpio.validModules =
   'annotations':[],
   'extra':[
     "/js1/hide_fmt.js",
+    "/js1/data_island_fmt.js",    
     "/js2/nurb.js"],
   'experimental':[
     "/js1/mediawiki_fmt.js",  

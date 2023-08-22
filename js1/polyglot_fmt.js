@@ -546,9 +546,13 @@ Polyglot_Fmt.prototype ={
     this.section = !this.section || 0;
     if( this.section){
       this.html.push("<div class='raw'>");
+      var json_buff = "";
       var tok=this.peekTok();
       if( tok && !tok.startsWith("\r\n")){
         tok=this.getTok();
+        if( tok == "json"){
+          json_buff = this.capture( ["```"]);
+        }
         if( tok == "Scheme"){
           var name = "nut_"+(this.blobCounter++);
           var buff = this.capture( ["```"]);
@@ -568,6 +572,15 @@ Polyglot_Fmt.prototype ={
         this.html.push("<div class='moniker'>"+tok+"</div>");
       }
       this.streamUntilIn( ["```"]);
+      if( json_buff ){
+        this.html.push( json_buff + "Data Island Found");
+        var module = Registrar.modules[ "DataIsland" ];
+        if( module){
+          var text = module.htmlOf( json_buff );
+          this.html.push( "</div><div>");
+          this.html.push( text );
+        }
+      }
     }
     else
       this.html.push("</div>");
