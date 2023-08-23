@@ -17,7 +17,7 @@ DataIsland_Fmt.prototype ={
     var graphWidth = 500;
     var nRows = data.length -1;
     ctx.font = "14px Arial";
-    ctx.fillStyle = "#000070";
+    ctx.fillStyle = "#00007060";
     ctx.textAlign = "left";
     graphWidth = 100;
     var max = [];
@@ -30,9 +30,21 @@ DataIsland_Fmt.prototype ={
         max[col]= m;
       }
     }
+    for( var col=2;col<=5;col++){
+      var x = 100 + (col-2) * (graphWidth+5);
+      var y = 0;//i*rowHeight;
+      ctx.fillStyle = "#000070";
+      ctx.textAlign = "left";
+      ctx.fillText(data[0][col], x, y + 10);
+    }
     for( var i=1;i<=nRows;i++){
       text = data[i][1];
-      ctx.fillText(text, 20, i*rowHeight + 10);
+      ctx.fillStyle = "#000070";
+      ctx.textAlign = "right";
+      ctx.fillText(i,    20, i*rowHeight + 10);
+      ctx.textAlign = "left";
+      ctx.fillText(text, 30, i*rowHeight + 10);
+      ctx.fillStyle = "#00007060";
       for( var col=2;col<=5;col++){
         var x = 100 + (col-2) * (graphWidth+5);
         var x1 = x+ (graphWidth*data[i][col])/max[col];
@@ -45,12 +57,11 @@ DataIsland_Fmt.prototype ={
   quick_plot( spec ){
     var data = spec.data;
     this.data = data;
-    var result = "";
-    result += "Fields are: " + data[0];
+    var result = "<br>";
     var rowHeight =20;
     var graphWidth = 500;
     var nRows = data.length -1;
-    result+=`<canvas width=${graphWidth} height=${nRows*rowHeight+30}>Canvas not supported</canvas><img src onerror='DataIsland_Fmt.delayed_quick_plot(this.previousSibling)'><br>Bar`;
+    result+=`<canvas width=${graphWidth} height=${nRows*rowHeight+30}>Canvas not supported</canvas><img src onerror='DataIsland_Fmt.delayed_quick_plot(this.previousSibling)'>`;
     return result;
   },
   htmlOf( text ){
