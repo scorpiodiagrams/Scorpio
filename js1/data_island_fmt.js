@@ -10,6 +10,27 @@ DataIsland_Fmt.prototype ={
   debug(A,url,text){
     alert( url );
   },
+  drawTime( ctx, data, i,j,x, y ){
+    ctx.fillStyle = "#005070";
+    var value = data[i][j];
+    if( j != 5)
+    {
+      // 30 GB/s for PCIe 4
+      // 4 Bytes per float
+      // 2 Transfers per float.
+      // x1000 for ms
+      value = 2*(value *4)/30000000.0;
+    }
+    else
+    {
+      // 61 TFLOPs for RX 7900 XTX
+      // x1000 for ms
+      value = value/61000000000.0;
+    }
+    value = Math.round( value *1000)/1000;
+    value = value + " ms";
+    ctx.fillText(value, x+4, y + 10);
+  },
   delayed_quick_plot( canv ){
     var ctx = canv.getContext('2d');
     var data = this.data;
@@ -44,13 +65,14 @@ DataIsland_Fmt.prototype ={
       ctx.fillText(i,    20, i*rowHeight + 10);
       ctx.textAlign = "left";
       ctx.fillText(text, 30, i*rowHeight + 10);
-      ctx.fillStyle = "#00007060";
       for( var col=2;col<=5;col++){
         var x = 100 + (col-2) * (graphWidth+5);
         var x1 = x+ (graphWidth*data[i][col])/max[col];
         var y = i*rowHeight;
-        var y1 = y+ rowHeight - 5;
-        ctx.fillRect( x,y,x1-x,y1-y);
+        var y1 = y+ rowHeight - 2;
+        ctx.fillStyle = "#00007060";
+        ctx.fillRect( x,y-4,x1-x,y1-y);
+        this.drawTime( ctx, data, i, col, x,y);
       }
     }
   },
