@@ -12,20 +12,20 @@ DataIsland_Fmt.prototype ={
   },
   drawTime( ctx, data, i,j,x, y ){
     ctx.fillStyle = "#005070";
-    var value = data[i][j];
+    var value = data[i][j]*200;
     if( j != 5)
     {
       // 30 GB/s for PCIe 4
       // 4 Bytes per float
-      // 2 Transfers per float.
       // x1000 for ms
-      value = 2*(value *4)/30000000.0;
+      value = (value *4)/30000000.0;
+      // Maybe 2 Transfers per float? No, don't account for that.
     }
     else
     {
       // 61 TFLOPs for RX 7900 XTX
       // x1000 for ms
-      value = value/61000000000.0;
+      value = value/61000000.0;
     }
     value = Math.round( value *1000)/1000;
     value = value + " ms";

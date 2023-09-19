@@ -573,7 +573,7 @@ Polyglot_Fmt.prototype ={
       }
       this.streamUntilIn( ["```"]);
       if( json_buff ){
-        this.html.push( json_buff + "Data Island Found");
+        this.html.push( json_buff );
         var module = Registrar.modules[ "DataIsland" ];
         if( module){
           var text = module.htmlOf( json_buff );
