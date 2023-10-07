@@ -785,6 +785,8 @@ Polyglot_Fmt.prototype ={
     if( this.html.slice(-1)=="<br>")
       this.html.pop();        
     this.html.push( `<div class='popbox_link${sel}' onmouseover=\"OnFns.showTipBoxFromDiv(event,'${name}');\" onclick=\"location.href='#${url}'">`);
+    // Use commented out line to disable multiscroller
+//    this.html.push( `<div class='popbox_link${sel}' onclick=\"location.href='#${url}'">`);
     this.untilEol();
     this.html.push( toks.join(" "));
     this.html.push('</div>');

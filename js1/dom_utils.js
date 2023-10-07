@@ -103,6 +103,7 @@ DomUtils.prototype ={
       RR.changeTipText( RR.infoCardPos(), Markdown_Fmt.htmlOf(text) );
       return;
     }
+//    div.scrollIntoView({behavior:'auto',block:"center"});
     div.scrollIntoView({behavior:'smooth',block:"center"});
   },
   initDiagramDiv( name,size ){

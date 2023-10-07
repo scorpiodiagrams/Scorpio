@@ -1462,7 +1462,8 @@ function initContent( classes ){
       RR.loadDiagram(A, A.page, 'no', 1);
     }
   }
-  RR.Multiscroller = new RR.classes.Multiscroller;
+  if( !RR.Multiscroller )
+    RR.Multiscroller = new RR.classes.Multiscroller;
   if( timer )
     clearInterval( timer );
   // Timer is for animation such as rotating earth.
