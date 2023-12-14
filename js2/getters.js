@@ -209,6 +209,11 @@ Getters.handleIfGraphKeyword = function( obj, line, state ){
     return true;
   }
 
+  matches = line.match( /^multi:\s*(.*)$/ );
+  if( matches ){
+    obj.multi = matches[1];
+    return true;
+  }
   matches = line.match( /^boxed:\s*(.*)$/ );
   if( matches ){
     obj.boxed = matches[1];

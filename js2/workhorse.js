@@ -1295,6 +1295,7 @@ var Ruler = new Ruler();
 
 function registerWorkhorseMethods()
 {
+  // Items that can appear in the model
   var reg = registerMethod; // abbreviation.
   reg( "Chem",    0,0, layoutMolecule, drawMolecule);
   reg( "Tree2",   0,0, layoutTree2, drawMolecule);
@@ -1303,6 +1304,7 @@ function registerWorkhorseMethods()
   reg( "Bond",    0,0, layoutBond, drawBond);
   reg( "Ruler",   createRuler,0, layoutMargined, drawRuler);
 
+  // Styles that have global effect on how the model is shown
   reg = registerReadWrite;
   reg( "MindMap",         readMindMap,         writeMindMap);
   reg( "Geometry",        readGeometry,        writeMindMap);

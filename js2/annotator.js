@@ -279,18 +279,19 @@ class Annotator{
     //A.Hotspots.byHandColourIx = 0;
   }
 
-  resizeDivs(){
+  resizeDivs( rect ){
     var A = this;
     if( !A.BackingCanvas )
       return;
-    A.MainDiv.style.width = A.Porthole.width + 'px';
+    rect = rect || A.Porthole;
+    A.MainDiv.style.width = rect.width + 'px';
 
-    A.BackingCanvas.width = A.Porthole.width;
-    A.BackingCanvas.height = A.Porthole.height;
-    A.FocusCanvas.width = A.Porthole.width;
-    A.FocusCanvas.height = A.Porthole.height;
-    A.HotspotsCanvas.width = A.Porthole.width;
-    A.HotspotsCanvas.height = A.Porthole.height;
+    A.BackingCanvas.width = rect.width;
+    A.BackingCanvas.height = rect.height;
+    A.FocusCanvas.width = rect.width;
+    A.FocusCanvas.height = rect.height;
+    A.HotspotsCanvas.width = rect.width;
+    A.HotspotsCanvas.height = rect.height;
 
     A.HotspotsCanvas.ctx = A.HotspotsCanvas.getContext('2d', {willReadFrequently: true});
     A.BackingCanvas.ctx = A.BackingCanvas.getContext('2d', {willReadFrequently: true});
