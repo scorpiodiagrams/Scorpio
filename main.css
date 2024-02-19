@@ -91,7 +91,9 @@ blockquote {
   border-left: 9px solid;
   border-right: 0px solid;
   border-color: #c3b18e;
-  margin: 0em 10px;
+  margin: 0em 0em;
+  margin-block-start: 0em;
+  margin-block-end: 0em;
   padding: 0.5em 10px;
 }
 
@@ -106,6 +108,14 @@ blockquote p {
   display: inline-block;
 }
 
+blockquote {
+  margin-bottom: -1em;
+}
+
+blockquote + hr {
+  margin-top: 1.6em;
+  margin-bottom: -0.6em;
+}
 button {
   width: 10em;
   height: 2.0em;

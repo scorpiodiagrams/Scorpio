@@ -173,7 +173,7 @@ Polyglot_Fmt.prototype ={
   handleBlockQuote(){
     var tok;
 
-    this.html.push( "<blockquote>" );
+    this.html.push( "<br><blockquote>" );
 
     while( true ){
       this.eat("");
