@@ -57,7 +57,7 @@ function Exports(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
+  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Full( Full #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
   this.fns[ "\r\n# " ]="H1";
@@ -169,6 +169,16 @@ Polyglot_Fmt.prototype ={
   },
   handleAnchor(){
     this.handleFn("<span id='","'></span>");
+  },
+  // Go full screen, and start loading the sample multiscroller
+  handleFull(){
+    var n = document.scripts.length;
+    var text = "Scripts:";
+    for( var i=1;i<n;i++)
+    {
+      text += '<br>'+document.scripts[i].src
+    }
+    RR.showMultiscroller( text )
   },  
   handleBlockQuote(){
     var tok;

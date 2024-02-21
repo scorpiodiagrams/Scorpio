@@ -31,6 +31,7 @@ function Exports(){
   RR.makeInfoCard = makeInfoCard;
 
   RR.showSidebar = showSidebar;
+  RR.showMultiscroller = showMultiscroller;
   RR.showTipBoxFromDiv = showTipBoxFromDiv;
   RR.headingForDiv = headingForDiv;
   RR.infoCardMove = infoCardMove;
@@ -1065,7 +1066,9 @@ function infoCardTimerCallback()
 function updateCardText( card, divName, i){
   if( !divName )
     return;
-  card.InfoCardDiv.style['opacity'] = 0.8;  
+  card.InfoCardDiv.style['opacity'] = 0.7;  
+  card.InfoCardDiv.style['border-color'] = '#2218';  
+  card.InfoCardDiv.style['border-width'] = '6px';  
   var parts = divName.split('_');
   if( parts.length != 2)
     return;
@@ -1074,11 +1077,13 @@ function updateCardText( card, divName, i){
   divName = `${parts[0]}_${x+i}`;
   var header = headingForDiv( divName );
   var div=document.getElementById( divName );
-  card.RichToolTipContent = div ? div.innerHTML : " ";
+  card.RichToolTipContent = div ? div.innerHTML : 0;
 }
 
 function updateCardFollowerPositions( ){
   var T=window.TipBox ||{};
+  //if( !T.RichToolTipContent )
+  //  return;
   var Divs = RR.MultiscrollerDivs;
   var yStart;
   yStart = T.InfoCardPos.y;
@@ -1125,12 +1130,13 @@ function updateCardFollowersFromCard(){
   for( var i=0;i<10;i++){
     S = Divs[i];
     if( isDefined( T.InfoCardPos.x ) ){
-      S.InfoCardPos.x = T.InfoCardPos.x;
-      S.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
       if( !T.RichToolTipContent )
         S.RichToolTipContent = "Card";
-      else if( S.RichToolTipContent )
+      else if( S.RichToolTipContent ){
         S.InfoCardDiv.innerHTML = S.RichToolTipContent;    
+        S.InfoCardPos.x = T.InfoCardPos.x;
+        S.InfoCardDiv.style.left = T.InfoCardPos.x + "px";
+      }
     }
     S.InfoCardDiv.style.display = T.RichToolTipContent ? 'block':'none';
   }
@@ -1269,7 +1275,7 @@ function mayExitHotspot( v ){
   if( document.elementsFromPoint( v.x, v.y).includes(T.InfoCardDiv))
     return;
 
-  changeTipText( v, "");
+  changeTipText( v, 0);//hide.
 }
 
 function infoCardPos(){
@@ -1351,25 +1357,25 @@ function closeTip(){
   if( !T.InfoCardDiv )
     return;  
   T.InfoCardDiv.style.display='none';
-  T.RichToolTipContent = ""; 
+  T.RichToolTipContent = 0; 
   T.ShownContent = "";  
   T.InfoCardUpdateDelay = 0;
 }
 
 // This function is called without any preceeding delay.
 function showOrHideTip( v, actions){
-  var A=window.TipBox || {};
-  window.TipBox = A;
+  var T=window.TipBox || {};
+  window.TipBox = T;
   var newContent = "";
   if( actions.Tip ){
     newContent = Markdown_Fmt.htmlOf(actions.Tip);
   } 
   
-  if( A.RichToolTipContent != newContent){
+  if( T.RichToolTipContent != newContent){
     if( newContent )
       changeTipText( v, newContent );
     else 
-      A.RichToolTipContent = "";
+      T.RichToolTipContent = 0;
   } 
 }
 
@@ -1392,12 +1398,12 @@ function showSidebar( text ){
     }
 
     A.SidebarDiv.innerHTML = A.SidebarContent;
-    A.SidebarDiv.style.display = "block";
+    //A.SidebarDiv.style.display = "block";
     if( isDefined( A.SidebarPos.x ))
       A.SidebarDiv.style.left = A.SidebarPos.x + "px";
   } 
   window.Sidebar = A;
-  A.SidebarDiv.style.display  = 'block';
+  A.SidebarDiv.style.display  = (text !== '') ? 'block' :'none';
   //positionInfoCard( Vector2d( 10,50 ));
 }
 
@@ -1408,6 +1414,35 @@ function showSidebarFromDiv( divName ){
 }
 
 var timer = 0;
+
+
+function showMultiscroller( text ){
+  var A=window.Multiscroller || {};
+  var newContent = text;//Markdown_Fmt.htmlOf( text );
+  
+  if( A.MultiscrollerContent != newContent){
+    A.MultiscrollerContent = newContent;
+
+    if( !A.MultiscrollerDiv ){
+      A.MultiscrollerDiv = document.createElement("div");
+      A.MultiscrollerDiv.style.width = '100%';
+      A.MultiscrollerDiv.style.height = '100%';
+  
+      A.MultiscrollerDiv.className="SidebarDiv";
+      A.MultiscrollerPos = Vector2d(0,0);
+      var box = document.body;
+      box.appendChild(A.MultiscrollerDiv);
+    }
+
+    A.MultiscrollerDiv.innerHTML = A.MultiscrollerContent;
+    //A.MultiscrollerDiv.style.display = "block";
+    if( isDefined( A.MultiscrollerPos.x ))
+      A.MultiscrollerDiv.style.left = A.MultiscrollerPos.x + "px";
+  } 
+  window.Multiscroller = A;
+  A.MultiscrollerDiv.style.display  = (text !== '') ? 'block' :'none';
+  //positionInfoCard( Vector2d( 10,50 ));
+}
 
 
 
