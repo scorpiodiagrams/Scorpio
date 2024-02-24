@@ -172,13 +172,7 @@ Polyglot_Fmt.prototype ={
   },
   // Go full screen, and start loading the sample multiscroller
   handleFull(){
-    var n = document.scripts.length;
-    var text = "Scripts:";
-    for( var i=1;i<n;i++)
-    {
-      text += '<br>'+document.scripts[i].src
-    }
-    RR.showMultiscroller( text )
+    Multiscroller_Fmt.InitFromScripts();
   },  
   handleBlockQuote(){
     var tok;

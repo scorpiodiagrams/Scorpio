@@ -11,6 +11,8 @@ Loader.prototype ={
     alert( url );
   },
   loadFromUrl(A, url, fn){
+    if( !url )
+      return;
     fn = fn || this.debug;
     var txtFile = new XMLHttpRequest();
     // CDNs and Varnish should give us the very latest.

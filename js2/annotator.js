@@ -31,7 +31,6 @@ function Exports(){
   RR.makeInfoCard = makeInfoCard;
 
   RR.showSidebar = showSidebar;
-  RR.showMultiscroller = showMultiscroller;
   RR.showTipBoxFromDiv = showTipBoxFromDiv;
   RR.headingForDiv = headingForDiv;
   RR.infoCardMove = infoCardMove;
@@ -1414,37 +1413,6 @@ function showSidebarFromDiv( divName ){
 }
 
 var timer = 0;
-
-
-function showMultiscroller( text ){
-  var A=window.Multiscroller || {};
-  var newContent = text;//Markdown_Fmt.htmlOf( text );
-  
-  if( A.MultiscrollerContent != newContent){
-    A.MultiscrollerContent = newContent;
-
-    if( !A.MultiscrollerDiv ){
-      A.MultiscrollerDiv = document.createElement("div");
-      A.MultiscrollerDiv.style.width = '100%';
-      A.MultiscrollerDiv.style.height = '100%';
-  
-      A.MultiscrollerDiv.className="SidebarDiv";
-      A.MultiscrollerPos = Vector2d(0,0);
-      var box = document.body;
-      box.appendChild(A.MultiscrollerDiv);
-    }
-
-    A.MultiscrollerDiv.innerHTML = A.MultiscrollerContent;
-    //A.MultiscrollerDiv.style.display = "block";
-    if( isDefined( A.MultiscrollerPos.x ))
-      A.MultiscrollerDiv.style.left = A.MultiscrollerPos.x + "px";
-  } 
-  window.Multiscroller = A;
-  A.MultiscrollerDiv.style.display  = (text !== '') ? 'block' :'none';
-  //positionInfoCard( Vector2d( 10,50 ));
-}
-
-
 
 function timerCallback(){
   RR.infoCardTimerCallback();
