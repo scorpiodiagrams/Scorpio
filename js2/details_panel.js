@@ -104,7 +104,7 @@ Download a copy of the diagram.
     <div>
     <button id='noBackground${index}' onclick='OnFns.removeBackground(${index})' disabled>No Background</button>
     <label for="fileUpload${index}" class="fileUpload">
-      <button onclick='OnFns.uploadImageTrampoline(${index})'>New Background</button>
+      <button id="fileUpload${index}" onclick='OnFns.uploadImageTrampoline(${index})'>New Background</button>
     </label>
     <span id='fileName${index}'>No File Uploaded yet.</span>
     </div><br>

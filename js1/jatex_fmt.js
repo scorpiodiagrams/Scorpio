@@ -577,10 +577,10 @@ SupSub.prototype = {
     if( !ast )
       return box;
     var tree = ast.subtree;
-    this.P.pushFont(10);
+    FontHandler.pushFont(10);
     var box1 = this.P.measureSubtree( ctx, prev, tree[0]);
     var box2 = this.P.measureSubtree( ctx, prev, tree[1]);
-    this.P.popFont();
+    FontHandler.popFont();
     // don't destroy the subtree boxes.
     box.addDown( box1 ).addDown( box2 );
     //ast.box = box.expand( 5, 5 );
@@ -598,13 +598,13 @@ SupSub.prototype = {
       return box;
     var tree = ast.subtree;
     var box0 = this.P.measureSubtree( ctx, prev, tree[0]);
-    this.P.pushFont(10);
+    FontHandler.pushFont(10);
     var box1 = this.P.measureSubtree( ctx, prev, tree[1]);
     var box2 = this.P.measureSubtree( ctx, prev, tree[2]);
     var box3 = this.P.measureSubtree( ctx, prev, tree[3]);
     var box4 = this.P.measureSubtree( ctx, prev, tree[4]);
     var box5 = this.P.measureSubtree( ctx, prev, tree[5]);
-    this.P.popFont();
+    FontHandler.popFont();
 
     // box for the main panel
     box.addBox( box0 );
@@ -660,11 +660,11 @@ SupSub.prototype = {
 
   outSupSub( ctx, ast, color ){
     var tree = ast.subtree;
-    this.P.pushFont(10);
+    FontHandler.pushFont(10);
     for( var i in tree ){
       this.P.outSubtree( ctx, tree[i], color);
     }
-    this.P.popFont();
+    FontHandler.popFont();
     this.P.outBox( ctx, ast.box );
   }, 
 }
@@ -881,24 +881,24 @@ Tile.prototype = {
 
 var Tile = new Tile();
 
-
-
 function FontHandler(){
   this.FontStack = [];
+  // KaTeX_Main is installed on my system, but probably should be
+  // using KaTeX_Math - and fix the font loader.
   this.FontList = [
     // style,   font,         px size, height, baseline adjust
-    [ "italic", "KaTex_Math", 20,      20,     4 ],
-    [ "",       "KaTex_Math", 50,      44,     5 ],
-    [ "",       "KaTex_AMS",  48,      44,     5 ],
-    [ "italic", "KaTex_Math", 15,      15,     4 ],
-    [ "bold",   "KaTex_Math", 20,      20,     4 ],
-    [ "",       "KaTex_Size3",20,      50,     20 ],
-    [ "",       "KaTex_Math",  8,       9,     3 ],
+    [ "italic",       "KaTeX_Main", 20,      20,     4 ],
+    [ "",       "KaTeX_Main", 50,      44,     5 ],
+    [ "",       "KaTeX_AMS",  48,      44,     5 ],
+    [ "italic", "KaTeX_Main", 15,      15,     4 ],
+    [ "bold",   "KaTeX_Main", 20,      20,     4 ],
+    [ "",       "KaTeX_Size3",20,      50,     20 ],
+    [ "",       "KaTeX_Main",  8,       9,     3 ],
     [ "",       "Courier",    16,      16,     4 ],
-    [ "",       "KaTex_Math", 14,      14,     3 ],
-    [ "",       "KaTex_Size4",20,      80,     35 ],
-    [ "italic", "KaTex_Math", 11,      11,     2 ],
-    [ "",       "KaTex_Math", 15,      15,     4 ],
+    [ "",       "KaTeX_Main", 14,      14,     3 ],
+    [ "",       "KaTeX_Size4",20,      80,     35 ],
+    [ "italic", "KaTeX_Main", 11,      11,     2 ],
+    [ "",       "KaTeX_Main", 15,      15,     4 ],
     ];
   this.font = this.FontList[0];
   // We allow many to one for font names to fonts.
@@ -932,6 +932,9 @@ FontHandler.prototype = {
 //    alert(err + " loading a font");
 //  });
 
+  reset(){
+    this.FontStack=[];
+  },
   setFontForToken( ctx, token ){
     var font = this.topFont();
     var fontAdjust = this.FontAdjust[token ] || 0;
@@ -943,7 +946,11 @@ FontHandler.prototype = {
     // some symbols are better italic..
     matches = matches || (["\\rho","\\pi"].indexOf( token ) >= 0 );
     //matches = false;
-    ctx.font = (matches ? font[0]:"") + " " + font[2]+"px "+font[1]; // font and size.
+    var fontString = (matches ? font[0]:"") + " " + font[2]+"px "+font[1]; // font and size.
+    var avail = document.fonts.check( fontString )
+    if( !avail )
+      console.log( fontString + (avail ? " present":" absent"));
+    ctx.font = fontString;
     this.font = font;
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -1731,7 +1738,7 @@ Stretcher.prototype = {
     var pieces = "⎧ ⎪ ⎨ ⎪ ⎩".split(" ");
 
     ctx.save();
-    this.P.setFontForToken( ctx, "\\left(" );
+    FontHandler.setFontForToken( ctx, "\\left(" );
     color = color || this.parent.sym_color || "#950";
     ctx.fillStyle = color;
     var text = pieces[0];
@@ -1847,21 +1854,6 @@ Jatex.prototype ={
   textOfToken( token ){
     return Symbol.JatexDict[ token ] || token;
   },
-  setFontForToken( ctx, tok ){
-    return FontHandler.setFontForToken( ctx, tok );
-  },
-  getFontHeight(){
-    return FontHandler.getFontHeight();
-  },
-  pushFont( font ){
-    return FontHandler.pushFont(font);
-  },
-  popFont( font ){
-    return FontHandler.popFont();
-  }, 
-  getFontOffset(){
-    return FontHandler.getFontOffset();
-  }, 
   // From outside a label, this is a similar interface to Katex.
   renderToString( str ){
     if( this.JatexDict[str])
@@ -2098,9 +2090,9 @@ Jatex.prototype ={
     var len = 0;
     // adding text
     var text = this.textOfToken(  tok );
-    this.setFontForToken( ctx, tok );
+    FontHandler.setFontForToken( ctx, tok );
     var len = ctx.measureText(text).width;
-    var ht  = this.getFontHeight();//8+ctx.measureText("M").width;
+    var ht  = FontHandler.getFontHeight();//8+ctx.measureText("M").width;
     len = Math.max( len, this.minWidth );
     box.addRight( len, ht );
     ast.box = box;
@@ -2121,10 +2113,10 @@ Jatex.prototype ={
     return box;
   },
   measureLittleBits( ctx, parent, ast, font ){
-    this.pushFont(font);
+    FontHandler.pushFont(font);
     var box1 = this.measureSubtree( ctx, ast, ast.subtree[0]);
     //ast.box = ast.box.addRight( box1 );
-    this.popFont();
+    FontHandler.popFont();
     return ast.box;
   },
   outSubtree( ctx, ast, color ){
@@ -2226,14 +2218,14 @@ Jatex.prototype ={
       return;
     var v = ast.box.vecs[0];
     var text = this.textOfToken( ast.token );
-    this.setFontForToken( ctx, ast.token );
+    FontHandler.setFontForToken( ctx, ast.token );
     color = color || this.parent.sym_color || "#950";
     ctx.fillStyle = color;
     var len = ctx.measureText(text).width;
     var width = ast.box.width();
     var adjust = this.alignFrac * (width - len);
     //ctx.beginPath();
-    ctx.fillText( text, v.x+adjust, v.y+this.getFontOffset() );
+    ctx.fillText( text, v.x+adjust, v.y+FontHandler.getFontOffset() );
     this.outBox( ctx, ast.box );
     ctx.textBaseline = "alphabetic";
   },
@@ -2291,6 +2283,9 @@ Jatex.prototype ={
     this.twistySpacing = 0;
     this.alignFrac = 0.0;
 
+    // reset would be needed if there is a bug that 
+    // does not pop as often as it pushes.
+    FontHandler.reset();
     // Optimisation - 
     // We can probably skip the first two steps, 
     // IF we are drawing a hotspot.
