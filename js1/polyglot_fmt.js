@@ -57,9 +57,24 @@ function Exports(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Full( Full #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- <hr> \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
+  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n\r\n#+ |\r\n\r\n##+|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/;
+  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Full( Full #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- Hr \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
+  this.fns[ "\r\n\r\n# " ]="H1";
+  this.fns[ "\r\n\r\n## " ]="H2";
+  this.fns[ "\r\n\r\n### " ]="H3";
+  this.fns[ "\r\n\r\n#### " ]="H4";
+  this.fns[ "\r\n\r\n##### " ]="H5";
+  this.fns[ "\r\n\r\n###### " ]="H6";
+  this.fns[ "\r\n\r\n####### " ]="H7";
+  this.fns[ "\r\n\r\n##" ]="H2";
+  this.fns[ "\r\n\r\n###" ]="H3";
+  this.fns[ "\r\n\r\n####" ]="H4";
+  this.fns[ "\r\n\r\n#####" ]="H5";
+  this.fns[ "\r\n\r\n######" ]="H6";
+  this.fns[ "\r\n\r\n#######" ]="H7";
+
   this.fns[ "\r\n# " ]="H1";
   this.fns[ "\r\n## " ]="H2";
   this.fns[ "\r\n### " ]="H3";
@@ -156,16 +171,16 @@ Polyglot_Fmt.prototype ={
     this.handleFn("<span class='bigRight'>","</span>");
   },
   handleNoBack(){
-    this.handleFn("<div class='banners'>","</div>");
+    this.handleFn2("<div class='banners'>","</div>");
   },
   handleExample(){
-    this.handleFn("<div class='example'>","</div>");
+    this.handleFn2("<div class='example'>","</div>");
   },
   handleRight(){
-    this.handleFn("<div class='right'>","</div>");
+    this.handleFn2("<div class='right'>","</div>");
   },
   handleCaption(){
-    this.handleFn("<div class='caption'><em>","</em></div>","#CaptionEnd");
+    this.handleFn2("<div class='caption'><em>","</em></div>","#CaptionEnd");
   },
   handleAnchor(){
     this.handleFn("<span id='","'></span>");
@@ -173,12 +188,17 @@ Polyglot_Fmt.prototype ={
   // Go full screen, and start loading the sample multiscroller
   handleFull(){
     Multiscroller_Fmt.InitFromScripts();
-  },  
-  handleBlockQuote(){
+  }, 
+  handleHr(){
+    this.html.push( "<hr>")//" style='border:0;height:2px;background:red'>" );
+    this.eat("\r\n");
+  }, 
+  handleBlockQuote2(){
     var tok;
 
-    this.html.push( "<br><blockquote>" );
+    this.html.push( "<blockquote>" );
 
+    // concatenate all \r\n> into one blockquote.
     while( true ){
       this.eat("");
       tok = this.peekTok();
@@ -194,17 +214,18 @@ Polyglot_Fmt.prototype ={
       }
       // discard the \r\n> and keep going.`
       this.getTok();
-      var prev = this.html[this.html.length-1];
-      //if( !prev.startsWith("</h"))
-      //  this.html.push("<br>");
     }
     this.html.push("</blockquote>");
+    this.eat("\r\n");
+  },
+  handleBlockQuote(){
+    this.handleFn2("<blockquote>","</blockquote>", "\r\n>");
   },
   handleBlockQuoteRight(){
-    this.handleFn("<blockquote class='right'>","</blockquote>");
+    this.handleFn2("<blockquote class='right'>","</blockquote>", "\r\n<");
   },
   handleQuote(){
-    this.handleFn("<blockquote><em>\"","\"</em></blockquote>");
+    this.handleFn2("<blockquote><em>\"","\"</em></blockquote>", ")");
   },
   addCommands( commands ){
     commands = commands.split(" ");
@@ -225,12 +246,24 @@ Polyglot_Fmt.prototype ={
       return "";
     return this.tokens[this.tk++];
   },
+  untilIs( choices ){
+    while( this.tk < this.tokens.length ){
+      var tok = this.peekTok();
+      for( choice of choices ){
+        if( tok ==  choice ){
+          return choice;
+        }
+      }
+      this.handleToken();
+    }
+    return "";
+  },
   untilIn( choices ){
     while( this.tk < this.tokens.length ){
       var tok = this.peekTok();
       for( choice of choices ){
         if( tok.startsWith( choice )){
-          return choice;
+          return tok;
         }
       }
       this.handleToken();
@@ -449,6 +482,7 @@ Polyglot_Fmt.prototype ={
     if(section)
       text += `<span id='${section}'></span><span id='content_of_${section}' style='display:none'>${buff}</span>`;
     this.html.push(text);
+    this.eat("\r\n");
   },
   handleH1(){ return this.handleHn( "h1");},
   handleH2(){ return this.handleHn( "h2");},
@@ -504,15 +538,19 @@ Polyglot_Fmt.prototype ={
     //alert( image );
   },
   handleBreak(){
-    this.eat("");    
-    if( this.section)
+    this.eat("");
+    // In verbatim, just add new lines.
+    if( this.section){
       this.html.push("\r\n");
-    else if( this.peekTok().startsWith("#Caption") )
-      ;
-    else if( this.peekTok().startsWith("\\") )
-      ;
-    else
-      this.html.push("<br>");
+      return;
+    }
+    var tok;
+    this.html.push("<br>");
+//    while( this.peekTok() == "\r\n"){
+//      this.getTok();
+//      this.eat("");    
+//      this.html.push("<br>");
+//    }
   },
   formatAsScheme( prog ){
     prog = prog.trim().split("\r\n").join(" ");
@@ -703,7 +741,24 @@ Polyglot_Fmt.prototype ={
     this.getTok();
     this.html.push(`</span>`);
   }, 
-
+  handleFn2( pre, post, option ){
+    this.html.push( pre );
+    // To end of line or closing brace.
+    var choice = option;
+    while( choice == option ){
+      choice = this.untilIn( [")", "\r\n"]);
+      if( choice == "\r\n")
+        choice = this.peekTok(1);
+      if( choice == option ){
+        this.getTok();
+        this.getTok();
+        this.html.push( "<br>" );
+      }
+    }
+    this.html.push(post);
+    this.eat("\r\n");
+    return choice;
+  },
   handleFn( pre, post, option ){
     this.html.push( pre );
     // To end of line or closing brace.
@@ -1053,9 +1108,19 @@ Polyglot_Fmt.prototype ={
     // Our tokens are either the things matched here
     // OR they are the strings between.
     // We discard empty tokens.
-    this.tokens = str.split( /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|# |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/);
+    this.tokens = str.split( this.splitterPattern );
     this.tk = 1;
     this.html = [];
+    // All start-of-line patterns gain a \r\n before them, to make up
+    // for the one they gobble.
+    const regex = /\r\n./; 
+    for (let i = 0; i < this.tokens.length; i++) {
+      if (regex.test( this.tokens[i])) {
+        this.tokens.splice(i, 0, '\r\n');
+        i++; // Skip the newly added 'X' to avoid infinite loop
+      }
+    }
+
 
     //this.measureSubtree( ctx, null, ast);
     //this.positionSubtree( null, ast, v );
@@ -1069,6 +1134,7 @@ Polyglot_Fmt.prototype ={
     //str = str.map( word => this.fns[word] || word);
     str = this.html.join("");
     var html = `<div>${str}</div>\r\n\r\n`;
+    html = html.replace( /<hr><br>/g, "<hr>");
     return html;
   },
 }

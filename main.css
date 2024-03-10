@@ -11,10 +11,6 @@ p {
   margin-block-end: 0em;
 }
 
-p + p {
-  margin-block-start: 0.6em;
-}
-
 h1, h2, h3, h4 {
   font-family: Arial;
 }
@@ -57,31 +53,6 @@ h4:first-child{
   margin-top:  0px;
 }
 
-/* h3 used as a heading modifier...*/
-h2 + h3{
-  margin-top: -20px;
-}
-
-h1 + h3{
-  margin-top: -20px;
-}
-
-h3 + h4{
-  margin-top: -6px;
-  text-decoration: none;  
-  /*font-family:  Times;*/
-  /*color:  #776;*/
-  margin-bottom:  20px;
-}
-
-h4 + p{
-  margin-top:  -1.1em;
-}
-
-h4 + ul{
-  margin-top:  -0.1em;
-}
-
 br {
   line-height: 150%;
 }
@@ -109,12 +80,12 @@ blockquote p {
 }
 
 blockquote {
-  margin-bottom: -1em;
+  margin-bottom: 0em;
 }
 
 blockquote + hr {
-  margin-top: 1.6em;
-  margin-bottom: -0.6em;
+  margin-top: 0.6em;
+  margin-bottom: 0.6em;
 }
 button {
   width: 10em;
@@ -240,19 +211,6 @@ span.example{
   border: solid #779 1px;
   color:#ddf;
 }
-
-/*
-.MainDiv::before{
-  content: '';
-  display: block;
-  box-sizing: border-box;
-  height: 100%;
-
-  border: 0.2em solid transparent;
-  border-image: linear-gradient(to top, #e3c17e 0%, #f8e8ae 100%);
-  border-image-slice: 1;
-}
-*/
 
 .boxed {
   font-size : 50%;
