@@ -445,9 +445,8 @@ span.highlight:hover {
 }
 
 blockquote + .caption{
-  margin-top: -20px;
+  margin-top: 0px;
 }
-
 
 .TableOfHotsDiv {
   clear: both;

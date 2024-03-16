@@ -1077,6 +1077,8 @@ function updateCardText( card, divName, i){
   var header = headingForDiv( divName );
   var div=document.getElementById( divName );
   card.RichToolTipContent = div ? div.innerHTML : 0;
+  if( card.RichToolTipContent.startsWith("<br>"))
+    card.RichToolTipContent = card.RichToolTipContent.slice(4);
 }
 
 function updateCardFollowerPositions( ){
@@ -1232,6 +1234,8 @@ function changeTipText( v, text, divName ){
   var div = TipBox && TipBox.InfoCardDiv;
   var inTheDetail = div && div.matches(':hover') && div.style.display=='block';
 
+  if( text.startsWith("<br>"))
+    text = text.slice( 4 );
   var newContent = text;//Markdown_Fmt.htmlOf( text );
   mayCreateInfoCard( TipBox );
 
