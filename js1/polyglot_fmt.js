@@ -57,23 +57,31 @@ function Exports(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n\r\n#+ |\r\n\r\n##+|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/;
+  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/;
   this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Full( Full #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- Hr \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
-  this.fns[ "\r\n\r\n# " ]="H1";
-  this.fns[ "\r\n\r\n## " ]="H2";
-  this.fns[ "\r\n\r\n### " ]="H3";
-  this.fns[ "\r\n\r\n#### " ]="H4";
-  this.fns[ "\r\n\r\n##### " ]="H5";
-  this.fns[ "\r\n\r\n###### " ]="H6";
-  this.fns[ "\r\n\r\n####### " ]="H7";
-  this.fns[ "\r\n\r\n##" ]="H2";
-  this.fns[ "\r\n\r\n###" ]="H3";
-  this.fns[ "\r\n\r\n####" ]="H4";
-  this.fns[ "\r\n\r\n#####" ]="H5";
-  this.fns[ "\r\n\r\n######" ]="H6";
-  this.fns[ "\r\n\r\n#######" ]="H7";
+  //this.fns[ "\r\n\r\n# " ]="H1";
+  //this.fns[ "\r\n\r\n## " ]="H2";
+  //this.fns[ "\r\n\r\n### " ]="H3";
+  //this.fns[ "\r\n\r\n#### " ]="H4";
+  //this.fns[ "\r\n\r\n##### " ]="H5";
+  //this.fns[ "\r\n\r\n###### " ]="H6";
+  //this.fns[ "\r\n\r\n####### " ]="H7";
+  //this.fns[ "\r\n\r\n##" ]="H2";
+  //this.fns[ "\r\n\r\n###" ]="H3";
+  //this.fns[ "\r\n\r\n####" ]="H4";
+  //this.fns[ "\r\n\r\n#####" ]="H5";
+  //this.fns[ "\r\n\r\n######" ]="H6";
+  //this.fns[ "\r\n\r\n#######" ]="H7";
+
+  this.fns[ "># " ]="H1";
+  this.fns[ ">## " ]="H2";
+  this.fns[ ">### " ]="H3";
+  this.fns[ ">#### " ]="H4";
+  this.fns[ ">##### " ]="H5";
+  this.fns[ ">###### " ]="H6";
+  this.fns[ ">####### " ]="H7";
 
   this.fns[ "\r\n# " ]="H1";
   this.fns[ "\r\n## " ]="H2";
@@ -1113,11 +1121,18 @@ Polyglot_Fmt.prototype ={
     this.html = [];
     // All start-of-line patterns gain a \r\n before them, to make up
     // for the one they gobble.
-    const regex = /\r\n./; 
+    const regexBlock = /\r\n./; 
+    const regexIndent = /^\r\n\>$|^\r\n\<$/; 
     for (let i = 0; i < this.tokens.length; i++) {
-      if (regex.test( this.tokens[i])) {
+      if (regexBlock.test( this.tokens[i])) {
         this.tokens.splice(i, 0, '\r\n');
         i++; // Skip the newly added 'X' to avoid infinite loop
+      }
+      if (i>2 && regexIndent.test(this.tokens[i-2])){
+        if( this.fns["\r\n"+this.tokens[i]] ){
+          //debugger;
+          //this.tokens[i] = ">"+this.tokens[i];
+        }
       }
     }
 
@@ -1133,6 +1148,8 @@ Polyglot_Fmt.prototype ={
     //str = str.filter(word => word != "");
     //str = str.map( word => this.fns[word] || word);
     str = this.html.join("");
+    if( str.startsWith("<br>"))
+      str = str.slice( 4 );
     var html = `<div>${str}</div>\r\n\r\n`;
     html = html.replace( /<hr><br>/g, "<hr>");
     return html;
