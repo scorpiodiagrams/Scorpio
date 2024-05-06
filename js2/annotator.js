@@ -1077,7 +1077,7 @@ function updateCardText( card, divName, i){
   var header = headingForDiv( divName );
   var div=document.getElementById( divName );
   card.RichToolTipContent = div ? div.innerHTML : 0;
-  if( card.RichToolTipContent.startsWith("<br>"))
+  if( card.RichToolTipContent && card.RichToolTipContent.startsWith("<br>"))
     card.RichToolTipContent = card.RichToolTipContent.slice(4);
 }
 
@@ -1227,6 +1227,7 @@ function mayCreateInfoCard(T){
 // Tooltip showing == timer not zero.
 function changeTipText( v, text, divName ){
   var TipBox=window.TipBox || {};
+  text = text || ""
   window.TipBox = TipBox;
 
   TipBox.InfoCardPos = TipBox.InfoCardPos || {};
