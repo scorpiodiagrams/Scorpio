@@ -41,6 +41,7 @@ function Exports(){
   RR.setTextVersion = setTextVersion;
   RR.getTextVersion = getTextVersion;
   RR.getJsonVersion = getJsonVersion;
+  RR.getConnectionsVersion = getConnectionsVersion;
 
   RR.getNamedAnnotator = getNamedAnnotator;
   RR.initContent = initContent;
@@ -1012,6 +1013,34 @@ function getJsonVersion( index ){
   var str = JSON.stringify( A.RootObject.content, null, 2 );
   return str;
 }
+
+// This computes the text positional graph spec
+// for passing to an independent optimiser, for example.
+function getConnectionsVersion( index ){
+  var A = Annotators.AOfIndex(index);
+  obj = A.RootObject.content[1];
+  var atoms = obj.atoms;
+  var str = "{ 'atoms': [\r\n";
+
+  for( var i in atoms){
+    var atom = atoms[i];
+    if( atom.isJref )
+      continue;
+    str += "    [" + Math.floor(atom.x)+","+Math.floor(atom.y)+"],\r\n";
+  }
+  str += "  ],\r\n";
+  str += "  'links': [\r\n";
+
+  var bonds = obj.bonds;
+
+  for( bond of bonds){
+    str += "    ["+ bond.points[0] + ", " + bond.points[1] +"],\r\n"
+  }
+  str += "  ]\r\n";
+  str += "}\r\n";
+  return str;
+}
+
 
 function toggleToolsVisibility(index){
   var A = Annotators.AOfIndex(index);
