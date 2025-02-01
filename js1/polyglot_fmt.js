@@ -28,6 +28,25 @@ function Exports(){
 //  window.Jatex = Jatex;
 }
 
+// state variables
+// These are for handling the grungy #VBar etc
+  let imageClass = '';
+  let indentClass = '';
+  let chunkClass = '';
+  let linkClass = '';
+  let selIndicator = false;
+  let cards = false;
+  let inCard = false;
+
+function inits(){
+  imageClass = '';
+  indentClass = '';
+  chunkClass = '';
+  linkClass = '';
+  selIndicator = false;
+}
+
+
   
 //  if( state.heroHeading )
 //    line = line.replace(/^#HeroHead\((.*?),(.*?)\)/gi, state.heroHeading );
@@ -57,8 +76,8 @@ function Exports(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\[|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n\-\-\-\-|\r\n|,|\r\n~~~|~~)/;
-  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![[ Image [ URL #Full( Full #Image( Image2 !+[[ ImageColoured #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- Hr \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
+  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\]\(|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\- |\r\n\*+ |\*+|\r\n *\- |\r\n\-\-\-\-?|\r\n|,|\r\n~~~|~~)/;
+  this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Overlay Overlay #Selected Selected #Buttons Buttons #Kwic Kwic #KwicTitle KwicTitle #VBar1 VBar1 #VBar2 VBar2 #VBar3 VBar3 #VBar4 VBar4 #ImageAs ImageAs #IndentAs IndentAs #Cards Cards #ChunkAs ChunkAs #LinkAs LinkAs #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![]( Image [ URL #Full( Full #Image( Image2 #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- Hr \r\n--- Hr \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
   //this.fns[ "\r\n\r\n# " ]="H1";
@@ -104,6 +123,12 @@ function Polyglot_Fmt(){
   this.fns[ "\r\n***** " ]="Ul5";
   this.fns[ "\r\n****** " ]="Ul6";
   this.fns[ "\r\n******* " ]="Ul7";
+  // An alternative form of unordered list...
+  this.fns[ "\r\n- " ]="Ul1";
+  this.fns[ "\r\n - " ]="Ul1";
+  this.fns[ "\r\n  - " ]="Ul2";
+  this.fns[ "\r\n   - " ]="Ul2";
+  this.fns[ "\r\n    - " ]="Ul3";
   this.fns[ "\r\n> [!" ]="Dropdown";
   this.fns[ "\r\n### %Footnote(" ]="FootnoteRef";
   this.blobCounter = 0;
@@ -168,6 +193,60 @@ Polyglot_Fmt.prototype ={
 </svg></button>`    
     );
   },
+
+
+  // These functions arrived with Pimellos
+  // ParamTok gets parameters after the specified token.
+  // Overlay is for a popover overlay
+  // Buttons will show some of our standard buttons.
+  // The various handleXxxAs functions set a mode for
+  //  images (e.g roundels)
+  //  Chunks (fold up or not)
+  //  Indents (diamond_orange or diamond_blue) the style of the indented item.
+  //  Links (hyperlink, toKwic, to third colums )
+  // Selected displays the next item with a selection indicator
+  // Kwic/KwicTitle set where the Kwic will load data from
+  // VBars are for 3 col layout
+  // Cards are for Flex card layout  
+  getParamTok(){
+    let str = this.getTok().trim();
+    this.eat("\r\n");
+    if( str == 'none' || str == 'default')
+      str = '';
+    return str;
+  },
+  handleOverlay(){this.eat("\r\n");this.html.push(popoverText())},
+  handleButtons(){this.html.push(popoverButtons(this.getParamTok()))},
+  handleImageAs(){imageClass=this.getParamTok();},
+  handleChunkAs(){chunkClass=this.getParamTok();},
+  handleIndentAs(){indentClass=this.getParamTok();},
+  handleLinkAs(){linkClass=this.getParamTok();},
+  handleSelected(){selIndicator=true;this.eat("");this.eat("\r\n");},
+  handleKwic(){Registrar.kwicSrc=this.getTok();Registrar.kwicTitle=Registrar.kwicSrc;this.eat("\r\n");},
+  handleKwicTitle(){Registrar.kwicTitle=this.getTok();this.eat("\r\n");},
+  handleVBar1(){ this.eat("");inits();this.html.push( '<div class="container"><div class="column" id="col1">');this.eat("\r\n");},
+  handleVBar2(){ this.eat("");inits();this.html.push( '</div><div class="resizer" id="resizer1" onmousedown="startResizing(this,event)" ontouchstart="startResizing(this,event)"></div><div class="column" id="col2">');this.eat("\r\n");},
+  handleVBar3(){ this.eat("");inits();this.html.push( '</div><div class="resizer" id="resizer2" onmousedown="startResizing(this,event)" ontouchstart="startResizing(this,event)"></div><div class="column" id="col3">');this.eat("\r\n");},
+  handleVBar4(){ this.eat("");inits();this.html.push( '</div></div>');this.eat("\r\n");},
+  handleCards(){this.eat("");this.html.push('<div class="container3">');this.eat("\r\n");cards=true;},
+  mayCard( more ){
+    if( !cards )
+      return;
+    if( inCard ){
+      this.html.push( '</div>' ) // end card
+    }
+    if( more ){
+      this.html.push( '<div class="card3">' );
+      inCard = true;
+      return;
+    }
+    this.html.push( '</div>' ) // end cards container
+    cards = false;
+    inCard = false;
+  },  
+
+
+
   // include stuff until ) or end of line.
   handleWiki(){
     this.handleFn("<a href='https://en.wikipedia.org/wiki/","' target='blank'>On Wikipedia...</a>");
@@ -227,10 +306,10 @@ Polyglot_Fmt.prototype ={
     this.eat("\r\n");
   },
   handleBlockQuote(){
-    this.handleFn2("<blockquote>","</blockquote>", "\r\n>");
+    this.handleFn3("<blockquote>","</blockquote>", "\r\n>");
   },
   handleBlockQuoteRight(){
-    this.handleFn2("<blockquote class='right'>","</blockquote>", "\r\n<");
+    this.handleFn3("<blockquote class='right'>","</blockquote>", "\r\n<");
   },
   handleQuote(){
     this.handleFn2("<blockquote><em>\"","\"</em></blockquote>", ")");
@@ -252,7 +331,10 @@ Polyglot_Fmt.prototype ={
   getTok(){
     if( this.tk>= this.tokens.length )
       return "";
-    return this.tokens[this.tk++];
+    let toke= this.tokens[this.tk++];
+    if( toke == '\r\n')
+      this.lineCtr++;
+    return toke;
   },
   untilIs( choices ){
     while( this.tk < this.tokens.length ){
@@ -286,10 +368,37 @@ Polyglot_Fmt.prototype ={
     this.tk++;
     var text = this.html.slice( hx-this.html.length ).join("");
     this.html.length = hx;
-    this.html.push("<a href=\"");
     this.eat("");
     var popbox = "";
     tok = this.peekTok()+this.peekTok(1);
+
+    // Custom addition for links to Kwic
+    if( linkClass == 'kwic' ){
+      tok = this.getTok();
+      tok = tok.replace( /%20/g, " " );
+      tok = tok.replace( /%2C/g, "," );
+      this.html.push( `<span class=kwic-launch onclick="launchKwic('${tok}')">${text}</span>`)
+      tok = this.untilIn( [")","\r\n"] );
+      if( tok != ")" )
+        return "";
+      this.tk++;
+      return 'OK';
+    }
+
+    // Custom addition for links that update col3
+    if( linkClass == 'col3' ){
+      tok = this.getTok();
+      anchor = '';
+      if( this.peekTok()?.[0] === '#' ){
+        anchor = this.getTok().slice(1);
+      }
+      anchor += this.captureAndEat( ')' );
+      this.html.push( `<span class=kwic-launch onclick="intoCol('${tok}',3,'${anchor}')">${text}</span>`)
+      return 'OK';
+    }
+
+    // This is messy code originally made for SICM
+    this.html.push("<a href=\"");
     if( tok.startsWith("bibliography"))
       text = '['+text+']';
     else if( tok.startsWith("references"))
@@ -352,7 +461,7 @@ Polyglot_Fmt.prototype ={
     return true;
   },
   handleURL(){
-    this.mayHandle( this.matchURL )
+    return this.mayHandle( this.matchURL )
   },
   handleScrollTo(){
     tok = this.captureAndEat( ")" );
@@ -458,7 +567,7 @@ Polyglot_Fmt.prototype ={
     this.eat(" ");
     for( var i=0;i<n;i++)
       this.html.push("<ul>");
-    this.html.push("<li>");
+    this.html.push(`<li class="${indentClass}">`);
     this.untilEol();
     this.html.push("</li>");
     for( var i=0;i<n;i++)
@@ -473,7 +582,9 @@ Polyglot_Fmt.prototype ={
   handleUl6(){ return this.handleUl( 6);},
   handleUl7(){ return this.handleUl( 7);},
   handleHn(n){
-    n = n || "h3";
+    n = n || 3;
+    if( n<4 )
+      this.mayCard( n > 2 )
     var buff = this.captureToEol();
     var section;
     section = buff.match( /^\s*([0-9\.]+)/);
@@ -483,38 +594,61 @@ Polyglot_Fmt.prototype ={
       section = section ? `exercise_${section[1]}` : "";
     }
     //section = section.replaceAll("\.","-");
-    var text = `<${n}>${buff}</${n}>`;
+    let nInvoke = 'h'+n
+    if( n==5){
+      nInvoke +=' onclick="toggleExpanded(this);"';
+    }
+    var text = `<${nInvoke}>${buff}</h${n}>`;
     // The double span here is that we need the content to vanish,
     // but we still need a span for the id as an anchor, and that 
     // span needs to be visible.
     if(section)
       text += `<span id='${section}'></span><span id='content_of_${section}' style='display:none'>${buff}</span>`;
+    if( this.inJump )
+      ;//text = "</span>"+text+"<span class='chunk'>"
+    else
+      text = "</span>"+text+"<span class='chunk'>"
+
     this.html.push(text);
     this.eat("\r\n");
   },
-  handleH1(){ return this.handleHn( "h1");},
-  handleH2(){ return this.handleHn( "h2");},
-  handleH3(){ return this.handleHn( "h3");},
-  handleH4(){ return this.handleHn( "h4");},
-  handleH5(){ return this.handleHn( "h5");},
-  handleH6(){ return this.handleHn( "h6");},
-  handleH7(){ return this.handleHn( "h7");},
+  handleH1(){ return this.handleHn( 1);},
+  handleH2(){ return this.handleHn( 2);},
+  handleH3(){ return this.handleHn( 3);},
+  handleH4(){ return this.handleHn( 4);},
+  handleH5(){ return this.handleHn( 5);},
+  handleH6(){ return this.handleHn( 6);},
+  handleH7(){ return this.handleHn( 7);},
   handleImage(c){
     var image = this.getTok();
     var close = this.getTok();
     var match;
     //image = image.replace("/../../..","");
-    image = image.replace(/\.\/images\//gi, `${Registrar.imageSrc}`);
+    image = image.replace(/\.+\/images\//gi, `${Registrar.imageSrc}`);
     match = image.match(/(.*)\|(.*)/);
     var size = "";
     if( match ) { 
       size = `width=${match[2]} `;
       image = match[1];
     }
-    c = (c==1)? "class='coloured' " : "";
-    this.html.push(`<img ${size}${c}src='${image}'></img>`);
+    let cl = imageClass ? `class="${imageClass}" `:""
+    if( cl && selIndicator ){
+      cl = `class="selected ${imageClass}" `;
+      selIndicator = false;
+    }
+    this.html.push(`<img ${size}${cl}src='${image}'></img>`);
     this.eat( "");
-    this.eat( "]");
+    this.eat( ")");
+    if( this.peekTok() == '[' ){
+      let img = this.html.pop();
+      //this.html.push( `<span onclick="alert('foo');">${img}</span>`);
+      this.tok = this.getTok();
+      this.handleURL();
+      this.html.pop();
+      this.html.pop();
+      this.html.push( img );
+      this.html.push( '</a>' );
+    }
   },
   handleImageColoured(){
     this.handleImage(1);
@@ -595,14 +729,52 @@ Polyglot_Fmt.prototype ={
   handleSection( ){
     this.section = !this.section || 0;
     if( this.section){
-      this.html.push("<div class='raw'>");
+      this.html.push("</span><div class='raw'>");
       var json_buff = "";
       var tok=this.peekTok();
       if( tok && !tok.startsWith("\r\n")){
         tok=this.getTok();
-        if( tok == "json"){
-          json_buff = this.capture( ["```"]);
+
+        // These GeShI handlers should probably move out into their oen space
+        if( tok == "jsonx"){
+          let text = this.capture( ["```"]);
+          var module = Registrar.modules[ "PrettyPrint" ];
+          if( module){
+            text = module.htmlOf( text );
+          }
+          this.html.push( text );
+          this.html.push( "</div><div>");
+          return;
         }
+
+        // We cheat on tables, and don't use the standard format
+        // We require that it be in a triple quote block.
+        if( tok == "table"){
+          let text = this.capture( ["```"]);
+          var module = Registrar.modules[ "Tablifier" ];
+          if( module){
+            text = module.htmlOf( text );
+          }
+          this.html.pop();
+          this.html.push( "</span>");
+          this.html.push( text );
+          this.html.push( "<div>");
+          return;
+        }
+
+        // Markdown in a GeShI block
+        if( tok == "mdown"){
+          let text = this.capture( ["```"]);
+          var module = Registrar.modules[ "Remarkable" ];
+          if( module){
+            text = module.htmlOf( text );
+          }
+          this.html.push( text );
+          this.html.push( "</div><div>");
+          return;
+        }
+
+        // We've had Scheme here a while...
         if( tok == "Scheme"){
           var name = "nut_"+(this.blobCounter++);
           var buff = this.capture( ["```"]);
@@ -622,6 +794,7 @@ Polyglot_Fmt.prototype ={
         this.html.push("<div class='moniker'>"+tok+"</div>");
       }
       this.streamUntilIn( ["```"]);
+
       if( json_buff ){
         this.html.push( json_buff );
         var module = Registrar.modules[ "DataIsland" ];
@@ -633,7 +806,7 @@ Polyglot_Fmt.prototype ={
       }
     }
     else
-      this.html.push("</div>");
+      this.html.push("</div><span class='chunk'>");
   },
   handleGroup(  ){
     // To end of line or closing brace.
@@ -749,12 +922,33 @@ Polyglot_Fmt.prototype ={
     this.getTok();
     this.html.push(`</span>`);
   }, 
+
+  // Scans to ) or end of line
   handleFn2( pre, post, option ){
     this.html.push( pre );
     // To end of line or closing brace.
     var choice = option;
     while( choice == option ){
       choice = this.untilIn( [")", "\r\n"]);
+      if( choice == "\r\n")
+        choice = this.peekTok(1);
+      if( choice == option ){
+        this.getTok();
+        this.getTok();
+        this.html.push( "<br>" );
+      }
+    }
+    this.html.push(post);
+    this.eat("\r\n");
+    return choice;
+  },
+  // Scans to end of line, only.
+  handleFn3( pre, post, option ){
+    this.html.push( pre );
+    // To end of line.
+    var choice = option;
+    while( choice == option ){
+      choice = this.untilIn( ["\r\n"]);
       if( choice == "\r\n")
         choice = this.peekTok(1);
       if( choice == option ){
@@ -839,6 +1033,7 @@ Polyglot_Fmt.prototype ={
   handleJump(){
     // HACK: nutj_1 avoids collision with nut_1 but real problem is using a new
     // counter
+    this.inJump = true;
     var name = "nutj_"+(this.blobCounter++);
     var toks = this.getTok().trim().split(" ");
     var url = toks.shift()||"missing";
@@ -861,6 +1056,7 @@ Polyglot_Fmt.prototype ={
     this.html.push(`<span id='${name}' style='display:none'>` );
     this.handleGroup();
     this.html.push('</span>');
+    this.inJump=false;
   }, 
   handlePop(){
     var name = "nut_"+(this.blobCounter++);
@@ -1001,7 +1197,7 @@ Polyglot_Fmt.prototype ={
     else
       this.html.push("</span>");
     if( this.tick ){
-      var choice = this.untilIn( ["\r\n","`","*","**",")","#GetCode("]);
+      var choice = this.untilIn( ["\r\n","`","*","**","#GetCode("]);
       if( choice!="\r\n")
         this.getTok();
       this.html.push("</span>");
@@ -1029,6 +1225,7 @@ Polyglot_Fmt.prototype ={
   handleToken( tok ){
     var token = tok || this.getTok();
     var translation = null;
+
     // Test using hasOwnProperty, otherwise properties like
     // fill() which we didn't add to fns are included too.
     if( this.fns.hasOwnProperty( token ))
@@ -1117,8 +1314,7 @@ Polyglot_Fmt.prototype ={
     // OR they are the strings between.
     // We discard empty tokens.
     this.tokens = str.split( this.splitterPattern );
-    this.tk = 1;
-    this.html = [];
+
     // All start-of-line patterns gain a \r\n before them, to make up
     // for the one they gobble.
     const regexBlock = /\r\n./; 
@@ -1136,6 +1332,8 @@ Polyglot_Fmt.prototype ={
       }
     }
 
+    this.tk = 1;
+    this.html = [];
 
     //this.measureSubtree( ctx, null, ast);
     //this.positionSubtree( null, ast, v );
@@ -1145,6 +1343,7 @@ Polyglot_Fmt.prototype ={
     {
       this.handleToken();
     }
+
     //str = str.filter(word => word != "");
     //str = str.map( word => this.fns[word] || word);
     str = this.html.join("");
@@ -1152,7 +1351,10 @@ Polyglot_Fmt.prototype ={
       str = str.slice( 4 );
     var html = `<div>${str}</div>\r\n\r\n`;
     html = html.replace( /<hr><br>/g, "<hr>");
-    return html;
+    // Custom anchor processing (from Pimellos)
+    if( typeof chapterVerseLink != 'undefined' )
+      html = chapterVerseLink( html );
+    return "<span class='chunk'>"+ html+"</span>";// end the chunks!
   },
 }
 
@@ -1162,6 +1364,7 @@ Registrar.register( Polyglot_Fmt );
 RR.PolyHelper = PolyHelper;
 
 Exports();
+
 
 return metaData;
 }( Registrar );// end of polyglot_fmt_js
