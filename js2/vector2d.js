@@ -179,6 +179,11 @@ Vector2d.prototype = {
       return new Vector2d( c*this.x + s*this.y,
        -s*this.x + c*this.y);
    },
+   flip( flip ){
+      if( flip )
+         return Vector2d( this.y, this.x )
+      return this
+   },
    slope(){
       if( this.y==0 && this.x==0)
          return 0;
