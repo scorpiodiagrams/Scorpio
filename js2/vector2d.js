@@ -8,13 +8,18 @@ function Vector2d(x,y) {
    return new Vector2d(x,y);
 }
 
+// Conversion to radians
+// 60 * degrees gives radians
+const degrees = Math.PI/180;
+const radians = 1.0
+
 Vector2d.prototype = {
    itemNames: ["x","y"],
    makeIterator: function(){ return new Iterator( this );},
    mul(v,y) {
       if( y!==undefined)
          v = Vector2d( v, y);
-      else if( v instanceof Vector2d )
+      if( v instanceof Vector2d )
          return new Vector2d(
             this.x * v.x,
             this.y * v.y
@@ -27,7 +32,7 @@ Vector2d.prototype = {
    div(v,y) {
       if( y!==undefined)
          v = Vector2d( v, y);
-      else if( v instanceof Vector2d )
+      if( v instanceof Vector2d )
          return new Vector2d(
             this.x / v.x,
             this.y / v.y
@@ -40,7 +45,7 @@ Vector2d.prototype = {
    min(v,y) {
       if( y!==undefined)
          v = Vector2d( v, y);
-      else if( v instanceof Vector2d )
+      if( v instanceof Vector2d )
          return new Vector2d(
             Math.min(this.x, v.x),
             Math.min(this.y, v.y)
@@ -53,7 +58,7 @@ Vector2d.prototype = {
    max(v,y) {
       if( y!==undefined)
          v = Vector2d( v, y);
-      else if( (v.x !== undefined) && (v.y !== undefined) )
+      if( v instanceof Vector2d )
          return new Vector2d(
             Math.max(this.x, v.x),
             Math.max(this.y, v.y)
