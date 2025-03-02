@@ -104,7 +104,7 @@ function sidebarArrives(A, url, text)
 
 function loadSource( source )
 {
-  if( !source.match( /^([a-z_0-9A-Z\.])*\.md$/) )
+  if( !source.match( /^([a-z_0-9A-Z\.\-])*\.md$/) )
     return;
   console.log( "Request to load: "+source);
   Loader.loadFromUrl( "foo", Registrar.wikiSrc+source, wikiWordsArrive);
