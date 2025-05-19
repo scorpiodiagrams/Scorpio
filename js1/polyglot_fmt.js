@@ -76,7 +76,7 @@ function inits(){
 
 // Katex format allows LaTeX embedded in a markdown doc.
 function Polyglot_Fmt(){
-  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\]\(|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\- |\r\n\*+ |\*+|\r\n *\- |\r\n\-\-\-\-?|\r\n|,|\r\n~~~|~~)/;
+  this.splitterPattern = /(\r\n> \[!|\]\(|\]|!\[\]\(|!\+\[\[|\[|\r\n>|\r\n\$\$|\$\$|\$|\r\n<|\\[a-zA-Z0-9\_\.]+|\\.|#Hash|#[a-zA-Z0-9]+\(?|\r\n### %[a-zA-Z0-9]+\(?|\r\n#+ |\r\n##+|#`+|#\)|#\*|#\$|#+ |#\/|\)|\(|`+|\+|\-|\r\n\*+ |\*+|\r\n *\- |\r\n\-\-\-\-?|\r\n|,|\r\n~~~|~~)/;
   this.addCommands( "#Code( Code ** Bold * Italic ` Tick #Overlay Overlay #Selected Selected #Buttons Buttons #Kwic Kwic #KwicTitle KwicTitle #VBar1 VBar1 #VBar2 VBar2 #VBar3 VBar3 #VBar4 VBar4 #ImageAs ImageAs #IndentAs IndentAs #Cards Cards #ChunkAs ChunkAs #LinkAs LinkAs #Button( Button #PopBox( PopBox #Pop( Pop #Menu( Menu #Quote( Quote #Action( Action #Tabs( Tabs ``` Section ~~~ Section \r\n Break ![]( Image [ URL #Full( Full #Image( Image2 #Anchor( Anchor #Island( Island #TipLink( TipLink #Tip( Tip #Footnote( Footnote #Hash # #FootnoteRef( FootnoteRef #FootnoteEnd Ignore #Eqn( Eqn #EqnRef( EqnRef #page( Page #ScrollTo( ScrollTo #LittleLogo( LittleLogo #CBox( CBox #UFO( UFO #Rock( Rock #Boat( Boat #Pen( Pen #Sidebar Sidebar #GroupMe( Group #Caption Caption #CloseBrace ) #) ) #* * #` ` #``` ``` #$ $ #/ / #Right( Right #Example( Example #Repo( Repo #ButtonWide( ButtonWide #Jump( Jump #Wiki( Wiki #DropCap( DropCap #DropCapRight( DropCapRight #NoBack( NoBack \r\n---- Hr \r\n--- Hr \r\n> BlockQuote \r\n< BlockQuoteRight ~~ StrikeOut \\Girl 👩🏼 \\Elephant 🐘 \\Boy 👨🏼 \\UFO 🛸 \\Rock 🚀 \\Boat ⛵️ \\Pen 🖋️ \\Diamond 🔹 \\Slush 🔸 \\Cursor4 Cursor4 \r\n$$ Katex $ KatexInline #CommandList CommandList #JatexList JatexList");
   // some can't be done from the split..
   this.fns[ "" ]="Ignore";
@@ -774,6 +774,10 @@ Polyglot_Fmt.prototype ={
           return;
         }
 
+        if( tok == "json"){
+          json_buff = this.capture( ["```"]);
+        }        
+
         // We've had Scheme here a while...
         if( tok == "Scheme"){
           var name = "nut_"+(this.blobCounter++);
@@ -1114,6 +1118,7 @@ Polyglot_Fmt.prototype ={
     var plus = this.eat("+");
     if( !plus )
       plus = !this.eat("-");
+    //plus = false;
     var preload = this.peekTok();
     preload = preload.match(/Toc(\d+)/);
     if( preload ){
